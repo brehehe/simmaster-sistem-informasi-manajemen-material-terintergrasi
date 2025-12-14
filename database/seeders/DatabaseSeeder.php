@@ -1,0 +1,44 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use App\Models\Spatie\Role;
+use Illuminate\Support\Facades\Hash;
+use Database\Seeders\Type\TypeSeeder;
+use Database\Seeders\Type\TypeDetailSeeder;
+use Database\Seeders\User\UserSeeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        Role::create(['name' => 'Admin']);
+        Role::create(['name' => 'Polda']);
+        Role::create(['name' => 'Polres']);
+
+        // User::factory(10)->create();
+
+        $user = User::factory()->create([
+            'name' => 'Admin SIMMASTER',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $user->assignRole('Admin');
+
+        $this->call([
+            TypeSeeder::class,
+            TypeDetailSeeder::class,
+            RegionalPoliceSeeder::class,
+            PoliceStationSeeder::class,
+            UserTypeSeeder::class,
+            UserSeeder::class,
+        ]);
+    }
+}
