@@ -151,8 +151,8 @@
                             </td>
                             <td class="px-4 py-4 text-right whitespace-nowrap">
                                 <span
-                                    class="text-sm font-semibold {{ $history->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                    {{ $history->quantity >= 0 ? '+' : '' }}{{ number_format($history->quantity, 0, ',', '.') }}
+                                    class="text-sm font-semibold {{ $history->status_type == 'out' ? 'text-red-600' : 'text-green-600' }}">
+                                    {{ $history->status_type == 'out' ? '-' : '+' }}{{ number_format($history->quantity, 0, ',', '.') }}
                                 </span>
                             </td>
                             <td class="px-4 py-4 text-sm text-gray-600">

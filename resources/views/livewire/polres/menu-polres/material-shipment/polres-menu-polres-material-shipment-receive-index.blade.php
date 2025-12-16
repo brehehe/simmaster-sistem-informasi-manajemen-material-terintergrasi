@@ -87,7 +87,7 @@
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <div class="p-4 border-b border-gray-100">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-gray-800">Pengiriman Pending</h3>
+                <h3 class="text-lg font-bold text-gray-800">Pengiriman Diterima</h3>
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-600">Tampilkan</span>
                     <select wire:model.live="perPage"

@@ -131,6 +131,16 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polda.material-shipment.create');
         Route::get('menu-polda/material-shipment/edit/{id}', 'MaterialShipment\\Detail\\AdminMenuPoldaMaterialShipmentCreate')
             ->name('menu-polda.material-shipment.edit');
+
+        // Stock Opname
+        Route::get('menu-polda/stock-opname', 'StockOpname\\AdminMenuPoldaStockOpnameIndex')
+            ->name('menu-polda.stock-opname');
+        Route::get('menu-polda/stock-opname/create', 'StockOpname\\Create\\AdminMenuPoldaStockOpnameCreateIndex')
+            ->name('menu-polda.stock-opname.create');
+        Route::get('menu-polda/stock-opname/edit/{id}', 'StockOpname\\Edit\\AdminMenuPoldaStockOpnameEditIndex')
+            ->name('menu-polda.stock-opname.edit');
+        Route::get('menu-polda/stock-opname/detail/{id}', 'StockOpname\\Detail\\AdminMenuPoldaStockOpnameDetailIndex')
+            ->name('menu-polda.stock-opname.detail');
     });
 
     Route::group(['namespace' => 'Stock'], function () {
@@ -142,6 +152,21 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
 
         Route::get('stock/history', 'History\\AdminStockHistoryIndex')
             ->name('stock.history');
+    });
+
+    // Admin Stock Opname Routes
+    Route::group(['prefix' => 'admin/stock-opname', 'namespace' => 'StockOpname'], function () {
+        Route::get('/', 'AdminStockOpnameIndex')
+            ->name('admin.stock-opname');
+
+        Route::get('/create', 'AdminStockOpnameCreate')
+            ->name('admin.stock-opname.create');
+
+        Route::get('/{id}/edit', 'AdminStockOpnameEdit')
+            ->name('admin.stock-opname.edit');
+
+        Route::get('/{id}', 'Detail\\AdminStockOpnameDetailIndex')
+            ->name('admin.stock-opname.detail');
     });
 });
 

@@ -36,7 +36,7 @@
         <div class="p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Utama</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? 3 : 2 }} gap-6 mb-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Kode <span class="text-red-500">*</span>
@@ -134,7 +134,9 @@
                                             <option value="">-- Pilih Stock --</option>
                                             @foreach ($stockDetails as $stock)
                                                 <option value="{{ $stock->id }}">
-                                                    {{ $stock->type->name ?? '' }} - {{ $stock->typeDetail->name ?? '' }} {{ $stock->rack->name ?? 'Tanpa Rak' }} {{ $stock->code }}
+                                                    {{ $stock->type->name ?? '' }} -
+                                                    {{ $stock->typeDetail->name ?? '' }}
+                                                    {{ $stock->rack->name ?? 'Tanpa Rak' }} {{ $stock->code }}
                                                     ({{ $stock->quantity }})
                                                 </option>
                                             @endforeach
