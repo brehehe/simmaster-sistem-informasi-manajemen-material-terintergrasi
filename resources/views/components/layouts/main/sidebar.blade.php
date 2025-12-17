@@ -1,6 +1,6 @@
 <aside
     class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 shadow-2xl transition-transform duration-300 ease-in-out"
-    :class="(sidebarCollapsed && !sidebarOpen) ? '-translate-x-full' : 'translate-x-0'">
+    :class="sidebarOpen ? 'translate-x-0' : (sidebarCollapsed ? '-translate-x-full' : '-translate-x-full lg:translate-x-0')">
 
     <!-- Sidebar Header (Fixed Top) -->
     <div class="flex h-20 shrink-0 items-center justify-between border-b border-blue-700/50 px-6">
