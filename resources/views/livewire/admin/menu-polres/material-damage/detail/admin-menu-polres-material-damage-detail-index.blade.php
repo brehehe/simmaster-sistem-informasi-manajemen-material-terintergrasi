@@ -4,9 +4,9 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-blue-600">
-                    {{ $isEditMode ? 'Edit' : 'Tambah' }} Material Rusak/Hilang
+                    {{ $isEditMode ? 'Edit' : 'Tambah' }} Material Rusak
                 </h1>
-                <p class="text-gray-500 mt-1">Kelola material rusak/hilang dengan tracking pengurangan stock (Batch)</p>
+                <p class="text-gray-500 mt-1">Kelola material rusak dengan tracking pengurangan stock (Batch)</p>
             </div>
             <a href="{{ route('menu-polres.material-damage') }}" wire:navigate
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
@@ -176,7 +176,7 @@
                                         <select wire:model="details.{{ $index }}.damage_type"
                                             class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white transition-all duration-200">
                                             <option value="damaged">🔴 Rusak</option>
-                                            <option value="lost">⚠️ Hilang</option>
+                                            {{-- <option value="lost">⚠️ Hilang</option> --}}
                                         </select>
                                         @error("details.{$index}.damage_type")
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -225,7 +225,7 @@
                                             Alasan / Keterangan <span class="text-red-500">*</span>
                                         </label>
                                         <textarea wire:model="details.{{ $index }}.reason" rows="3"
-                                            placeholder="Jelaskan alasan/keterangan kerusakan atau kehilangan..."
+                                            placeholder="Jelaskan alasan/keterangan kerusakan..."
                                             class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 resize-none"></textarea>
                                         @error("details.{$index}.reason")
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

@@ -10,7 +10,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold text-white">SIMMASTER</h1>
-                <p class="text-xs text-blue-300">Sistem Informasi Manajemen Material Terintergrasi</p>
+                <p class="text-xs text-blue-300">Sistem Informasi Manajemen Material Terintergrasi SBST</p>
             </div>
         </a>
         <button @click="sidebarOpen = false"
