@@ -31,7 +31,7 @@ class AdminMenuPoldaStockOpnameEditIndex extends Component
         // Check if opname is draft
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa diedit.');
-            return redirect()->route('admin.stock-opname');
+            return $this->redirect(route('admin.stock-opname'), navigate: true);
         }
 
         $this->opname_date = $this->opname->opname_date->format('Y-m-d');
@@ -78,7 +78,7 @@ class AdminMenuPoldaStockOpnameEditIndex extends Component
         $this->opname->refresh();
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa diedit.');
-            return redirect()->route('admin.stock-opname');
+            return $this->redirect(route('admin.stock-opname'), navigate: true);
         }
 
         DB::transaction(function () {
@@ -100,7 +100,7 @@ class AdminMenuPoldaStockOpnameEditIndex extends Component
             session()->flash('success', 'Stock opname berhasil diupdate.');
         });
 
-        return redirect()->route('menu-polda.stock-opname');
+        return $this->redirect(route('menu-polda.stock-opname'), navigate: true);
     }
 
     public function render()

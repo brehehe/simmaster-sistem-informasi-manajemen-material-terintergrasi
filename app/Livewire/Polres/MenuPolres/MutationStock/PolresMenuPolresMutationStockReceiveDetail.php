@@ -55,7 +55,7 @@ class PolresMenuPolresMutationStockReceiveDetail extends Component
 
             session()->flash('success', 'Mutasi stock berhasil diterima! Stock telah ditambahkan ke inventory Anda.');
 
-            return redirect()->route('menu-polres.mutation-stock.receive');
+            return $this->redirect(route('menu-polres.mutation-stock.receive'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Error: ' . $e->getMessage());
         }

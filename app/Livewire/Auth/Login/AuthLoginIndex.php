@@ -18,13 +18,19 @@ class AuthLoginIndex extends Component
 
     public bool $remember = false;
 
+    public function mount() {
+        if (Auth::check()) {
+            return $this->redirect(route('dashboard'), navigate: true);
+        }
+    }
+
     public function login()
     {
         $this->validate();
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             session()->regenerate();
-            return $this->redirect('/dashboard', navigate: true);
+            return $this->redirect(route('dashboard'), navigate: true);
         }
 
         $this->addError('email', 'Email atau password salah.');

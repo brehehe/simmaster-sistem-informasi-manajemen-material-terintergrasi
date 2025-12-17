@@ -327,6 +327,14 @@
                 </svg>
             </button>
             <div x-show="open" x-collapse class="mt-1 space-y-1">
+                @if(Auth::user()->hasRole(['Admin','Polda']))
+                <a href="{{ route('report.reception-regional-police') }}" wire:navigate
+                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.reception-regional-police', 'report.reception-regional-police.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                    <span
+                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.reception-regional-police', 'report.reception-regional-police.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                    Laporan Penerimaan Polda
+                </a>
+                @endif
                 <a href="{{ route('report.delivery') }}" wire:navigate
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.delivery', 'report.delivery.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
@@ -362,6 +370,24 @@
                     <span
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.stock-out') ? 'bg-white' : 'bg-blue-400' }}"></span>
                     Laporan Stok Keluar
+                </a>
+                <a href="{{ route('report.material-usage') }}" wire:navigate
+                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.material-usage') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                    <span
+                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.material-usage') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                    Laporan Material Digunakan
+                </a>
+                <a href="{{ route('report.material-damage') }}" wire:navigate
+                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.material-damage') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                    <span
+                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.material-damage') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                    Laporan Material Rusak
+                </a>
+                <a href="{{ route('report.mutation') }}" wire:navigate
+                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.mutation') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                    <span
+                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.mutation') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                    Laporan Mutasi Stock
                 </a>
             </div>
         </div>

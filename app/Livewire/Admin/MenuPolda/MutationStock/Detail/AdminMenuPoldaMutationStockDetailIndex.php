@@ -275,7 +275,7 @@ class AdminMenuPoldaMutationStockDetailIndex extends Component
                 }
             });
 
-            return redirect()->route('menu-polda.mutation-stock');
+            return $this->redirect(route('menu-polda.mutation-stock'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Error: ' . $e->getMessage());
         }

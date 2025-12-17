@@ -288,7 +288,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             DB::commit();
 
             session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
-            return redirect()->route('menu-polda.reception');
+            return $this->redirect(route('menu-polda.reception'), navigate: true);
         } catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());

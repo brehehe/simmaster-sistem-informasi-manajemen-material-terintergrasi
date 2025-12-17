@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Report\Delivery;
 
+use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\Police\PoliceStation;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,170 +14,102 @@ class AdminReportDeliveryIndex extends Component
     public $search = '';
     public $perPage = 10;
     public $filterStatus = '';
+    public $filterPolres = '';
+    public $startDate = '';
+    public $endDate = '';
 
-    // Dummy data untuk pengiriman - ke kota-kota Jatim
+    // Get deliveries from MaterialShipment table
     public function getDeliveriesProperty()
     {
-        $deliveries = collect([
-            [
-                'id' => 1,
-                'no_surat_jalan' => 'SJ-2024-001',
-                'tanggal_kirim' => '2024-12-01',
-                'tujuan' => 'Polres Surabaya',
-                'alamat' => 'Jl. Sikatan No. 1, Surabaya',
-                'total_item' => 5,
-                'total_unit' => 1500,
-                'kurir' => 'Bripka Andi',
-                'kendaraan' => 'L 1234 POL',
-                'status' => 'Terkirim',
-                'tanggal_terima' => '2024-12-01',
-            ],
-            [
-                'id' => 2,
-                'no_surat_jalan' => 'SJ-2024-002',
-                'tanggal_kirim' => '2024-12-02',
-                'tujuan' => 'Polres Malang',
-                'alamat' => 'Jl. Jaksa Agung Suprapto No. 19, Malang',
-                'total_item' => 4,
-                'total_unit' => 1200,
-                'kurir' => 'Aipda Bambang',
-                'kendaraan' => 'L 5678 POL',
-                'status' => 'Terkirim',
-                'tanggal_terima' => '2024-12-02',
-            ],
-            [
-                'id' => 3,
-                'no_surat_jalan' => 'SJ-2024-003',
-                'tanggal_kirim' => '2024-12-03',
-                'tujuan' => 'Polres Sidoarjo',
-                'alamat' => 'Jl. Pahlawan No. 1, Sidoarjo',
-                'total_item' => 4,
-                'total_unit' => 1000,
-                'kurir' => 'Brigadir Cahyo',
-                'kendaraan' => 'L 9012 POL',
-                'status' => 'Terkirim',
-                'tanggal_terima' => '2024-12-03',
-            ],
-            [
-                'id' => 4,
-                'no_surat_jalan' => 'SJ-2024-004',
-                'tanggal_kirim' => '2024-12-04',
-                'tujuan' => 'Polres Gresik',
-                'alamat' => 'Jl. Dr. Wahidin Sudirohusodo No. 245, Gresik',
-                'total_item' => 6,
-                'total_unit' => 1800,
-                'kurir' => 'Aiptu Dodi',
-                'kendaraan' => 'L 3456 POL',
-                'status' => 'Terkirim',
-                'tanggal_terima' => '2024-12-04',
-            ],
-            [
-                'id' => 5,
-                'no_surat_jalan' => 'SJ-2024-005',
-                'tanggal_kirim' => '2024-12-05',
-                'tujuan' => 'Polres Kediri',
-                'alamat' => 'Jl. Basuki Rahmat No. 1, Kediri',
-                'total_item' => 4,
-                'total_unit' => 900,
-                'kurir' => 'Bripka Eko',
-                'kendaraan' => 'L 7890 POL',
-                'status' => 'Terkirim',
-                'tanggal_terima' => '2024-12-05',
-            ],
-            [
-                'id' => 6,
-                'no_surat_jalan' => 'SJ-2024-006',
-                'tanggal_kirim' => '2024-12-06',
-                'tujuan' => 'Polres Mojokerto',
-                'alamat' => 'Jl. RA Basuni No. 7, Mojokerto',
-                'total_item' => 5,
-                'total_unit' => 1100,
-                'kurir' => 'Aipda Faisal',
-                'kendaraan' => 'L 2345 POL',
-                'status' => 'Dalam Perjalanan',
-                'tanggal_terima' => null,
-            ],
-            [
-                'id' => 7,
-                'no_surat_jalan' => 'SJ-2024-007',
-                'tanggal_kirim' => '2024-12-07',
-                'tujuan' => 'Polres Jember',
-                'alamat' => 'Jl. Dr. Subandi No. 36, Jember',
-                'total_item' => 3,
-                'total_unit' => 750,
-                'kurir' => 'Brigadir Gunawan',
-                'kendaraan' => 'L 6789 POL',
-                'status' => 'Dalam Perjalanan',
-                'tanggal_terima' => null,
-            ],
-            [
-                'id' => 8,
-                'no_surat_jalan' => 'SJ-2024-008',
-                'tanggal_kirim' => '2024-12-08',
-                'tujuan' => 'Polres Banyuwangi',
-                'alamat' => 'Jl. A. Yani No. 1, Banyuwangi',
-                'total_item' => 7,
-                'total_unit' => 2000,
-                'kurir' => 'Aiptu Hendrik',
-                'kendaraan' => 'L 0123 POL',
-                'status' => 'Diproses',
-                'tanggal_terima' => null,
-            ],
-            [
-                'id' => 9,
-                'no_surat_jalan' => 'SJ-2024-009',
-                'tanggal_kirim' => '2024-12-09',
-                'tujuan' => 'Polres Madiun',
-                'alamat' => 'Jl. Pahlawan No. 45, Madiun',
-                'total_item' => 4,
-                'total_unit' => 850,
-                'kurir' => 'Bripka Irwan',
-                'kendaraan' => 'L 4567 POL',
-                'status' => 'Diproses',
-                'tanggal_terima' => null,
-            ],
-            [
-                'id' => 10,
-                'no_surat_jalan' => 'SJ-2024-010',
-                'tanggal_kirim' => '2024-12-09',
-                'tujuan' => 'Polres Blitar',
-                'alamat' => 'Jl. Sudanco Supriyadi No. 25, Blitar',
-                'total_item' => 2,
-                'total_unit' => 500,
-                'kurir' => 'Aipda Joko',
-                'kendaraan' => 'L 8901 POL',
-                'status' => 'Pending',
-                'tanggal_terima' => null,
-            ],
-        ]);
+        $query = MaterialShipment::with([
+            'senderRegionalPolice',
+            'receiverPoliceStation',
+            'materialShipmentDetails.typeDetail',
+            'receivedByUser'
+        ])
+            ->where('is_active', true)
+            ->where('status', '!=', 'draft'); // Only show shipped/received shipments
 
-        // Filter by search
+        // Search filter
         if ($this->search) {
-            $deliveries = $deliveries->filter(function ($item) {
-                return str_contains(strtolower($item['tujuan']), strtolower($this->search)) ||
-                       str_contains(strtolower($item['no_surat_jalan']), strtolower($this->search)) ||
-                       str_contains(strtolower($item['kurir']), strtolower($this->search));
+            $query->where(function ($q) {
+                $q->where('code', 'like', '%' . $this->search . '%')
+                    ->orWhere('courier_name', 'like', '%' . $this->search . '%')
+                    ->orWhere('vehicle_number', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('receiverPoliceStation', function ($polres) {
+                        $polres->where('name', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
-        // Filter by status
+        // Status filter
         if ($this->filterStatus) {
-            $deliveries = $deliveries->filter(function ($item) {
-                return $item['status'] === $this->filterStatus;
-            });
+            $query->where('status', $this->filterStatus);
         }
 
-        return $deliveries->values();
+        // Polres filter
+        if ($this->filterPolres) {
+            $query->where('receiver_police_station_id', $this->filterPolres);
+        }
+
+        // Date range filter
+        if ($this->startDate) {
+            $query->whereDate('shipment_date', '>=', $this->startDate);
+        }
+        if ($this->endDate) {
+            $query->whereDate('shipment_date', '<=', $this->endDate);
+        }
+
+        return $query->latest('shipment_date')
+            ->paginate($this->perPage);
     }
 
     public function getStatusesProperty()
     {
         return [
-            'Terkirim',
-            'Dalam Perjalanan',
-            'Diproses',
-            'Pending',
+            'shipped' => 'Dalam Perjalanan',
+            'received' => 'Terkirim',
         ];
+    }
+
+    public function getPoliceStationsProperty()
+    {
+        return PoliceStation::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    // Summary statistics
+    public function getTotalShipmentsProperty()
+    {
+        return $this->deliveries->total();
+    }
+
+    public function getReceivedCountProperty()
+    {
+        return MaterialShipment::where('is_active', true)
+            ->where('status', 'received')
+            ->when($this->startDate, fn($q) => $q->whereDate('shipment_date', '>=', $this->startDate))
+            ->when($this->endDate, fn($q) => $q->whereDate('shipment_date', '<=', $this->endDate))
+            ->count();
+    }
+
+    public function getInTransitCountProperty()
+    {
+        return MaterialShipment::where('is_active', true)
+            ->where('status', 'shipped')
+            ->when($this->startDate, fn($q) => $q->whereDate('shipment_date', '>=', $this->startDate))
+            ->when($this->endDate, fn($q) => $q->whereDate('shipment_date', '<=', $this->endDate))
+            ->count();
+    }
+
+    public function getTotalUnitsProperty()
+    {
+        $shipmentIds = $this->deliveries->pluck('id');
+
+        return \DB::table('material_shipment_details')
+            ->whereIn('material_shipment_id', $shipmentIds)
+            ->sum('quantity');
     }
 
     public function updatingSearch()
@@ -188,9 +122,16 @@ class AdminReportDeliveryIndex extends Component
         $this->resetPage();
     }
 
+    public function updatingFilterPolres()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        return view('livewire.admin.report.delivery.admin-report-delivery-index')
+        return view('livewire.admin.report.delivery.admin-report-delivery-index', [
+            'deliveries' => $this->deliveries,
+        ])
             ->layout('components.layouts.main.app');
     }
 }

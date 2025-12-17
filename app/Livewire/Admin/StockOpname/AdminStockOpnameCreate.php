@@ -166,7 +166,7 @@ class AdminStockOpnameCreate extends Component
             session()->flash('success', 'Stock opname berhasil dibuat dengan kode: ' . $code);
         });
 
-        return redirect()->route('admin.stock-opname');
+        return $this->redirect(route('admin.stock-opname'), navigate: true);
     }
 
     public function render()

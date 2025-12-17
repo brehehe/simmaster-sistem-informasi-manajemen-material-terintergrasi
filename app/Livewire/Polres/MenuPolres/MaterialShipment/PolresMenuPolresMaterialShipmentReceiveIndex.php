@@ -33,7 +33,7 @@ class PolresMenuPolresMaterialShipmentReceiveIndex extends Component
         }
 
         // Redirect to detail page
-        return redirect()->route('menu-polres.material-shipment.receive.detail', ['id' => $shipment->id]);
+        return $this->redirect(route('menu-polres.material-shipment.receive.detail', ['id' => $shipment->id]), navigate: true);
     }
 
     public function render()

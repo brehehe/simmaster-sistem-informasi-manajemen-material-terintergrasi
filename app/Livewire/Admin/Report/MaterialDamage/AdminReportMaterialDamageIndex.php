@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Livewire\Admin\Report\StockOpname;
+namespace App\Livewire\Admin\Report\MaterialDamage;
 
-use App\Models\StockOpname\StockOpname;
+use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Auth;
 
-class AdminReportStockOpnameIndex extends Component
+class AdminReportMaterialDamageIndex extends Component
 {
     use WithPagination;
 
@@ -19,20 +20,28 @@ class AdminReportStockOpnameIndex extends Component
     public $startDate = '';
     public $endDate = '';
 
-    public function getOpnamesProperty()
+    public function getDamagesProperty()
     {
-        $query = StockOpname::with([
+        $query = MaterialDamage::with([
             'regionalPolice',
             'policeStation',
-            'stockOpnameDetails.typeDetail'
+            'materialDamageDetails.typeDetail'
         ])
             ->where('is_active', true);
+
+        if(Auth::user()->hasRole('Polda')) {
+            $query->where('regional_police_id', Auth::user()->regional_police_id)->whereNull('police_station_id');
+        }
+
+        if(Auth::user()->hasRole('Polres')) {
+            $query->where('police_station_id', Auth::user()->police_station_id);
+        }
 
         // Search
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('notes', 'like', '%' . $this->search . '%')
+                    ->orWhere('description', 'like', '%' . $this->search . '%')
                     ->orWhereHas('regionalPolice', function ($polda) {
                         $polda->where('name', 'like', '%' . $this->search . '%');
                     })
@@ -57,13 +66,13 @@ class AdminReportStockOpnameIndex extends Component
 
         // Date range
         if ($this->startDate) {
-            $query->whereDate('opname_date', '>=', $this->startDate);
+            $query->whereDate('date', '>=', $this->startDate);
         }
         if ($this->endDate) {
-            $query->whereDate('opname_date', '<=', $this->endDate);
+            $query->whereDate('date', '<=', $this->endDate);
         }
 
-        return $query->latest('opname_date')->paginate($this->perPage);
+        return $query->latest('date')->paginate($this->perPage);
     }
 
     public function getLocationsProperty()
@@ -77,24 +86,32 @@ class AdminReportStockOpnameIndex extends Component
     public function getStatusesProperty()
     {
         return [
-            'draft' => 'Draft',
-            'completed' => 'Selesai',
+            'reported' => 'Dilaporkan',
+            'under_review' => 'Dalam Pemeriksaan',
             'approved' => 'Disetujui',
+            'disposed' => 'Dimusnahkan',
         ];
     }
 
     // Summary statistics
-    public function getTotalOpnamesProperty()
+    public function getTotalDamagesProperty()
     {
-        return $this->opnames->total();
+        return $this->damages->total();
     }
 
-    public function getCompletedCountProperty()
+    public function getTotalUnitsProperty()
     {
-        return StockOpname::where('is_active', true)
-            ->where('status', 'completed')
-            ->when($this->startDate, fn($q) => $q->whereDate('opname_date', '>=', $this->startDate))
-            ->when($this->endDate, fn($q) => $q->whereDate('opname_date', '<=', $this->endDate))
+        $damageIds = $this->damages->pluck('id');
+
+        return \DB::table('material_damage_details')
+            ->whereIn('material_damage_id', $damageIds)
+            ->sum('quantity');
+    }
+
+    public function getTodayDamagesProperty()
+    {
+        return MaterialDamage::where('is_active', true)
+            ->whereDate('date', today())
             ->count();
     }
 
@@ -115,8 +132,8 @@ class AdminReportStockOpnameIndex extends Component
 
     public function render()
     {
-        return view('livewire.admin.report.stock-opname.admin-report-stock-opname-index', [
-            'opnames' => $this->opnames,
+        return view('livewire.admin.report.material-damage.admin-report-material-damage-index', [
+            'damages' => $this->damages,
         ])
             ->layout('components.layouts.main.app');
     }

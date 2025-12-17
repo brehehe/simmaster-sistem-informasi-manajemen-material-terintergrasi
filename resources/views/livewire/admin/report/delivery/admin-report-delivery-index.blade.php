@@ -4,12 +4,12 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-cyan-600">
-                    Laporan Pengiriman
+                    Laporan Pengiriman Material
                 </h1>
-                <p class="text-gray-500 mt-1">Monitoring pengiriman barang ke satuan kerja</p>
+                <p class="text-gray-500 mt-1">Monitoring pengiriman material ke satuan kerja</p>
             </div>
             <div class="flex gap-2">
-                <button
+                <button onclick="exportToExcel('deliveryReportTable', 'laporan-pengiriman')"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -19,6 +19,7 @@
                     Export Excel
                 </button>
                 <button
+                    onclick="exportToPDF({ tableId: 'deliveryReportTable', title: 'Laporan Pengiriman Material', filename: 'laporan-pengiriman', summaryCards: [{ label: 'Total', value: '{{ $this->totalShipments }}' }, { label: 'Terkirim', value: '{{ $this->receivedCount }}' }, { label: 'Dalam Perjalanan', value: '{{ $this->inTransitCount }}' }] })"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -38,7 +39,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-cyan-100 text-sm">Total Pengiriman</p>
-                    <p class="text-3xl font-bold mt-1">{{ count($this->deliveries) }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ $this->totalShipments }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -54,8 +55,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-green-100 text-sm">Terkirim</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ collect($this->deliveries)->where('status', 'Terkirim')->count() }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ $this->receivedCount }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -70,8 +70,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-amber-100 text-sm">Dalam Perjalanan</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ collect($this->deliveries)->where('status', 'Dalam Perjalanan')->count() }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ $this->inTransitCount }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -87,8 +86,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-100 text-sm">Total Unit Dikirim</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ number_format(collect($this->deliveries)->sum('total_unit')) }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ number_format($this->totalUnits) }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -106,7 +104,7 @@
         <!-- Search & Filter Header -->
         <div class="p-4 border-b border-gray-100">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
                     <div class="flex items-center gap-2">
                         <span class="text-sm text-gray-600">Tampilkan</span>
                         <select wire:model.live="perPage"
@@ -121,15 +119,22 @@
                     <select wire:model.live="filterStatus"
                         class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
                         <option value="">Semua Status</option>
-                        @foreach ($this->statuses as $status)
-                            <option value="{{ $status }}">{{ $status }}</option>
+                        @foreach ($this->statuses as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <select wire:model.live="filterPolres"
+                        class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                        <option value="">Semua Polres</option>
+                        @foreach ($this->policeStations as $polres)
+                            <option value="{{ $polres->id }}">{{ $polres->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="relative w-full md:w-80">
                     <input wire:model.live.debounce.300ms="search" type="text"
-                        placeholder="Cari no surat jalan, tujuan atau kurir..."
+                        placeholder="Cari kode, tujuan atau kurir..."
                         class="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
                 </div>
             </div>
@@ -137,12 +142,12 @@
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full" id="deliveryReportTable">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No
-                            Surat Jalan</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
+                            Pengiriman</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
                             Kirim</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tujuan
@@ -151,95 +156,67 @@
                             Total Item</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Total Unit</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kurir
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Kendaraan</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Status</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($this->deliveries as $index => $item)
+                    @forelse ($deliveries as $index => $shipment)
                         <tr class="hover:bg-cyan-50/50 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $index + 1 }}
+                                {{ $deliveries->firstItem() + $index }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-100 text-cyan-700">
-                                    {{ $item['no_surat_jalan'] }}
+                                    {{ $shipment->code }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ \Carbon\Carbon::parse($item['tanggal_kirim'])->format('d M Y') }}
+                                {{ $shipment->shipment_date ? Carbon\Carbon::parse($shipment->shipment_date)->format('d M Y') : '-' }}
                             </td>
                             <td class="px-6 py-4">
                                 <div>
-                                    <div class="font-medium text-gray-900">{{ $item['tujuan'] }}</div>
-                                    <div class="text-xs text-gray-500 truncate max-w-xs">{{ $item['alamat'] }}</div>
+                                    <div class="font-medium text-gray-900">
+                                        {{ $shipment->receiverPoliceStation->name ?? '-' }}</div>
+                                    <div class="text-xs text-gray-500 truncate max-w-xs">
+                                        {{ $shipment->receiverPoliceStation->address ?? '-' }}</div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700">
-                                    {{ $item['total_item'] }} jenis
+                                    {{ $shipment->materialShipmentDetails->count() }} jenis
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-700">
-                                    {{ number_format($item['total_unit']) }} unit
+                                    {{ number_format($shipment->materialShipmentDetails->sum('quantity')) }} unit
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $item['kurir'] }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $item['kendaraan'] }}
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if ($item['status'] === 'Terkirim')
+                                @if ($shipment->status === 'received')
                                     <span
                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                        {{ $item['status'] }}
+                                        Terkirim
                                     </span>
-                                @elseif($item['status'] === 'Dalam Perjalanan')
+                                @elseif($shipment->status === 'shipped')
                                     <span
                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                                        {{ $item['status'] }}
-                                    </span>
-                                @elseif($item['status'] === 'Diproses')
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                                        {{ $item['status'] }}
+                                        Dalam Perjalanan
                                     </span>
                                 @else
                                     <span
                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                                        {{ $item['status'] }}
+                                        {{ ucfirst($shipment->status) }}
                                     </span>
                                 @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <a href="#"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20"
-                                        fill="currentColor">
-                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                        <path fill-rule="evenodd"
-                                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    Detail
-                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="p-10 text-center">
+                            <td colspan="9" class="p-10 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -256,11 +233,13 @@
             </table>
         </div>
 
-        <!-- Footer -->
+        <!-- Pagination -->
         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-            <div class="text-sm text-gray-600">
-                Menampilkan <span class="font-semibold">{{ count($this->deliveries) }}</span> hasil
-            </div>
+            {{ $deliveries->links() }}
         </div>
     </div>
 </div>
+
+@push('scripts')
+    <script src="{{ asset('js/report-export.js') }}"></script>
+@endpush

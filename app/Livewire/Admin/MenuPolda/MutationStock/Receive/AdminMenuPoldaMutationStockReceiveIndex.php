@@ -40,7 +40,7 @@ class AdminMenuPoldaMutationStockReceiveIndex extends Component
         }
 
         // Redirect to detail page
-        return redirect()->route('menu-polda.mutation-stock.receive.detail', ['id' => $mutation->id]);
+        return $this->redirect(route('menu-polda.mutation-stock.receive.detail', ['id' => $mutation->id]), navigate: true);
     }
 
     public function render()

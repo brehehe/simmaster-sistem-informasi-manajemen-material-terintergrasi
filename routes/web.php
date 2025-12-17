@@ -47,6 +47,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
     });
 
     Route::group(['namespace' => 'Report'], function () {
+        Route::get('report/reception-regional-police', 'ReceptionRegionalPolice\\AdminReportReceptionRegionalPoliceIndex')
+            ->name('report.reception-regional-police');
+
         Route::get('report/delivery', 'Delivery\\AdminReportDeliveryIndex')
             ->name('report.delivery');
 
@@ -73,6 +76,15 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
 
         Route::get('report/stock-out', 'StockOut\\AdminReportStockOutIndex')
             ->name('report.stock-out');
+
+        Route::get('report/material-usage', 'MaterialUsage\\AdminReportMaterialUsageIndex')
+            ->name('report.material-usage');
+
+        Route::get('report/material-damage', 'MaterialDamage\\AdminReportMaterialDamageIndex')
+            ->name('report.material-damage');
+
+        Route::get('report/mutation', 'Mutation\\AdminReportMutationIndex')
+            ->name('report.mutation');
     });
 
     Route::group(['namespace' => 'MenuPolda'], function () {

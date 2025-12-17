@@ -47,7 +47,7 @@ class PolresMenuPolresMaterialShipmentReceiveDetail extends Component
 
             session()->flash('success', 'Pengiriman berhasil diterima! Stock telah ditambahkan ke inventory Polres Anda.');
 
-            return redirect()->route('menu-polres.material-shipment.receive');
+            return $this->redirect(route('menu-polres.material-shipment.receive'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Error: ' . $e->getMessage());
         }

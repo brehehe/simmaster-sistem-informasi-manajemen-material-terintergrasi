@@ -4,7 +4,9 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{ $title ?? 'SBST - Sistem Distribusi' }}</title>
+        <title>{{ $title ?? 'SIMMASTER - Sistem Informasi Manajemen Material SBST Terintegrasi' }}</title>
+
+        <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
@@ -157,6 +159,11 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js"></script>
 
         @stack('scripts')
+
+        <!-- Export Libraries CDN -->
+        <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     </body>
 
 </html>

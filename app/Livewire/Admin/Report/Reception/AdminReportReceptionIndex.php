@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Report\Reception;
 
+use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\Police\PoliceStation;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,161 +13,89 @@ class AdminReportReceptionIndex extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $filterStatus = '';
+    public $filterPolres = '';
+    public$startDate = '';
+    public $endDate = '';
 
-    // Dummy data untuk penerimaan - Polda Jatim
+    // Get receptions from MaterialShipment table (received status only)
     public function getReceptionsProperty()
     {
-        $receptions = collect([
-            [
-                'id' => 1,
-                'no_penerimaan' => 'REC-2024-001',
-                'tanggal_terima' => '2024-12-01',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-001',
-                'total_item' => 8,
-                'total_unit' => 5000,
-                'penerima' => 'Iptu Ahmad Sudrajat',
-                'kondisi' => 'Baik',
-                'status' => 'Terverifikasi',
-            ],
-            [
-                'id' => 2,
-                'no_penerimaan' => 'REC-2024-002',
-                'tanggal_terima' => '2024-12-02',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-002',
-                'total_item' => 5,
-                'total_unit' => 3500,
-                'penerima' => 'Aipda Budi Santoso',
-                'kondisi' => 'Baik',
-                'status' => 'Terverifikasi',
-            ],
-            [
-                'id' => 3,
-                'no_penerimaan' => 'REC-2024-003',
-                'tanggal_terima' => '2024-12-03',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-003',
-                'total_item' => 6,
-                'total_unit' => 4000,
-                'penerima' => 'Brigadir Cahyo Wibowo',
-                'kondisi' => 'Baik',
-                'status' => 'Terverifikasi',
-            ],
-            [
-                'id' => 4,
-                'no_penerimaan' => 'REC-2024-004',
-                'tanggal_terima' => '2024-12-04',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-004',
-                'total_item' => 4,
-                'total_unit' => 2500,
-                'penerima' => 'Iptu Dedi Kurniawan',
-                'kondisi' => 'Baik',
-                'status' => 'Terverifikasi',
-            ],
-            [
-                'id' => 5,
-                'no_penerimaan' => 'REC-2024-005',
-                'tanggal_terima' => '2024-12-05',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-005',
-                'total_item' => 7,
-                'total_unit' => 4500,
-                'penerima' => 'Aiptu Eko Prasetyo',
-                'kondisi' => 'Baik',
-                'status' => 'Terverifikasi',
-            ],
-            [
-                'id' => 6,
-                'no_penerimaan' => 'REC-2024-006',
-                'tanggal_terima' => '2024-12-06',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-006',
-                'total_item' => 3,
-                'total_unit' => 2000,
-                'penerima' => 'Brigadir Faisal Rahman',
-                'kondisi' => 'Baik',
-                'status' => 'Terverifikasi',
-            ],
-            [
-                'id' => 7,
-                'no_penerimaan' => 'REC-2024-007',
-                'tanggal_terima' => '2024-12-07',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-007',
-                'total_item' => 5,
-                'total_unit' => 3000,
-                'penerima' => 'Aipda Gunawan Wijaya',
-                'kondisi' => 'Ada Cacat Minor',
-                'status' => 'Dalam Review',
-            ],
-            [
-                'id' => 8,
-                'no_penerimaan' => 'REC-2024-008',
-                'tanggal_terima' => '2024-12-08',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-008',
-                'total_item' => 4,
-                'total_unit' => 2800,
-                'penerima' => 'Iptu Hendrik Susanto',
-                'kondisi' => 'Baik',
-                'status' => 'Dalam Review',
-            ],
-            [
-                'id' => 9,
-                'no_penerimaan' => 'REC-2024-009',
-                'tanggal_terima' => '2024-12-09',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-009',
-                'total_item' => 8,
-                'total_unit' => 5500,
-                'penerima' => 'Brigadir Irwan Setiawan',
-                'kondisi' => 'Baik',
-                'status' => 'Pending',
-            ],
-            [
-                'id' => 10,
-                'no_penerimaan' => 'REC-2024-010',
-                'tanggal_terima' => '2024-12-09',
-                'asal' => 'Gudang Pusat Korlantas Mabes Polri',
-                'no_surat_jalan' => 'SJ-KORLANTAS-2024-010',
-                'total_item' => 6,
-                'total_unit' => 3800,
-                'penerima' => 'Aiptu Joko Widodo',
-                'kondisi' => 'Baik',
-                'status' => 'Pending',
-            ],
-        ]);
+        $query = MaterialShipment::with([
+            'senderRegionalPolice',
+            'receiverPoliceStation',
+            'materialShipmentDetails.typeDetail',
+            'receivedByUser'
+        ])
+            ->where('is_active', true)
+            ->where('status', 'received'); // Only received shipments
 
-        // Filter by search
+        // Search filter
         if ($this->search) {
-            $receptions = $receptions->filter(function ($item) {
-                return str_contains(strtolower($item['asal']), strtolower($this->search)) ||
-                       str_contains(strtolower($item['no_penerimaan']), strtolower($this->search)) ||
-                       str_contains(strtolower($item['no_surat_jalan']), strtolower($this->search)) ||
-                       str_contains(strtolower($item['penerima']), strtolower($this->search));
+            $query->where(function ($q) {
+                $q->where('code', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('receiverPoliceStation', function ($polres) {
+                        $polres->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('receivedByUser', function ($user) {
+                        $user->where('name', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
-        // Filter by status
-        if ($this->filterStatus) {
-            $receptions = $receptions->filter(function ($item) {
-                return $item['status'] === $this->filterStatus;
-            });
+        // Polres filter
+        if ($this->filterPolres) {
+            $query->where('receiver_police_station_id', $this->filterPolres);
         }
 
-        return $receptions->values();
+        // Date range filter
+        if ($this->startDate) {
+            $query->whereDate('received_at', '>=', $this->startDate);
+        }
+        if ($this->endDate) {
+            $query->whereDate('received_at', '<=', $this->endDate);
+        }
+
+        return $query->latest('received_at')
+            ->paginate($this->perPage);
     }
 
-    public function getStatusesProperty()
+    public function getPoliceStationsProperty()
     {
-        return [
-            'Terverifikasi',
-            'Dalam Review',
-            'Pending',
-        ];
+        return PoliceStation::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    // Summary statistics
+    public function getTotalReceptionsProperty()
+    {
+        return $this->receptions->total();
+    }
+
+    public function getTotalUnitsProperty()
+    {
+        $receptionIds = $this->receptions->pluck('id');
+
+        return \DB::table('material_shipment_details')
+            ->whereIn('material_shipment_id', $receptionIds)
+            ->sum('quantity');
+    }
+
+    public function getTodayReceptionsProperty()
+    {
+        return MaterialShipment::where('is_active', true)
+            ->where('status', 'received')
+            ->whereDate('received_at', today())
+            ->count();
+    }
+
+    public function getThisMonthReceptionsProperty()
+    {
+        return MaterialShipment::where('is_active', true)
+            ->where('status', 'received')
+            ->whereMonth('received_at', now()->month)
+            ->whereYear('received_at', now()->year)
+            ->count();
     }
 
     public function updatingSearch()
@@ -173,14 +103,16 @@ class AdminReportReceptionIndex extends Component
         $this->resetPage();
     }
 
-    public function updatingFilterStatus()
+    public function updatingFilterPolres()
     {
         $this->resetPage();
     }
 
     public function render()
     {
-        return view('livewire.admin.report.reception.admin-report-reception-index')
+        return view('livewire.admin.report.reception.admin-report-reception-index', [
+            'receptions' => $this->receptions,
+        ])
             ->layout('components.layouts.main.app');
     }
 }

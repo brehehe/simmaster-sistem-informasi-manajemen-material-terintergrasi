@@ -67,8 +67,8 @@ class HistoryStock extends Model
     {
         $date = now()->format('Ymd');
         $microtime = now()->format('His'); // HHMMSS
-        $micro = substr((string) microtime(true), -6, 4); // Get 4 digits from microseconds
+        $random = strtoupper(substr(uniqid(), -6)); // 6 random alphanumeric chars
 
-        return 'HS-' . $date . '-' . $microtime . '-' . $micro;
+        return 'HS-' . $date . '-' . $microtime . '-' . $random;
     }
 }

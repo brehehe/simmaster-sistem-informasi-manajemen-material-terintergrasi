@@ -30,7 +30,7 @@ class AdminMenuPolresStockOpnameEditIndex extends Component
         // Check if opname is draft
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa diedit.');
-            return redirect()->route('menu-polres.stock-opname');
+            return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
         }
 
         $this->opname_date = $this->opname->opname_date->format('Y-m-d');
@@ -77,7 +77,7 @@ class AdminMenuPolresStockOpnameEditIndex extends Component
         $this->opname->refresh();
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa diedit.');
-            return redirect()->route('menu-polres.stock-opname');
+            return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
         }
 
         DB::transaction(function () {
@@ -99,7 +99,7 @@ class AdminMenuPolresStockOpnameEditIndex extends Component
             session()->flash('success', 'Stock opname berhasil diupdate.');
         });
 
-        return redirect()->route('menu-polres.stock-opname');
+        return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
     }
 
     public function render()

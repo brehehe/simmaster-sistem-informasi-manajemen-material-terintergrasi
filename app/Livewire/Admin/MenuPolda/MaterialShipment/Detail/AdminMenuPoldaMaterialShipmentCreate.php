@@ -203,7 +203,7 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
                 }
             });
 
-            return redirect()->route('menu-polda.material-shipment');
+            return $this->redirect(route('menu-polda.material-shipment'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Error: ' . $e->getMessage());
         }

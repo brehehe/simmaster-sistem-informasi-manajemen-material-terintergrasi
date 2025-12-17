@@ -234,7 +234,7 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
                 session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
             });
 
-            return redirect()->route('menu-polres.rack-assignment');
+            return $this->redirect(route('menu-polres.rack-assignment'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

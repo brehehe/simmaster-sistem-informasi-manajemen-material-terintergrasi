@@ -289,7 +289,7 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
             DB::commit();
 
             session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
-            return redirect()->route('menu-polda.last-stock');
+            return $this->redirect(route('menu-polda.last-stock'), navigate: true);
         } catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());

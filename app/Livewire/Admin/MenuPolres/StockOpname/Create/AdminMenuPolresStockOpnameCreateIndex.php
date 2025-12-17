@@ -131,7 +131,7 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
             session()->flash('success', 'Stock opname berhasil dibuat dengan kode: ' . $code);
         });
 
-        return redirect()->route('menu-polres.stock-opname');
+        return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
     }
 
     public function render()

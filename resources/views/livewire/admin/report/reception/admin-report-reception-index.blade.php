@@ -4,12 +4,12 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-teal-600">
-                    Laporan Penerimaan
+                    Laporan Penerimaan Material
                 </h1>
-                <p class="text-gray-500 mt-1">Monitoring penerimaan barang dari supplier dan gudang pusat</p>
+                <p class="text-gray-500 mt-1">Monitoring penerimaan material dari Polda ke Polres</p>
             </div>
             <div class="flex gap-2">
-                <button
+                <button onclick="exportToExcel('receptionReportTable', 'laporan-penerimaan')"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -19,6 +19,7 @@
                     Export Excel
                 </button>
                 <button
+                    onclick="exportToPDF({ tableId: 'receptionReportTable', title: 'Laporan Penerimaan Material', filename: 'laporan-penerimaan', summaryCards: [{ label: 'Total', value: '{{ $this->totalReceptions }}' }, { label: 'Total Unit', value: '{{ number_format($this->totalUnits) }}' }, { label: 'Hari Ini', value: '{{ $this->todayReceptions }}' }] })"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -38,7 +39,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-teal-100 text-sm">Total Penerimaan</p>
-                    <p class="text-3xl font-bold mt-1">{{ count($this->receptions) }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ $this->totalReceptions }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -54,8 +55,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-blue-100 text-sm">Total Unit Diterima</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ number_format(collect($this->receptions)->sum('total_unit')) }}</p>
+                    <p class="text-3xl font-bold mt-1">{{ number_format($this->totalUnits) }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -70,9 +70,8 @@
             class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-green-500/30">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-green-100 text-sm">Terverifikasi</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ collect($this->receptions)->where('status', 'Terverifikasi')->count() }}</p>
+                    <p class="text-green-100 text-sm">Hari Ini</p>
+                    <p class="text-3xl font-bold mt-1">{{ $this->todayReceptions }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
@@ -83,18 +82,17 @@
             </div>
         </div>
         <div
-            class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-lg shadow-amber-500/30">
+            class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-5 text-white shadow-lg shadow-purple-500/30">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-amber-100 text-sm">Pending Review</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ collect($this->receptions)->whereIn('status', ['Pending', 'Dalam Review'])->count() }}</p>
+                    <p class="text-purple-100 text-sm">Bulan Ini</p>
+                    <p class="text-3xl font-bold mt-1">{{ $this->thisMonthReceptions }}</p>
                 </div>
                 <div class="bg-white/20 rounded-xl p-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
             </div>
@@ -106,7 +104,7 @@
         <!-- Search & Filter Header -->
         <div class="p-4 border-b border-gray-100">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
                     <div class="flex items-center gap-2">
                         <span class="text-sm text-gray-600">Tampilkan</span>
                         <select wire:model.live="perPage"
@@ -118,18 +116,18 @@
                         </select>
                         <span class="text-sm text-gray-600">data</span>
                     </div>
-                    <select wire:model.live="filterStatus"
+                    <select wire:model.live="filterPolres"
                         class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                        <option value="">Semua Status</option>
-                        @foreach ($this->statuses as $status)
-                            <option value="{{ $status }}">{{ $status }}</option>
+                        <option value="">Semua Polres</option>
+                        @foreach ($this->policeStations as $polres)
+                            <option value="{{ $polres->id }}">{{ $polres->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="relative w-full md:w-80">
                     <input wire:model.live.debounce.300ms="search" type="text"
-                        placeholder="Cari no penerimaan, asal atau penerima..."
+                        placeholder="Cari kode penerimaan atau polres..."
                         class="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
                 </div>
             </div>
@@ -137,119 +135,75 @@
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full" id="receptionReportTable">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No
-                            Penerimaan</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
+                            Pengiriman</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            Tanggal Terima</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Asal
                         </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No
-                            Surat Jalan</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            Tujuan (Polres)</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Total Item</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Total Unit</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Penerima</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Kondisi</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Status</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
+                            Diterima Oleh</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($this->receptions as $index => $item)
+                    @forelse ($receptions as $index => $reception)
                         <tr class="hover:bg-teal-50/50 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $index + 1 }}
+                                {{ $receptions->firstItem() + $index }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-teal-100 text-teal-700">
-                                    {{ $item['no_penerimaan'] }}
+                                    {{ $reception->code }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ \Carbon\Carbon::parse($item['tanggal_terima'])->format('d M Y') }}
+                                {{ $reception->received_at ? \Carbon\Carbon::parse($reception->received_at)->format('d M Y H:i') : '-' }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="font-medium text-gray-900 max-w-xs truncate">{{ $item['asal'] }}</div>
+                                <div>
+                                    <div class="font-medium text-gray-900">
+                                        {{ $reception->senderRegionalPolice->name ?? '-' }}</div>
+                                    <div class="text-xs text-gray-500">Polda</div>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700">
-                                    {{ $item['no_surat_jalan'] }}
-                                </span>
+                            <td class="px-6 py-4">
+                                <div>
+                                    <div class="font-medium text-gray-900">
+                                        {{ $reception->receiverPoliceStation->name ?? '-' }}</div>
+                                    <div class="text-xs text-gray-500 truncate max-w-xs">
+                                        {{ $reception->receiverPoliceStation->address ?? '-' }}</div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700">
-                                    {{ $item['total_item'] }} jenis
+                                    {{ $reception->materialShipmentDetails->count() }} jenis
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-green-100 text-green-700">
-                                    {{ number_format($item['total_unit']) }} unit
+                                    {{ number_format($reception->materialShipmentDetails->sum('quantity')) }} unit
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $item['penerima'] }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if ($item['kondisi'] === 'Baik')
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                        {{ $item['kondisi'] }}
-                                    </span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                                        {{ $item['kondisi'] }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if ($item['status'] === 'Terverifikasi')
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                        {{ $item['status'] }}
-                                    </span>
-                                @elseif($item['status'] === 'Dalam Review')
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                                        {{ $item['status'] }}
-                                    </span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                                        {{ $item['status'] }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <a href="#"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20"
-                                        fill="currentColor">
-                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                        <path fill-rule="evenodd"
-                                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    Detail
-                                </a>
+                                {{ $reception->receivedByUser->name ?? '-' }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="p-10 text-center">
+                            <td colspan="8" class="p-10 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -257,7 +211,7 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     <p class="text-gray-500 text-lg font-medium">Tidak ada data penerimaan</p>
-                                    <p class="text-gray-400 text-sm mt-1">Data penerimaan tidak ditemukan</p>
+                                    <p class="text-gray-400 text-sm mt-1">Data penerimaan material tidak ditemukan</p>
                                 </div>
                             </td>
                         </tr>
@@ -266,11 +220,13 @@
             </table>
         </div>
 
-        <!-- Footer -->
+        <!-- Pagination -->
         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-            <div class="text-sm text-gray-600">
-                Menampilkan <span class="font-semibold">{{ count($this->receptions) }}</span> hasil
-            </div>
+            {{ $receptions->links() }}
         </div>
     </div>
 </div>
+
+@push('scripts')
+    <script src="{{ asset('js/report-export.js') }}"></script>
+@endpush

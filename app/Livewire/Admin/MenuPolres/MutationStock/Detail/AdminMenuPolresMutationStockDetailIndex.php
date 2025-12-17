@@ -221,7 +221,7 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
                 }
             });
 
-            return redirect()->route('menu-polres.mutation-stock');
+            return $this->redirect(route('menu-polres.mutation-stock'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Error: ' . $e->getMessage());
         }
