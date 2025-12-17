@@ -85,6 +85,15 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/reception/create', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
             ->name('menu-polda.reception.create');
 
+        Route::get('menu-polda/mutation-stock', 'MutationStock\\AdminMenuPoldaMutationStockIndex')
+            ->name('menu-polda.mutation-stock');
+
+        Route::get('menu-polda/mutation-stock/edit/{id}', 'MutationStock\\Detail\\AdminMenuPoldaMutationStockDetailIndex')
+            ->name('menu-polda.mutation-stock.edit');
+
+        Route::get('menu-polda/mutation-stock/create', 'MutationStock\\Detail\\AdminMenuPoldaMutationStockDetailIndex')
+            ->name('menu-polda.mutation-stock.create');
+
         Route::get('menu-polda/last-stock', 'LastStock\\AdminMenuPoldaLastStockIndex')
             ->name('menu-polda.last-stock');
 
@@ -143,6 +152,66 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polda.stock-opname.detail');
     });
 
+    Route::group(['namespace' => 'MenuPolres'], function () {
+        Route::get('menu-polres/mutation-stock', 'MutationStock\\AdminMenuPolresMutationStockIndex')
+            ->name('menu-polres.mutation-stock');
+
+        Route::get('menu-polres/mutation-stock/edit/{id}', 'MutationStock\\Detail\\AdminMenuPolresMutationStockDetailIndex')
+            ->name('menu-polres.mutation-stock.edit');
+
+        Route::get('menu-polres/mutation-stock/create', 'MutationStock\\Detail\\AdminMenuPolresMutationStockDetailIndex')
+            ->name('menu-polres.mutation-stock.create');
+
+        Route::get('menu-polres/last-stock', 'LastStock\\AdminMenuPolresLastStockIndex')
+            ->name('menu-polres.last-stock');
+
+        Route::get('menu-polres/last-stock/edit/{id}', 'LastStock\\Detail\\AdminMenuPolresLastStockDetailIndex')
+            ->name('menu-polres.last-stock.edit');
+
+        Route::get('menu-polres/last-stock/create', 'LastStock\\Detail\\AdminMenuPolresLastStockDetailIndex')
+            ->name('menu-polres.last-stock.create');
+
+        Route::get('menu-polres/history', 'History\\AdminMenuPolresHistoryIndex')
+            ->name('menu-polres.history');
+
+        Route::get('menu-polres/stock', 'Stock\\AdminMenuPolresStockIndex')
+            ->name('menu-polres.stock');
+
+        // Rack Assignment
+        Route::get('menu-polres/rack-assignment', 'RackAssignment\\AdminMenuPolresRackAssignmentIndex')
+            ->name('menu-polres.rack-assignment');
+        Route::get('menu-polres/rack-assignment/create', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
+            ->name('menu-polres.rack-assignment.create');
+        Route::get('menu-polres/rack-assignment/edit/{id}', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
+            ->name('menu-polres.rack-assignment.edit');
+
+        // Material Usage
+        Route::get('menu-polres/material-usage', 'MaterialUsage\\AdminMenuPolresMaterialUsageIndex')
+            ->name('menu-polres.material-usage');
+        Route::get('menu-polres/material-usage/create', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
+            ->name('menu-polres.material-usage.create');
+        Route::get('menu-polres/material-usage/edit/{id}', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
+            ->name('menu-polres.material-usage.edit');
+
+        // Material Damage
+        Route::get('menu-polres/material-damage', 'MaterialDamage\\AdminMenuPolresMaterialDamageIndex')
+            ->name('menu-polres.material-damage');
+        Route::get('menu-polres/material-damage/create', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
+            ->name('menu-polres.material-damage.create');
+        Route::get('menu-polres/material-damage/edit/{id}', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
+            ->name('menu-polres.material-damage.edit');
+
+        // Stock Opname
+        Route::get('menu-polres/stock-opname', 'StockOpname\\AdminMenuPolresStockOpnameIndex')
+            ->name('menu-polres.stock-opname');
+        Route::get('menu-polres/stock-opname/create', 'StockOpname\\Create\\AdminMenuPolresStockOpnameCreateIndex')
+            ->name('menu-polres.stock-opname.create');
+        Route::get('menu-polres/stock-opname/edit/{id}', 'StockOpname\\Edit\\AdminMenuPolresStockOpnameEditIndex')
+            ->name('menu-polres.stock-opname.edit');
+        Route::get('menu-polres/stock-opname/detail/{id}', 'StockOpname\\Detail\\AdminMenuPolresStockOpnameDetailIndex')
+            ->name('menu-polres.stock-opname.detail');
+    });
+
     Route::group(['namespace' => 'Stock'], function () {
         Route::get('stock/polda', 'Polda\\AdminStockPoldaIndex')
             ->name('stock.polda');
@@ -177,6 +246,21 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         ->name('menu-polres.material-shipment.receive');
     Route::get('menu-polres/material-shipment/receive/{id}', 'MaterialShipment\\PolresMenuPolresMaterialShipmentReceiveDetail')
         ->name('menu-polres.material-shipment.receive.detail');
+
+    // Mutation Stock - Receive
+    Route::get('menu-polres/mutation-stock/receive', 'MutationStock\\PolresMenuPolresMutationStockReceiveIndex')
+        ->name('menu-polres.mutation-stock.receive');
+    Route::get('menu-polres/mutation-stock/receive/{id}', 'MutationStock\\PolresMenuPolresMutationStockReceiveDetail')
+        ->name('menu-polres.mutation-stock.receive.detail');
+});
+
+// Polda Receive Routes (Outside Admin namespace)
+Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewire\\Admin\\MenuPolda'], function () {
+    // Mutation Stock - Receive (for Polda receiving from other Polda or Polres)
+    Route::get('menu-polda/mutation-stock/receive', 'MutationStock\\Receive\\AdminMenuPoldaMutationStockReceiveIndex')
+        ->name('menu-polda.mutation-stock.receive');
+    Route::get('menu-polda/mutation-stock/receive/{id}', 'MutationStock\\Receive\\AdminMenuPoldaMutationStockReceiveDetail')
+        ->name('menu-polda.mutation-stock.receive.detail');
 });
 
 Route::group(['namespace' => 'App\\Livewire\\Auth\\Login'], function () {

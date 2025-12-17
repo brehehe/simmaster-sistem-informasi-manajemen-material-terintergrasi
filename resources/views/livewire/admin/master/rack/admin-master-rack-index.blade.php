@@ -156,7 +156,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="p-10 text-center">
+                            <td colspan="8" class="p-10 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">

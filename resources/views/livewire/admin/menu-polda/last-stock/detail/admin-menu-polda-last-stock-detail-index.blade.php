@@ -72,91 +72,94 @@
                 </div>
 
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Regional Police -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Polda
-                    </label>
-                    @if ($canSelectRegionalPolice)
-                        <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
-                            <select id="select-regional-police" x-data x-ref="input" x-init="$($refs.input).selectize({
-                                dropdownParent: 'body',
-                                allowClear: true,
-                                plugins: ['clear_button'],
-                                onChange: function(e) {
-                                    @this.set('regionalPoliceId', e ? e : '');
-                                }
-                            });"
-                                wire:model="regionalPoliceId">
-                                <option value="">-- Pilih Polda --</option>
-                                @foreach ($regionalPolices as $rp)
-                                    <option value="{{ $rp->id }}"
-                                        {{ $regionalPoliceId == $rp->id ? 'selected' : '' }}>{{ $rp->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @else
-                        @php
-                            $selectedPolda = $regionalPolices->firstWhere('id', $regionalPoliceId);
-                        @endphp
-                        <input type="text" value="{{ $selectedPolda?->name ?? '-' }}" readonly
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
-                    @endif
-                </div>
+            @if (Auth::user()->hasRole('Admin'))
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Regional Police -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Polda
+                        </label>
+                        @if ($canSelectRegionalPolice)
+                            <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
+                                <select id="select-regional-police" x-data x-ref="input" x-init="$($refs.input).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(e) {
+                                        @this.set('regionalPoliceId', e ? e : '');
+                                    }
+                                });"
+                                    wire:model="regionalPoliceId">
+                                    <option value="">-- Pilih Polda --</option>
+                                    @foreach ($regionalPolices as $rp)
+                                        <option value="{{ $rp->id }}"
+                                            {{ $regionalPoliceId == $rp->id ? 'selected' : '' }}>{{ $rp->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            @php
+                                $selectedPolda = $regionalPolices->firstWhere('id', $regionalPoliceId);
+                            @endphp
+                            <input type="text" value="{{ $selectedPolda?->name ?? '-' }}" readonly
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
+                        @endif
+                    </div>
 
-                <!-- Police Station (Optional) -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Polres
-                    </label>
-                    @if ($canSelectPoliceStation)
-                        <div wire:ignore wire:key="select-police-station-{{ rand() }}">
-                            <select id="select-police-station" x-data x-ref="input" x-init="$($refs.input).selectize({
-                                dropdownParent: 'body',
-                                allowClear: true,
-                                plugins: ['clear_button'],
-                                onChange: function(e) {
-                                    @this.set('policeStationId', e ? e : '');
-                                }
-                            });"
-                                wire:model="policeStationId">
-                                <option value="">-- Pilih Polres --</option>
-                                @foreach ($policeStations as $ps)
-                                    <option value="{{ $ps->id }}"
-                                        {{ $policeStationId == $ps->id ? 'selected' : '' }}>{{ $ps->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @else
-                        @php
-                            $selectedPolres = $policeStations->firstWhere('id', $policeStationId);
-                        @endphp
-                        <input type="text" value="{{ $selectedPolres?->name ?? '-' }}" readonly
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
-                    @endif
-                </div>
+                    <!-- Police Station (Optional) -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Polres
+                        </label>
+                        @if ($canSelectPoliceStation)
+                            <div wire:ignore wire:key="select-police-station-{{ rand() }}">
+                                <select id="select-police-station" x-data x-ref="input" x-init="$($refs.input).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(e) {
+                                        @this.set('policeStationId', e ? e : '');
+                                    }
+                                });"
+                                    wire:model="policeStationId">
+                                    <option value="">-- Pilih Polres --</option>
+                                    @foreach ($policeStations as $ps)
+                                        <option value="{{ $ps->id }}"
+                                            {{ $policeStationId == $ps->id ? 'selected' : '' }}>{{ $ps->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            @php
+                                $selectedPolres = $policeStations->firstWhere('id', $policeStationId);
+                            @endphp
+                            <input type="text" value="{{ $selectedPolres?->name ?? '-' }}" readonly
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
+                        @endif
+                    </div>
 
-                <!-- Description -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Deskripsi (Opsional)
-                    </label>
-                    <textarea wire:model="description" rows="3" placeholder="Masukkan deskripsi (opsional)"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white"></textarea>
-                </div>
+                    <!-- Description -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Deskripsi (Opsional)
+                        </label>
+                        <textarea wire:model="description" rows="3" placeholder="Masukkan deskripsi (opsional)"
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white">
+                        </textarea>
+                    </div>
 
-                <!-- Is Active -->
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" wire:model="is_active" id="is_active"
-                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                    <label for="is_active" class="text-sm font-semibold text-gray-700">
-                        Aktif
-                    </label>
+                    <!-- Is Active -->
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" wire:model="is_active" id="is_active"
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="is_active" class="text-sm font-semibold text-gray-700">
+                            Aktif
+                        </label>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 

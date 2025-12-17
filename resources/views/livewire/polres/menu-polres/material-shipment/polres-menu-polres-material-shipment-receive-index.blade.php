@@ -51,7 +51,8 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Input Kode Pengiriman Manual</label>
                 <div class="flex gap-2">
-                    <input wire:model="searchCode" type="text" placeholder="Contoh: SHP-JABAR-20251214-001"
+                    <input wire:model="searchCode" type="text"
+                        placeholder="Contoh: SHP-MUT-JABAR-20251217-00120251214-001"
                         class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
                         wire:keydown.enter="searchByCode">
                     <button wire:click="searchByCode" type="button"

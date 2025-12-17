@@ -182,7 +182,7 @@
                                             </svg>
                                         </button>
                                     @else
-                                        <a href="{{ route('menu-polda.material-shipment.create', ['id' => $shipment->id]) }}"
+                                        <a href="{{ route('menu-polda.material-shipment.edit', $shipment->id) }}"
                                             wire:navigate
                                             class="p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
                                             title="View">

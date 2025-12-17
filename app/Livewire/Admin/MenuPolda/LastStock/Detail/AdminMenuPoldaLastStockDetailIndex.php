@@ -96,6 +96,7 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
 
             $this->addDetail();
         }
+        $this->loadRacks();
     }
 
     public function addDetail()

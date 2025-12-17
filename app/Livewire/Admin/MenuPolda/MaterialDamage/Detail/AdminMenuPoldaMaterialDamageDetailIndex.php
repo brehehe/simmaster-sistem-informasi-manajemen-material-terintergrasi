@@ -55,6 +55,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
         }
 
         $this->loadDropdownData();
+        $this->loadStockDetails();
     }
 
     protected function loadMaterialDamage()
@@ -155,7 +156,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
             ->where('quantity', '>', 0);
 
         if ($this->regionalPoliceId) {
-            $query->where('regional_police_id', $this->regionalPoliceId);
+            $query->where('regional_police_id', $this->regionalPoliceId)->whereNull('police_station_id');
         }
 
         $this->stockDetails = $query->get();

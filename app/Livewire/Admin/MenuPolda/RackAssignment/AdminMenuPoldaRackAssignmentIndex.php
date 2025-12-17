@@ -25,7 +25,7 @@ class AdminMenuPoldaRackAssignmentIndex extends Component
         // Role-based filtering
         $user = auth()->user();
         if ($user->hasRole('Polda')) {
-            $query->where('regional_police_id', $user->regional_police_id);
+            $query->where('regional_police_id', $user->regional_police_id)->whereNull('police_station_id');
         }
 
         // Search

@@ -34,259 +34,286 @@
             Dashboard
         </a>
 
-        <div class="pt-2" x-data="{ open: {{ request()->routeIs('menu-polda.*') ? 'true' : 'false' }} }">
-            <button @click="open = !open"
-                class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
-                <span>Menu Polda</span>
-                <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.reception') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.reception*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.reception*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Penerimaan Material Polda
-                </a>
+        @if (Auth::user()->hasRole(['Admin', 'Polda']))
+            <div class="pt-2" x-data="{ open: {{ request()->routeIs('menu-polda.*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+                    <span>Menu Polda</span>
+                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.reception') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.reception*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.reception*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Penerimaan Material Polda
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.rack-assignment') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Masukkan Ke Rak
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.material-usage') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-usage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-usage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Digunakan
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.material-damage') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Rusak & Kehilangan
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.material-shipment') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-shipment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-shipment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Pengiriman Material
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.stock-opname') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Stock Opname
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.mutation-stock') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.mutation-stock') || request()->routeIs('menu-polda.mutation-stock.create') || request()->routeIs('menu-polda.mutation-stock.edit') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.mutation-stock') || request()->routeIs('menu-polda.mutation-stock.create') || request()->routeIs('menu-polda.mutation-stock.edit') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Mutasi Stock
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.mutation-stock.receive') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.mutation-stock.receive*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.mutation-stock.receive*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Terima Mutasi Stock
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.stock') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.stock') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Stock Material
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.history') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.history') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.history') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Riwayat Stock
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.last-stock') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.last-stock', 'menu-polda.last-stock.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.last-stock', 'menu-polda.last-stock.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Tambah Stock Akhir
+                    </a>
+                </div>
             </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.rack-assignment') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Masukkan Ke Rak
-                </a>
+        @endif
+        @if (Auth::user()->hasRole(['Admin', 'Polres']))
+            <div class="pt-2" x-data="{ open: {{ request()->routeIs('menu-polres.*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+                    <span>Menu Polres</span>
+                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.material-shipment.receive') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-shipment.receive*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-shipment.receive*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Penerimaan Material Polres
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.rack-assignment') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.rack-assignment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.rack-assignment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Masukkan Ke Rak
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.material-usage') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-usage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-usage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Digunakan
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.material-damage') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-damage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-damage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Rusak & Kehilangan
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.stock-opname') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.stock-opname*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.stock-opname*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Stock Opname
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.mutation-stock') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.mutation-stock', 'menu-polres.mutation-stock.create', 'menu-polres.mutation-stock.edit') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.mutation-stock', 'menu-polres.mutation-stock.edit', 'menu-polres.mutation-stock.create') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Mutasi Stock
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.mutation-stock.receive') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.mutation-stock.receive', 'menu-polres.mutation-stock.receive.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.mutation-stock.receive', 'menu-polres.mutation-stock.receive.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Terima Mutasi Stock
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.stock') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.stock*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.stock*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Stock Material
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.history') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.history*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.history*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Riwayat Stock
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.last-stock') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.last-stock*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.last-stock*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Tambah Stock Akhir
+                    </a>
+                </div>
             </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.material-usage') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-usage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-usage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Material Digunakan
-                </a>
+        @endif
+        @if (Auth::user()->hasRole('Admin'))
+            <!-- Master Section -->
+            <div class="pt-2" x-data="{ open: {{ request()->routeIs('master.*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+                    <span>Master</span>
+                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('master.regional-police') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Polda
+                    </a>
+                    <a href="{{ route('master.police-station') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.police-station*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.police-station*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Polres
+                    </a>
+                    <a href="{{ route('master.type') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.type') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.type') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material
+                    </a>
+                    <a href="{{ route('master.type-detail') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.type-detail') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.type-detail') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Detail
+                    </a>
+                    <a href="{{ route('master.rack') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.rack') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.rack') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Rak
+                    </a>
+                    <a href="{{ route('master.user') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.user') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.user') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        User
+                    </a>
+                    <a href="{{ route('master.user-type') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.user-type') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.user-type') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Tipe User
+                    </a>
+                </div>
             </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.material-damage') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Material Rusak & Kehilangan
-                </a>
+            <!-- Stok Section -->
+            <div class="pt-2" x-data="{ open: {{ request()->routeIs('stock.*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+                    <span>Manajemen Stok</span>
+                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('stock.polda') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.polda*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.polda*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Stok Polda
+                    </a>
+                    <a href="{{ route('stock.polres') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.polres*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.polres*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Stok Polres
+                    </a>
+                    <a href="{{ route('stock.history') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.history*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.history*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
+                        Riwayat Stok
+                    </a>
+                </div>
             </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.material-shipment') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-shipment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-shipment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Pengiriman Material
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.stock-opname') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Stock Opname
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.stock') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.stock') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Stock Material
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.history') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.history') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.history') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Riwayat Stock
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polda.last-stock') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.last-stock', 'menu-polda.last-stock.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.last-stock', 'menu-polda.last-stock.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Tambah Stock Akhir
-                </a>
-            </div>
-        </div>
-
-        <div class="pt-2" x-data="{ open: {{ request()->routeIs('menu-polres.*') ? 'true' : 'false' }} }">
-            <button @click="open = !open"
-                class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
-                <span>Menu Polres</span>
-                <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('menu-polres.material-shipment.receive') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-shipment.receive*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-shipment.receive*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Penerimaan Material Polres
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Masukkan Ke Rak
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Material Digunakan
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Material Rusak & Kehilangan
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Stock Opname
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Mutasi Stock
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Stock Material
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Riwayat Stock
-                </a>
-            </div>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Tambah Stock Akhir
-                </a>
-            </div>
-        </div>
-
-        <!-- Master Section -->
-        <div class="pt-2" x-data="{ open: {{ request()->routeIs('master.*') ? 'true' : 'false' }} }">
-            <button @click="open = !open"
-                class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
-                <span>Master</span>
-                <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('master.regional-police') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.regional-police*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.regional-police*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Polda
-                </a>
-                <a href="{{ route('master.police-station') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.police-station*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.police-station*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Polres
-                </a>
-                <a href="{{ route('master.type') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.type') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.type') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Material
-                </a>
-                <a href="{{ route('master.type-detail') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.type-detail') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.type-detail') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Material Detail
-                </a>
-                <a href="{{ route('master.rack') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.rack') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.rack') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Rak
-                </a>
-                <a href="{{ route('master.user') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.user') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.user') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    User
-                </a>
-                <a href="{{ route('master.user-type') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.user-type') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.user-type') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Tipe User
-                </a>
-            </div>
-        </div>
-
-        <!-- Stok Section -->
-        <div class="pt-2" x-data="{ open: {{ request()->routeIs('stock.*') ? 'true' : 'false' }} }">
-            <button @click="open = !open"
-                class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
-                <span>Manajemen Stok</span>
-                <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="open" x-collapse class="mt-1 space-y-1">
-                <a href="{{ route('stock.polda') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.polda*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.polda*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Stok Polda
-                </a>
-                <a href="{{ route('stock.polres') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.polres*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.polres*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Stok Polres
-                </a>
-                <a href="{{ route('stock.history') }}" wire:navigate
-                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.history*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                    <span
-                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.history*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
-                    Riwayat Stok
-                </a>
-            </div>
-        </div>
+        @endif
 
         <!-- Laporan Section -->
         <div class="pt-2" x-data="{ open: {{ request()->routeIs('report.*') ? 'true' : 'false' }} }">

@@ -71,6 +71,8 @@
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Lokasi
+                            (Polda)</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jenis
                         </th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Sisa
@@ -80,6 +82,7 @@
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Quantity</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Letak
+                            (Rak)
                         </th>
                     </tr>
                 </thead>
@@ -95,6 +98,13 @@
                                     <td class="px-6 py-4 text-sm text-gray-600 align-top border-r border-gray-200"
                                         rowspan="{{ $rowspan }}">
                                         {{ $stocks->firstItem() + $groupIndex }}
+                                    </td>
+                                    <td class="px-6 py-4 align-top border-r border-gray-200"
+                                        rowspan="{{ $rowspan }}">
+                                        <span
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                                            {{ $detail->regionalPolice->name ?? '-' }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 align-top border-r border-gray-200"
                                         rowspan="{{ $rowspan }}">
@@ -130,7 +140,7 @@
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="6" class="p-10 text-center">
+                            <td colspan="7" class="p-10 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
