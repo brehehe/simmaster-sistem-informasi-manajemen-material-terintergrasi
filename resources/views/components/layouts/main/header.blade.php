@@ -17,7 +17,7 @@
         </button>
 
         <!-- Mobile Menu Button -->
-        <button @click="sidebarOpen = true" class="rounded-xl p-2 text-blue-600 hover:bg-blue-50 lg:hidden">
+        <button @click="sidebarCollapsed = false" class="rounded-xl p-2 text-blue-600 hover:bg-blue-50 lg:hidden">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>

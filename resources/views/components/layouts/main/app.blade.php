@@ -124,16 +124,17 @@
 
     <body class="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-50 font-sans antialiased"
         x-data="{
-            sidebarOpen: false,
-            sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
-        }" x-init="$watch('sidebarCollapsed', value => localStorage.setItem('sidebarCollapsed', value))" @keydown.escape.window="sidebarOpen = false">
+            sidebarCollapsed: window.innerWidth < 1024 ? true : (localStorage.getItem('sidebarCollapsed') === 'true')
+        }"
+        x-init="$watch('sidebarCollapsed', value => localStorage.setItem('sidebarCollapsed', value))"
+        @resize.window="if (window.innerWidth < 1024) sidebarCollapsed = true">
 
         <!-- Mobile Sidebar Overlay -->
-        <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+        <div x-show="!sidebarCollapsed && window.innerWidth < 1024" x-transition:enter="transition-opacity ease-linear duration-300"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0" class="fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-sm lg:hidden"
-            @click="sidebarOpen = false" x-cloak>
+            @click="sidebarCollapsed = true" x-cloak>
         </div>
 
         <!-- Sidebar -->

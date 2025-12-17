@@ -1,19 +1,20 @@
 <aside
     class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 shadow-2xl transition-transform duration-300 ease-in-out"
-    :class="sidebarOpen ? 'translate-x-0' : (sidebarCollapsed ? '-translate-x-full' : '-translate-x-full lg:translate-x-0')">
+    :class="sidebarCollapsed ? '-translate-x-full lg:w-20 lg:translate-x-0' : 'translate-x-0 w-72'">
 
     <!-- Sidebar Header (Fixed Top) -->
-    <div class="flex h-20 shrink-0 items-center justify-between border-b border-blue-700/50 px-6">
+    <div class="flex h-20 shrink-0 items-center justify-between border-b border-blue-700/50 px-6"
+        :class="sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3" wire:navigate>
             <div class="flex h-12 w-12 items-center justify-center rounded-xlshadow-lg shadow-cyan-500/30">
                 <img src="{{ asset('img/logo.png') }}" alt="Logo" width="100">
             </div>
-            <div>
+            <div :class="sidebarCollapsed ? 'lg:hidden' : ''">
                 <h1 class="text-xl font-bold text-white">SIMMASTER</h1>
                 <p class="text-xs text-blue-300">Sistem Informasi Manajemen Material Terintergrasi SBST</p>
             </div>
         </a>
-        <button @click="sidebarOpen = false"
+        <button @click="sidebarCollapsed = true"
             class="rounded-lg p-2 text-blue-300 hover:bg-blue-700/50 hover:text-white lg:hidden">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
