@@ -11,7 +11,7 @@
             </div>
             <div :class="sidebarCollapsed ? 'lg:hidden' : ''">
                 <h1 class="text-xl font-bold text-white">SIMMASTER</h1>
-                <p class="text-xs text-blue-300">Sistem Informasi Manajemen Material Terintergrasi SBST</p>
+                <p class="text-xs text-blue-300">Sistem Informasi Manajemen Material SBST Terintergrasi</p>
             </div>
         </a>
         <button @click="sidebarCollapsed = true"
