@@ -25,7 +25,7 @@
 
         <!-- Search Bar -->
         <div class="hidden lg:block w-80">
-            <div class="relative">
+            {{-- <div class="relative">
                 <svg class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,14 +33,14 @@
                 </svg>
                 <input type="text" placeholder="Cari no resi, polda, polres..."
                     class="w-full rounded-xl border border-blue-100 bg-blue-50/50 py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
-            </div>
+            </div> --}}
         </div>
     </div>
 
     <!-- Right Side -->
     <div class="flex items-center gap-3">
         <!-- Notification -->
-        <div class="relative" x-data="{ open: false }">
+        {{-- <div class="relative" x-data="{ open: false }">
             <button @click="open = !open"
                 class="relative rounded-xl p-2.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@
                     </a>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <!-- Date -->
         <div class="hidden items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-sm text-blue-700 lg:flex">
