@@ -16,7 +16,13 @@ class Type extends Model
         'is_active' => 'boolean',
     ];
 
-    public function typeDetails() {
+    public function typeDetails()
+    {
         return $this->hasMany(TypeDetail::class);
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(\App\Models\Stock\Stock::class);
     }
 }

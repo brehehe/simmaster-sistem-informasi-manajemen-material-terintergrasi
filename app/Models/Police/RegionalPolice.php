@@ -20,4 +20,9 @@ class RegionalPolice extends Model
     public function policeStations() {
         return $this->hasMany(PoliceStation::class);
     }
+
+    public function stocks()
+    {
+        return $this->hasMany(\App\Models\Stock\Stock::class);
+    }
 }

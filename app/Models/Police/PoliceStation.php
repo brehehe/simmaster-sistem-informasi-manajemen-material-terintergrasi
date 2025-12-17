@@ -16,7 +16,13 @@ class PoliceStation extends Model
         'is_active' => 'boolean',
     ];
 
-    public function regionalPolice() {
+    public function regionalPolice()
+    {
         return $this->belongsTo(RegionalPolice::class);
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(\App\Models\Stock\Stock::class);
     }
 }
