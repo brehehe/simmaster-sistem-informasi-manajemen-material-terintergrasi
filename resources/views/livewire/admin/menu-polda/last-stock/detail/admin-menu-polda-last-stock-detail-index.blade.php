@@ -187,9 +187,9 @@
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
                                     style="min-width: 50px;">No</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
-                                    style="min-width: 200px;">Type</th>
+                                    style="min-width: 200px;">Material</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
-                                    style="min-width: 200px;">Type Detail</th>
+                                    style="min-width: 200px;">Material Detail</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
                                     style="min-width: 180px;">Rack</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
