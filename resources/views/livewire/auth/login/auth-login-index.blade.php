@@ -25,7 +25,7 @@
 
             <!-- Title -->
             <h1 class="text-3xl font-bold text-white mb-3 text-center">SIMMASTER</h1>
-            <p class="text-base text-blue-200 mb-6 text-center max-w-md">Sistem Informasi Manajemen Material SBST
+            <p class="text-base text-blue-200 mb-6 text-center max-w-md">Sistem Informasi Manajemen Material
                 Terintergrasi</p>
 
             <!-- Illustration - Traffic/Distribution (Parallax Effect) -->
@@ -232,9 +232,15 @@
         <div class="w-full max-w-md">
             <!-- Mobile Logo -->
             <div class="lg:hidden flex flex-col items-center mb-6">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-20">
+                <div
+                    class="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/30 mb-4">
+                    <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
                 <h1 class="text-2xl font-bold text-blue-900">SIMMASTER</h1>
-                <p class="text-sm text-blue-600">Sistem Informasi Manajemen Material SBST Terintergrasi</p>
+                <p class="text-sm text-blue-600">Sistem Informasi Manajemen Material Terintergrasi SBST</p>
             </div>
             <div class="hidden lg:flex justify-center mb-3">
                 <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-20">
@@ -351,7 +357,7 @@
             <!-- Footer -->
             <div class="mt-5 text-center">
                 <p class="text-sm text-gray-500">
-                    &copy; {{ date('Y') }} Sistem Informasi Manajemen Material SBST Terintergrasi
+                    &copy; {{ date('Y') }} Sistem Informasi Manajemen Material Terintergrasi SBST
                 </p>
                 {{-- <p class="text-xs text-gray-400 mt-1">
                     Kepolisian Republik Indonesia
