@@ -65,11 +65,24 @@
                 </div>
 
                 <!-- Description -->
-                <div>
+                <!-- <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
                     <textarea wire:model="description" rows="3"
                         class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-gray-50 focus:bg-white resize-none"
                         placeholder="Deskripsi Polres (opsional)"></textarea>
+                </div> -->
+
+                <!-- Address -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Alamat
+                    </label>
+                    <textarea wire:model="address" rows="3"
+                        class="w-full px-3 py-2 text-sm rounded-lg border {{ $errors->has('address') ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/20' }} focus:ring-2 transition-all bg-gray-50 focus:bg-white resize-none"
+                        placeholder="Alamat Polres (opsional)"></textarea>
+                    @error('address')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Status -->

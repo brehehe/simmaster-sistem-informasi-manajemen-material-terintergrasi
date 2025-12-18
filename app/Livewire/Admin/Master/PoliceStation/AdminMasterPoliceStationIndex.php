@@ -24,6 +24,7 @@ class AdminMasterPoliceStationIndex extends Component
     public ?string $policeStationId = null;
     public ?string $regional_police_id = null;
     public string $name = '';
+    public ?string $address = null;
     public ?string $description = null;
     public bool $is_active = true;
 
@@ -71,6 +72,7 @@ class AdminMasterPoliceStationIndex extends Component
         $policeStation = PoliceStation::findOrFail($id);
         $this->regional_police_id = $policeStation->regional_police_id;
         $this->name = $policeStation->name;
+        $this->address = $policeStation->address;
         $this->description = $policeStation->description;
         $this->is_active = $policeStation->is_active;
 
@@ -95,6 +97,7 @@ class AdminMasterPoliceStationIndex extends Component
         $this->policeStationId = null;
         $this->regional_police_id = null;
         $this->name = '';
+        $this->address = null;
         $this->description = null;
         $this->is_active = true;
         $this->resetValidation();
@@ -105,6 +108,7 @@ class AdminMasterPoliceStationIndex extends Component
         return [
             'regional_police_id' => 'required|exists:regional_police,id',
             'name' => 'required|string|max:255',
+            'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
@@ -129,6 +133,7 @@ class AdminMasterPoliceStationIndex extends Component
                 $policeStation = PoliceStation::findOrFail($this->policeStationId);
                 $policeStation->regional_police_id = $this->regional_police_id;
                 $policeStation->name = $this->name;
+                $policeStation->address = $this->address;
                 $policeStation->description = $this->description;
                 $policeStation->is_active = $this->is_active;
                 $policeStation->save();
@@ -138,6 +143,7 @@ class AdminMasterPoliceStationIndex extends Component
                 PoliceStation::create([
                     'regional_police_id' => $this->regional_police_id,
                     'name' => $this->name,
+                    'address' => $this->address,
                     'description' => $this->description,
                     'is_active' => $this->is_active,
                 ]);

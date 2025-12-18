@@ -22,6 +22,7 @@ class AdminMasterRegionalPoliceIndex extends Component
     // Form Data
     public ?string $regionalPoliceId = null;
     public string $name = '';
+    public ?string $address = null;
     public ?string $description = null;
     public bool $is_active = true;
 
@@ -55,6 +56,7 @@ class AdminMasterRegionalPoliceIndex extends Component
 
         $regionalPolice = RegionalPolice::findOrFail($id);
         $this->name = $regionalPolice->name;
+        $this->address = $regionalPolice->address;
         $this->description = $regionalPolice->description;
         $this->is_active = $regionalPolice->is_active;
 
@@ -78,6 +80,7 @@ class AdminMasterRegionalPoliceIndex extends Component
     {
         $this->regionalPoliceId = null;
         $this->name = '';
+        $this->address = null;
         $this->description = null;
         $this->is_active = true;
         $this->resetValidation();
@@ -87,6 +90,7 @@ class AdminMasterRegionalPoliceIndex extends Component
     {
         return [
             'name' => 'required|string|max:255',
+            'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
@@ -109,6 +113,7 @@ class AdminMasterRegionalPoliceIndex extends Component
                 $regionalPolice = RegionalPolice::findOrFail($this->regionalPoliceId);
                 $regionalPolice->name = $this->name;
                 $regionalPolice->description = $this->description;
+                $regionalPolice->address = $this->address;
                 $regionalPolice->is_active = $this->is_active;
                 $regionalPolice->save();
 
@@ -117,6 +122,7 @@ class AdminMasterRegionalPoliceIndex extends Component
                 RegionalPolice::create([
                     'name' => $this->name,
                     'description' => $this->description,
+                    'address' => $this->address,
                     'is_active' => $this->is_active,
                 ]);
 
