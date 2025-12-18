@@ -17,6 +17,11 @@ class AdminReportReceptionIndex extends Component
     public$startDate = '';
     public $endDate = '';
 
+public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }   
+
     // Get receptions from MaterialShipment table (received status only)
     public function getReceptionsProperty()
     {

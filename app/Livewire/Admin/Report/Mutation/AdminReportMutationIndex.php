@@ -19,6 +19,11 @@ class AdminReportMutationIndex extends Component
     public $startDate = '';
     public $endDate = '';
 
+public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function getMutationsProperty()
     {
         $query = MutationStock::with([

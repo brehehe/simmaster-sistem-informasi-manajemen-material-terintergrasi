@@ -9,10 +9,11 @@ use App\Models\Type\Type;
 use App\Models\Police\RegionalPolice;
 use App\Models\Police\PoliceStation;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\HasCustomPagination;
 
 class AdminStockHistoryIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, HasCustomPagination;
 
     public $search = '';
     public $filterStatusType = '';

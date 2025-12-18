@@ -20,6 +20,11 @@ class AdminMenuPolresMutationStockIndex extends Component
     public bool $showDeleteModal = false;
     public ?string $mutationId = null;
 
+public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }   
+
     public function render()
     {
         $user = auth()->user();

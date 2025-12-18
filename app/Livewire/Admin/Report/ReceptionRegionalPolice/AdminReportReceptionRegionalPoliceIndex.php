@@ -105,6 +105,11 @@ class AdminReportReceptionRegionalPoliceIndex extends Component
         return $query->count();
     }
 
+public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();

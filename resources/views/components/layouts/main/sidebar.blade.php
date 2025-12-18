@@ -203,9 +203,9 @@
                 </div>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polres.stock') }}" wire:navigate
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.stock*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.stock') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.stock*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.stock') ? 'bg-white' : 'bg-blue-400' }}"></span>
                         Stock Material
                     </a>
                 </div>

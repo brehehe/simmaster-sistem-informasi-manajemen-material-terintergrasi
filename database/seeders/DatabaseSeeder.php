@@ -39,6 +39,31 @@ class DatabaseSeeder extends Seeder
             PoliceStationSeeder::class,
             UserTypeSeeder::class,
             UserSeeder::class,
+            // Rack seeder - must run before stock seeders
+            RackSeeder::class,
+            // Stock seeders - core tables first
+            StockSeeder::class,
+            StockDetailSeeder::class,
+            // Last stock tables
+            LastStockSeeder::class,
+            LastStockDetailSeeder::class,
+            // History stock
+            HistoryStockSeeder::class,
+            // Transaction tables
+            ReceptionSeeder::class,
+            ReceptionDetailSeeder::class,
+            RackAssignmentSeeder::class,
+            RackAssignmentDetailSeeder::class,
+            MaterialUsageSeeder::class,
+            MaterialUsageDetailSeeder::class,
+            MaterialDamageSeeder::class,
+            MaterialDamageDetailSeeder::class,
+            MaterialShipmentSeeder::class,
+            MaterialShipmentDetailSeeder::class,
+            StockOpnameSeeder::class,
+            StockOpnameDetailSeeder::class,
+            MutationStockSeeder::class,
+            MutationStockDetailSeeder::class,
         ]);
     }
 }

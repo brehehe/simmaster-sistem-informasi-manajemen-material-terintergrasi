@@ -98,6 +98,11 @@ class AdminReportStockIndex extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function render()
     {
         return view('livewire.admin.report.stock.admin-report-stock-index', [

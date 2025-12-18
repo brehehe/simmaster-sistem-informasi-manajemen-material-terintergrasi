@@ -43,6 +43,11 @@ class AdminMenuPoldaMutationStockReceiveIndex extends Component
         return $this->redirect(route('menu-polda.mutation-stock.receive.detail', ['id' => $mutation->id]), navigate: true);
     }
 
+    public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function render()
     {
         $user = auth()->user();

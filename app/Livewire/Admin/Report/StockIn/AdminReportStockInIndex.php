@@ -18,6 +18,11 @@ class AdminReportStockInIndex extends Component
     public $startDate = '';
     public $endDate = '';
 
+public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }   
+
     public function getStockInsProperty()
     {
         $query = HistoryStock::with([

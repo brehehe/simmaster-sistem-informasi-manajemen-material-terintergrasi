@@ -20,6 +20,11 @@ class AdminReportMaterialDamageIndex extends Component
     public $startDate = '';
     public $endDate = '';
 
+    public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function getDamagesProperty()
     {
         $query = MaterialDamage::with([

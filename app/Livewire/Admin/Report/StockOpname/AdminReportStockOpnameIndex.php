@@ -19,6 +19,11 @@ class AdminReportStockOpnameIndex extends Component
     public $startDate = '';
     public $endDate = '';
 
+public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function getOpnamesProperty()
     {
         $query = StockOpname::with([

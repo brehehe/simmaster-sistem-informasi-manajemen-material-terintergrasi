@@ -122,6 +122,11 @@ class AdminReportDeliveryIndex extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     public function updatingFilterPolres()
     {
         $this->resetPage();

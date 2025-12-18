@@ -18,6 +18,11 @@ class AdminMenuPoldaStockOpnameIndex extends Component
     public $showDeleteModal = false;
     public $deleteId = '';
 
+    public function paginationView()
+    {
+        return 'vendor.livewire.custom-pagination';
+    }
+
     protected $queryString = [
         'search' => ['except' => ''],
         'statusFilter' => ['except' => ''],

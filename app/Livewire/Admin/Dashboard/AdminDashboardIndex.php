@@ -116,13 +116,13 @@ class AdminDashboardIndex extends Component
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
 
-            // Sum of history stock quantity for this month
+            // Sum of ABSOLUTE history stock quantity for this month (regardless of in/out)
             $total = HistoryStock::whereMonth('date', $date->month)
                 ->whereYear('date', $date->year)
-                ->sum('quantity') ?? 0;
+                ->sum(DB::raw('ABS(quantity)')) ?? 0;
 
             $labels[] = $date->locale('id')->format('M');
-            $data[] = $total;
+            $data[] = abs($total);
         }
 
         return [
@@ -171,10 +171,10 @@ class AdminDashboardIndex extends Component
 
     private function getRegionalStats()
     {
-        $regionals = RegionalPolice::select('id', 'name')
-            ->withCount(['stocks as total_stock' => function ($query) {
-                $query->select(DB::raw('COALESCE(SUM(quantity), 0)'));
-            }])
+        $regionals = RegionalPolice::select('regional_police.id', 'regional_police.name')
+            ->leftJoin('stocks', 'regional_police.id', '=', 'stocks.regional_police_id')
+            ->groupBy('regional_police.id', 'regional_police.name')
+            ->selectRaw('COALESCE(SUM(stocks.quantity), 0) as total_stock')
             ->orderBy('total_stock', 'DESC')
             ->take(5)
             ->get();
