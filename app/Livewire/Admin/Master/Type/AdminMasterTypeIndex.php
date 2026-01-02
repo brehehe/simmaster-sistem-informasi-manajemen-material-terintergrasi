@@ -20,6 +20,7 @@ class AdminMasterTypeIndex extends Component
     public string $name = '';
     public ?string $description = null;
     public bool $is_active = true;
+    public bool $is_with_serial_number = false;
 
     protected $queryString = ['search' => ['except' => ''], 'perPage' => ['except' => 10]];
 
@@ -29,6 +30,8 @@ class AdminMasterTypeIndex extends Component
     public function openCreateModal()
     {
         $this->resetForm();
+        $this->is_active = true;
+        $this->is_with_serial_number = false;
         $this->isEditMode = false;
         $this->showModal = true;
     }
@@ -42,6 +45,7 @@ class AdminMasterTypeIndex extends Component
         $this->name = $type->name;
         $this->description = $type->description;
         $this->is_active = $type->is_active;
+        $this->is_with_serial_number = $type->is_with_serial_number;
         $this->showModal = true;
     }
 
@@ -64,6 +68,7 @@ class AdminMasterTypeIndex extends Component
         $this->name = '';
         $this->description = null;
         $this->is_active = true;
+        $this->is_with_serial_number = false;
         $this->resetValidation();
     }
 
@@ -73,6 +78,7 @@ class AdminMasterTypeIndex extends Component
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
+            'is_with_serial_number' => 'boolean',
         ];
     }
 
@@ -90,10 +96,10 @@ class AdminMasterTypeIndex extends Component
         try {
             if ($this->isEditMode) {
                 $type = Type::findOrFail($this->typeId);
-                $type->update(['name' => $this->name, 'description' => $this->description, 'is_active' => $this->is_active]);
+                $type->update(['name' => $this->name, 'description' => $this->description, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
                 session()->flash('success', 'Tipe berhasil diperbarui.');
             } else {
-                Type::create(['name' => $this->name, 'description' => $this->description, 'is_active' => $this->is_active]);
+                Type::create(['name' => $this->name, 'description' => $this->description, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
                 session()->flash('success', 'Tipe berhasil ditambahkan.');
             }
             $this->closeModal();

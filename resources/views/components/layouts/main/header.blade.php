@@ -1,5 +1,6 @@
 <header
-    class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-blue-100 bg-white/80 px-4 backdrop-blur-xl lg:px-8">
+    class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-b border-blue-100 bg-white/80 px-4 backdrop-blur-xl transition-all duration-300 ease-in-out lg:px-8"
+    :class="sidebarCollapsed ? 'lg:left-0' : 'lg:left-72'">
     <!-- Left Side: Toggle, Mobile Menu & Search -->
     <div class="flex items-center gap-3">
         <!-- Desktop Sidebar Toggle Button -->

@@ -65,7 +65,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->policeStationId = $materialUsage->police_station_id;
         $this->description = $materialUsage->description ?? '';
 
-        // Load racks and stocks for this polda
+        // Load racks and stocks for this polres
         $this->loadRacks();
         $this->loadStockDetails();
 
@@ -230,7 +230,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
             });
 
-            return $this->redirect(route('menu-polda.material-usage'), navigate: true);
+            return $this->redirect(route('menu-polres.material-usage'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -238,7 +238,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
     public function render()
     {
-        return view('livewire.admin.menu-polda.material-usage.detail.admin-menu-polda-material-usage-detail-index')
+        return view('livewire.admin.menu-polres.material-usage.detail.admin-menu-polres-material-usage-detail-index')
             ->layout('components.layouts.main.app');
     }
 }

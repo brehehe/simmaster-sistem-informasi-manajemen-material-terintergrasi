@@ -1,30 +1,20 @@
 <div>
-    <!-- Header -->
     <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-600">Mutasi Stock</h1>
-                <p class="text-gray-500 mt-1">Kelola mutasi stock antar lokasi</p>
+                <p class="text-gray-500 mt-1">Kelola mutasi stock antar lokasi
+                </p>
             </div>
-            <div class="flex gap-2">
-                <a href="{{ route('menu-polres.mutation-stock.receive') }}" wire:navigate
-                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                            d="M8 16.5c0 .276-.448.5-1 .5s-1-.224-1-.5v-2c0-.276.448-.5 1-.5s1 .224 1 .5v2zM14 16.5c0 .276-.448.5-1 .5s-1-.224-1-.5v-2c0-.276.448-.5 1-.5s1 .224 1 .5v2zM3 5h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" />
-                    </svg>
-                    Terima Stock
-                </a>
-                <a href="{{ route('menu-polres.mutation-stock.create') }}" wire:navigate
-                    class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    Buat Mutasi
-                </a>
-            </div>
+            <a href="{{ route('menu-polres.mutation-stock.create') }}" wire:navigate
+                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Tambah Data
+            </a>
         </div>
     </div>
 

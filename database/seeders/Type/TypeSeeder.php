@@ -10,21 +10,22 @@ class TypeSeeder extends Seeder
     public function run(): void
     {
         $datas = [
-            'SIM CARD',
-            'STNK',
-            'STCK',
-            'E-BPKB',
-            'BPKB',
-            'MUTASI',
-            'TNKB REG',
-            'TNKB LISTRIK',
-            'NRKB NOPIL',
-            'NRKB NOPIL LISTRIK',
+            'SIM CARD' => true,
+            'STNK' => true,
+            'STCK' => true,
+            'E-BPKB' => true,
+            'BPKB' => true,
+            'MUTASI' => false,
+            'TNKB REG' => false,
+            'TNKB LISTRIK' => false,
+            'NRKB NOPIL' => false,
+            'NRKB NOPIL LISTRIK' => false,
         ];
 
-        foreach($datas as $data) {
+        foreach($datas as $name => $is_with_serial_number) {
             Type::create([
-                'name' => $data,
+                'name' => $name,
+                'is_with_serial_number' => $is_with_serial_number,
             ]);
         }
     }

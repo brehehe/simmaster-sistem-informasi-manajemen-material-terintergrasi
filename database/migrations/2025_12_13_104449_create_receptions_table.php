@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('receptions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->date('date');
+            $table->enum('type',['stock-awal','penerimaan'])->default('penerimaan');
             $table->foreignUuid('regional_police_id')->nullable();
             $table->foreignUuid('police_station_id')->nullable();
             $table->text('description')->nullable();

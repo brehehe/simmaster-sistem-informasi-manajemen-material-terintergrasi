@@ -67,10 +67,8 @@
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">No</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Nama</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Deskripsi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">With Serial Number</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Detail</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Tanggal Dibuat</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase">Aksi</th>
                     </tr>
                 </thead>
@@ -79,24 +77,12 @@
                         <tr class="hover:bg-blue-50/50 transition-colors">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $types->firstItem() + $index }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $type->name }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                <div class="max-w-xs truncate">{{ $type->description ?? '-' }}</div>
-                            </td>
+                            <td class="px-6 py-4"><span
+                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-{{ $type->is_with_serial_number ? 'green' : 'blue' }}-100 text-{{ $type->is_with_serial_number ? 'green' : 'blue' }}-700">{{ $type->is_with_serial_number ? 'Ya' : 'Tidak' }}</span></td>
                             <td class="px-6 py-4"><span
                                     class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{{ $type->type_details_count }}
                                     Detail</span></td>
-                            <td class="px-6 py-4">
-                                @if ($type->is_active)
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Aktif</span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">Tidak
-                                        Aktif</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $type->created_at->format('d M Y, H:i') }}
-                            </td>
+
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <button wire:click="openEditModal('{{ $type->id }}')"

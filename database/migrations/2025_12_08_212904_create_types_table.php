@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('types', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->boolean('is_with_serial_number')->default(false);
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

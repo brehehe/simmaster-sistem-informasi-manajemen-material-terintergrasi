@@ -31,15 +31,15 @@
                         placeholder="Deskripsi (opsional)"></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">With Serial Number</label>
                     <div class="flex items-center gap-3">
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" wire:model="is_active" class="sr-only peer">
+                            <input type="checkbox" wire:model="is_with_serial_number" class="sr-only peer">
                             <div
                                 class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                             </div>
                         </label>
-                        <span class="text-sm text-gray-600">{{ $is_active ? 'Aktif' : 'Tidak Aktif' }}</span>
+                        <span class="text-sm text-gray-600">{{ $is_with_serial_number ? 'Ya' : 'Tidak' }}</span>
                     </div>
                 </div>
                 <div class="flex gap-3 pt-3 border-t border-gray-100">

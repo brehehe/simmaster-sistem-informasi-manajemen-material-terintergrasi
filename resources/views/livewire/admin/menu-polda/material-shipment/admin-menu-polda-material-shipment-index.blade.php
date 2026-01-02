@@ -13,7 +13,7 @@
                         d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
                         clip-rule="evenodd" />
                 </svg>
-                Buat Pengiriman
+                Tambah Data
             </a>
         </div>
     </div>
@@ -160,6 +160,19 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
+                                    <!-- Print PDF Button (for all status) -->
+                                    <button
+                                        onclick='printShippingDocument(@json($shipment))'
+                                        class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                        title="Cetak PDF">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+
                                     @if ($shipment->status === 'draft')
                                         <a href="{{ route('menu-polda.material-shipment.edit', ['id' => $shipment->id]) }}"
                                             wire:navigate
@@ -223,6 +236,241 @@
             </div>
         @endif
     </div>
+
+    @push('scripts')
+        <script>
+            function printShippingDocument(shipment) {
+                const {
+                    jsPDF
+                } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Helper function to format date
+                const formatDate = (dateString) => {
+                    const date = new Date(dateString);
+                    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                    ];
+                    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+                };
+
+                // Generate QRCode dengan settingan optimal untuk scanning
+                const qrDiv = document.createElement('div');
+                const qr = new QRCode(qrDiv, {
+                    text: shipment.code,
+                    width: 400,
+                    height: 400,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.M  // Medium level untuk balance antara data dan error correction
+                });
+
+                // Get canvas setelah QR generated
+                const canvas = qrDiv.querySelector('canvas');
+                const qrImg = canvas.toDataURL('image/png');
+
+                // PDF Layout
+                const pageWidth = doc.internal.pageSize.getWidth();
+                let yPos = 20;
+
+                // === HEADER ===
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.text('SURAT PENGIRIMAN MATERIAL', pageWidth / 2, yPos, {
+                    align: 'center'
+                });
+
+                yPos += 7;
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text('SISTEM INFORMASI MANAJEMEN MATERIAL SBST', pageWidth / 2, yPos, {
+                    align: 'center'
+                });
+
+                yPos += 10;
+                doc.setDrawColor(59, 130, 246);
+                doc.setLineWidth(0.5);
+                doc.line(20, yPos, pageWidth - 20, yPos);
+
+                // === SHIPPING INFO (LEFT) & QR CODE (RIGHT) SIDE BY SIDE ===
+                yPos += 10;
+
+                // Info pengiriman di kiri
+                const infoX = 20;
+                let infoY = yPos;
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.text('INFORMASI PENGIRIMAN', infoX, infoY);
+
+                infoY += 2;
+                doc.setDrawColor(59, 130, 246);
+                doc.line(infoX, infoY, infoX + 60, infoY);
+
+                infoY += 6;
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+
+                const infoData = [
+                    ['Tanggal', ': ' + formatDate(shipment.shipment_date)],
+                    ['Pengirim', ': ' + (shipment.sender_regional_police?.name || '-')],
+                    ['Penerima', ': ' + (shipment.receiver_police_station?.name || '-')],
+                    ['Status', ': ' + (shipment.status === 'draft' ? 'Draft' : shipment.status === 'shipped' ?
+                        'Terkirim' : 'Diterima')]
+                ];
+
+                infoData.forEach(([label, value]) => {
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(label, infoX, infoY);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(value, infoX + 25, infoY);
+                    infoY += 5;
+                });
+
+                // QRCode di kanan
+                const qrSize = 40; // Increased from 35 to 40 for better scanning
+                const qrX = pageWidth - qrSize - 25;
+                doc.addImage(qrImg, 'PNG', qrX, yPos, qrSize, qrSize);
+
+                // Kode dibawah QR
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text(shipment.code, qrX + (qrSize / 2), yPos + qrSize + 4, {
+                    align: 'center'
+                });
+
+                // === ITEMS TABLE ===
+                yPos = Math.max(yPos + qrSize + 10, infoY + 5); // Adjust yPos to be below both QR and info
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.text('DAFTAR MATERIAL', 20, yPos);
+
+                yPos += 2;
+                doc.setDrawColor(59, 130, 246);
+                doc.line(20, yPos, 70, yPos);
+
+                yPos += 3;
+
+                // Prepare table data
+                const tableData = [];
+                shipment.material_shipment_details.forEach((item, index) => {
+                    tableData.push([
+                        (index + 1).toString(),
+                        item.type?.name || '-',
+                        item.type_detail?.name || '-',
+                        item.code + ' ' + item.number_serial_first + ' - ' + item.number_serial_second || '-',
+                        item.quantity.toString() + ' unit'
+                    ]);
+                });
+
+                doc.autoTable({
+                    startY: yPos,
+                    head: [
+                        ['No', 'Material', 'Detail Material', 'Kode Serial', 'Jumlah']
+                    ],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [59, 130, 246],
+                        textColor: 255,
+                        fontSize: 9,
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    },
+                    bodyStyles: {
+                        fontSize: 8,
+                        textColor: 50
+                    },
+                    columnStyles: {
+                        0: {
+                            halign: 'center',
+                            cellWidth: 10
+                        },
+                        1: {
+                            cellWidth: 40
+                        },
+                        2: {
+                            cellWidth: 45
+                        },
+                        3: {
+                            cellWidth: 40
+                        },
+                        4: {
+                            halign: 'center',
+                            cellWidth: 25
+                        }
+                    },
+                    margin: {
+                        left: 20,
+                        right: 20
+                    }
+                });
+
+                // === SUMMARY ===
+                yPos = doc.lastAutoTable.finalY + 8;
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Total Item: ' + shipment.material_shipment_details.length + ' jenis material', 20, yPos);
+                yPos += 4;
+                const totalQty = shipment.material_shipment_details.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
+                doc.text('Total Quantity: ' + totalQty.toLocaleString('id-ID') + ' unit', 20, yPos);
+
+                // === SIGNATURE SECTION ===
+                yPos += 15;
+
+                // Check if there's enough space, otherwise add new page
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+
+                // Pengirim
+                doc.text('Pengirim,', 30, yPos);
+                // Penerima
+                doc.text('Penerima,', pageWidth - 60, yPos);
+
+                yPos += 20;
+
+                // Signature lines
+                doc.line(25, yPos, 75, yPos);
+                doc.line(pageWidth - 65, yPos, pageWidth - 15, yPos);
+
+                yPos += 5;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.text('Nama & Tanda Tangan', 30, yPos);
+                doc.text('Nama & Tanda Tangan', pageWidth - 60, yPos);
+
+                // === FOOTER ===
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.setFont('helvetica', 'italic');
+                    doc.text(
+                        'Dicetak pada: ' + new Date().toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }),
+                        pageWidth / 2,
+                        doc.internal.pageSize.getHeight() - 10, {
+                            align: 'center'
+                        }
+                    );
+                }
+
+                // Save PDF
+                doc.save(`Surat_Pengiriman_${shipment.code}.pdf`);
+            }
+        </script>
+    @endpush
 
     <!-- Delete Modal -->
     @if ($showDeleteModal)

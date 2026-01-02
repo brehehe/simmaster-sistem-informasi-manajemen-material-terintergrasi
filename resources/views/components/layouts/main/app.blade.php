@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{ $title ?? 'SIMMASTER - Sistem Informasi Manajemen Material SBST Terintegrasi' }}</title>
+        <title>{{ $title ?? 'SIMMASTER' }} - Sistem Informasi Manajemen Material SBST Terintegrasi</title>
 
         <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
@@ -142,13 +142,13 @@
         <!-- Sidebar -->
         @include('components.layouts.main.sidebar')
 
-        <!-- Main Content Area -->
-        <div class="transition-all duration-300 ease-in-out" :class="sidebarCollapsed ? 'lg:pl-0' : 'lg:pl-72'">
-            <!-- Top Header -->
-            @include('components.layouts.main.header')
+        <!-- Top Header (Fixed outside main content) -->
+        @include('components.layouts.main.header')
 
+        <!-- Main Content Area -->
+        <div class="transition-all duration-300 ease-in-out mt-16" :class="sidebarCollapsed ? '' : 'lg:pl-72'">
             <!-- Main Content -->
-            <main class="min-h-[calc(100vh-4rem)] p-4 lg:p-8">
+            <main class="min-h-[calc(100vh-8rem)] p-4 lg:p-8">
                 {{ $slot }}
             </main>
         </div>
@@ -164,6 +164,7 @@
         <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+        <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     </body>
 
 </html>

@@ -61,14 +61,14 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Polres <span class="text-red-500">*</span>
                         </label>
-                        <select wire:model.live="policeStationId"
+                        <select wire:model.live="regionalPoliceId"
                             class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                             <option value="">-- Pilih Polres --</option>
-                            @foreach ($policeStations as $ps)
-                                <option value="{{ $ps->id }}">{{ $ps->name }}</option>
+                            @foreach ($regionalPolices as $rp)
+                                <option value="{{ $rp->id }}">{{ $rp->name }}</option>
                             @endforeach
                         </select>
-                        @error('policeStationId')
+                        @error('regionalPoliceId')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>

@@ -29,7 +29,7 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     {
         $user = auth()->user();
 
-        $query = MaterialShipment::with(['senderRegionalPolice', 'receiverPoliceStation', 'materialShipmentDetails'])
+        $query = MaterialShipment::with(['senderRegionalPolice', 'receiverPoliceStation', 'materialShipmentDetails','materialShipmentDetails.type','materialShipmentDetails.typeDetail'])
             ->where('is_active', true);
 
         // Role-based: Polda only sees their own shipments

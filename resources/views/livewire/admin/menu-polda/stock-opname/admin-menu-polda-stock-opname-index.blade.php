@@ -1,20 +1,20 @@
 <div>
     <!-- Header -->
-    <div class="mb-6">
-        <div class="flex items-center justify-between">
+    <div class="mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-600">Stock Opname</h1>
-                <p class="text-gray-500 mt-1">Manajemen stock opname untuk Polda dan Polres</p>
+                <p class="text-gray-500 mt-1">Kelola stock opname untuk Polda</p>
             </div>
-            <div>
-                <a wire:navigate href="{{ route('menu-polda.stock-opname.create') }}"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 transition-all duration-200">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Buat Stock Opname
-                </a>
-            </div>
+            <a href="{{ route('menu-polda.stock-opname.create') }}" wire:navigate
+                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Tambah Data
+            </a>
         </div>
     </div>
 

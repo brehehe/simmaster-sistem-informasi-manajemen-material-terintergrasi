@@ -24,6 +24,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     public string $code = '';
     public string $name = '';
     public string $date = '';
+    public string $type = '';
     public ?string $regionalPoliceId = null;
     public ?string $policeStationId = null;
     public ?string $description = null;
@@ -60,6 +61,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->code = $reception->code;
             $this->name = $reception->name;
             $this->date = $reception->date->format('Y-m-d');
+            $this->type = $reception->type;
             $this->regionalPoliceId = $reception->regional_police_id;
             $this->policeStationId = $reception->police_station_id;
             $this->description = $reception->description;
@@ -93,6 +95,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             if ($user->hasRole('Polres')) {
                 $this->policeStationId = $user->police_station_id;
             }
+
+            $this->type = 'penerimaan';
 
             $this->addDetail();
         }
@@ -198,9 +202,10 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         $user = Auth::user();
 
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'date' => 'required|date',
             'description' => 'nullable|string',
+            'type' => 'required|in:stock-awal,penerimaan',
             'is_active' => 'boolean',
             'details.*.type_id' => 'nullable|exists:types,id',
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
@@ -228,6 +233,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         return [
             'name.required' => 'Nama wajib diisi.',
             'date.required' => 'Tanggal wajib diisi.',
+            'type.required' => 'Tipe wajib dipilih.',
             'regionalPoliceId.required' => 'Polda wajib dipilih.',
             'policeStationId.required' => 'Polres wajib dipilih.',
             'details.*.quantity.required' => 'Jumlah wajib diisi.',
@@ -245,6 +251,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $data = [
                 'name' => $this->name,
                 'date' => $this->date,
+                'type' => $this->type,
                 'regional_police_id' => $this->regionalPoliceId,
                 'police_station_id' => $this->policeStationId,
                 'description' => $this->description,

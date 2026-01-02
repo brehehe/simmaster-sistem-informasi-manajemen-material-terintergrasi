@@ -304,7 +304,7 @@
                                         <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
                                             <p class="text-xs text-blue-700">
                                                 Sisa Stock: <span
-                                                    class="font-bold">{{ $detail['available_quantity'] - ($detail['quantity'] ?? 0) }}</span>
+                                                    class="font-bold">{{ intval($detail['available_quantity']) - intval($detail['quantity'] ?? 0) }}</span>
                                                 unit
                                             </p>
                                         </div>

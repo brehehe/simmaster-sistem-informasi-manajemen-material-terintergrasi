@@ -1,9 +1,9 @@
 <div>
     <!-- Header -->
-    <div class="mb-6">
+    <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-purple-600">Terima Mutasi Stock</h1>
+                <h1 class="text-3xl font-bold text-blue-600">Terima Mutasi Stock</h1>
                 <p class="text-gray-500 mt-1">Terima mutasi stock yang dikirim ke lokasi Anda</p>
             </div>
         </div>
@@ -34,9 +34,9 @@
 
     <!-- Search Card -->
     <div
-        class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-xl shadow-purple-200/50 border border-purple-100 overflow-hidden mb-6 p-6">
+        class="bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl shadow-xl shadow-blue-200/50 border border-blue-100 overflow-hidden mb-6 p-6">
         <div class="flex items-center gap-3 mb-4">
-            <div class="p-3 rounded-xl bg-purple-500 text-white shadow-lg">
+            <div class="p-3 rounded-xl bg-blue-500 text-white shadow-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -52,10 +52,10 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Input Kode Mutasi Manual</label>
                 <div class="flex gap-2">
                     <input wire:model="searchCode" type="text" placeholder="Contoh: MUT-20251217-001"
-                        class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                        class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                         wire:keydown.enter="searchByCode">
                     <button wire:click="searchByCode" type="button"
-                        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/30 transition-all duration-300 transform hover:scale-105">
+                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -91,7 +91,7 @@
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-600">Tampilkan</span>
                     <select wire:model.live="perPage"
-                        class="px-3 py-2 rounded-lg border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                        class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
                         <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="25">25</option>
@@ -121,10 +121,10 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($mutations as $index => $mutation)
-                        <tr class="hover:bg-purple-50/30 transition-colors duration-200">
+                        <tr class="hover:bg-blue-50/30 transition-colors duration-200">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $mutations->firstItem() + $index }}</td>
                             <td class="px-6 py-4">
-                                <span class="text-sm font-medium text-purple-600">{{ $mutation->code }}</span>
+                                <span class="text-sm font-medium text-blue-600">{{ $mutation->code }}</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ \Carbon\Carbon::parse($mutation->mutation_date)->format('d M Y') }}
@@ -157,7 +157,7 @@
                             <td class="px-6 py-4 text-center">
                                 <a href="{{ route('menu-polres.mutation-stock.receive.detail', ['id' => $mutation->id]) }}"
                                     wire:navigate
-                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors font-medium text-sm">
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors font-medium text-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                         fill="currentColor">
                                         <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -211,7 +211,7 @@
                         </svg>
                     </button>
                 </div>
-                <div id="reader" class="rounded-xl overflow-hidden border-2 border-purple-200"></div>
+                <div id="reader" class="rounded-xl overflow-hidden border-2 border-blue-200"></div>
                 <p class="text-sm text-gray-500 mt-3 text-center">Arahkan kamera ke barcode atau QR code mutasi</p>
             </div>
         </div>
@@ -222,11 +222,30 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
         let html5QrCode = null;
+        let isScanning = false;
 
         function startScanner() {
+            // Prevent multiple scanners
+            if (isScanning) {
+                console.log('Scanner already running');
+                return;
+            }
+
             document.getElementById('scannerModal').classList.remove('hidden');
 
+            // Cleanup previous instance if exists
+            if (html5QrCode) {
+                try {
+                    html5QrCode.clear();
+                } catch (e) {
+                    console.log('Error clearing previous scanner:', e);
+                }
+                html5QrCode = null;
+            }
+
+            // Create new instance
             html5QrCode = new Html5Qrcode("reader");
+            isScanning = true;
 
             html5QrCode.start({
                     facingMode: "environment"
@@ -255,17 +274,44 @@
         }
 
         function stopScanner() {
-            if (html5QrCode) {
+            if (html5QrCode && isScanning) {
                 html5QrCode.stop().then(() => {
-                    document.getElementById('scannerModal').classList.add('hidden');
+                    html5QrCode.clear();
                     html5QrCode = null;
+                    isScanning = false;
+                    document.getElementById('scannerModal').classList.add('hidden');
                 }).catch((err) => {
                     console.error('Error stopping scanner:', err);
+                    html5QrCode = null;
+                    isScanning = false;
                     document.getElementById('scannerModal').classList.add('hidden');
                 });
             } else {
+                isScanning = false;
                 document.getElementById('scannerModal').classList.add('hidden');
             }
         }
+
+        // Cleanup scanner when navigating away with Livewire
+        document.addEventListener('livewire:navigating', () => {
+            console.log('Livewire navigating - cleanup scanner');
+            if (html5QrCode && isScanning) {
+                try {
+                    html5QrCode.stop();
+                    html5QrCode.clear();
+                } catch (e) {
+                    console.log('Error during navigation cleanup:', e);
+                }
+                html5QrCode = null;
+                isScanning = false;
+            }
+        });
+
+        // Reinitialize when page loaded via Livewire
+        document.addEventListener('livewire:navigated', () => {
+            console.log('Livewire navigated - reset scanner state');
+            html5QrCode = null;
+            isScanning = false;
+        });
     </script>
 @endpush
