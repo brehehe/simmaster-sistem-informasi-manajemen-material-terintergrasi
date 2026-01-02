@@ -72,7 +72,9 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                 $this->details[] = [
                     'id' => $detail->id,
                     'type_id' => $detail->type_id,
+                    'is_type_detail' => false,
                     'type_detail_id' => $detail->type_detail_id,
+                    'is_with_serial_number' => $detail?->type?->is_with_serial_number,
                     // 'rack_id' => $detail->rack_id,
                     'code' => $detail->code,
                     'number_serial_first' => $detail->number_serial_first,
@@ -102,12 +104,21 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         }
     }
 
+    public function updatedDetails() {
+        foreach ($this->details as $index => $detail) {
+            $this->details[$index]['is_type_detail'] = $detail['type_id'] ? Type::find($detail['type_id'])->typeDetails->isNotEmpty() : false;
+            $this->details[$index]['is_with_serial_number'] = $detail['type_id'] ? Type::find($detail['type_id'])->is_with_serial_number : false;
+        }
+    }
+
     public function addDetail()
     {
         $this->details[] = [
             'id' => null,
             'type_id' => null,
+            'is_type_detail' => false,
             'type_detail_id' => null,
+            'is_with_serial_number' => false,
             // 'rack_id' => null,
             'code' => '',
             'number_serial_first' => '',

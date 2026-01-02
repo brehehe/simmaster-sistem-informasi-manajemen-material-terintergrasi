@@ -90,7 +90,10 @@
                 border-radius: 0.5rem;
                 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
                 margin-top: 4px;
-                z-index: 9999 !important;
+                z-index: 99999 !important;
+                max-height: 250px !important;
+                overflow-y: auto !important;
+                background: white;
             }
 
             .selectize-dropdown .option {

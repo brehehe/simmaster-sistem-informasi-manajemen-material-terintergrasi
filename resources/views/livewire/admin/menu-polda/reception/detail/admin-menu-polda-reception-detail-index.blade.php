@@ -171,8 +171,6 @@
                                     style="min-width: 200px;">Material</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
                                     style="min-width: 200px;">Material Detail</th>
-                                {{-- <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
-                                    style="min-width: 180px;">Rack</th> --}}
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
                                     style="min-width: 150px;">Code</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
@@ -189,7 +187,7 @@
                             @foreach ($details as $index => $detail)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 text-sm text-gray-600">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3" colspan="{{ $detail['is_type_detail'] ? 1 : ($detail['is_with_serial_number'] ? 2 : 5) }}">
                                         <div wire:ignore wire:key="select-type-{{ rand() }}">
                                             <select id="select-type" x-data x-ref="input" x-init="$($refs.input).selectize({
                                                 dropdownParent: 'body',
@@ -200,7 +198,7 @@
                                                 }
                                             });"
                                                 wire:model="details.{{ $index }}.type_id">
-                                                <option value="">-- Pilih Polres --</option>
+                                                <option value="">-- Pilih Material --</option>
                                                 @foreach ($types as $type)
                                                     <option value="{{ $type->id }}"
                                                         {{ $detail['type_id'] == $type->id ? 'selected' : '' }}>
@@ -210,72 +208,52 @@
                                             </select>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3">
-                                        <div wire:ignore
-                                            wire:key="select-type-detail-{{ $index }}-{{ $detail['type_id'] ?? 'empty' }}-{{ rand() }}">
-                                            <select id="select-type-detail-{{ $index }}" x-data x-ref="input"
-                                                x-init="$($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    plugins: ['clear_button'],
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
-                                                    }
-                                                });"
-                                                wire:model="details.{{ $index }}.type_detail_id">
-                                                <option value="">-- Pilih --</option>
-                                                @if (!empty($detail['type_id']))
-                                                    @foreach (\App\Models\Type\TypeDetail::where('type_id', $detail['type_id'])->where('is_active', true)->orderBy('name')->get() as $td)
-                                                        <option value="{{ $td->id }}"
-                                                            {{ $detail['type_detail_id'] == $td->id ? 'selected' : '' }}>
-                                                            {{ $td->name }}
-                                                        </option>
-                                                    @endforeach
-                                                @endif
-                                            </select>
-                                        </div>
-                                    </td>
-                                    {{-- <td class="px-4 py-3">
-                                        <div wire:ignore
-                                            wire:key="select-rack-{{ $index }}-{{ $regionalPoliceId }}-{{ $policeStationId }}-{{ rand() }}">
-                                            <select id="select-rack-{{ $index }}" x-data x-ref="input"
-                                                x-init="$($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    plugins: ['clear_button'],
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.rack_id', e ? e : '');
-                                                    }
-                                                });"
-                                                wire:model="details.{{ $index }}.rack_id">
-                                                <option value="">-- Pilih --</option>
-                                                @foreach ($racks as $rack)
-                                                    <option value="{{ $rack->id }}"
-                                                        {{ $detail['rack_id'] == $rack->id ? 'selected' : '' }}>
-                                                        {{ $rack->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </td> --}}
-                                    <td class="px-4 py-3">
-                                        <input type="text" wire:model="details.{{ $index }}.code"
-                                            placeholder="Kode barang"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <input type="text"
-                                            wire:model="details.{{ $index }}.number_serial_first"
-                                            placeholder="Serial pertama"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <input type="text"
-                                            wire:model="details.{{ $index }}.number_serial_second"
-                                            placeholder="Serial kedua"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
-                                    </td>
-                                    <td class="px-4 py-3">
+                                    @if($detail['is_type_detail'])
+                                        <td class="px-4 py-3" colspan="{{ $detail['is_type_detail'] ? ($detail['is_with_serial_number'] ? 2 : 4) : 4 }}">
+                                            <div wire:ignore
+                                                wire:key="select-type-detail-{{ $index }}-{{ $detail['type_id'] ?? 'empty' }}-{{ rand() }}">
+                                                <select id="select-type-detail-{{ $index }}" x-data x-ref="input"
+                                                    x-init="$($refs.input).selectize({
+                                                        dropdownParent: 'body',
+                                                        allowClear: true,
+                                                        plugins: ['clear_button'],
+                                                        onChange: function(e) {
+                                                            @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
+                                                        }
+                                                    });"
+                                                    wire:model="details.{{ $index }}.type_detail_id">
+                                                    <option value="">-- Pilih --</option>
+                                                    @if (!empty($detail['type_id']))
+                                                        @foreach (\App\Models\Type\TypeDetail::where('type_id', $detail['type_id'])->where('is_active', true)->orderBy('name')->get() as $td)
+                                                            <option value="{{ $td->id }}"
+                                                                {{ $detail['type_detail_id'] == $td->id ? 'selected' : '' }}>
+                                                                {{ $td->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+                                            </div>
+                                        </td>
+                                    @endif
+                                    @if ($detail['is_with_serial_number'])
+                                        <td class="px-4 py-3">
+                                            <input type="text" wire:model="details.{{ $index }}.code"
+                                                placeholder="Kode barang"
+                                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="text"
+                                                wire:model="details.{{ $index }}.number_serial_first"
+                                                placeholder="Serial pertama"
+                                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="text"
+                                                wire:model="details.{{ $index }}.number_serial_second"
+                                                placeholder="Serial kedua"
+                                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                        </td>
+                                         <td class="px-4 py-3">
                                         <input type="number" wire:model="details.{{ $index }}.quantity"
                                             min="0" step="0.01" placeholder="Qty"
                                             class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
@@ -283,6 +261,16 @@
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </td>
+                                    @else
+                                     <td class="px-4 py-3">
+                                        <input type="number" wire:model="details.{{ $index }}.quantity"
+                                            min="0" step="0.01" placeholder="Qty"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                        @error('details.' . $index . '.quantity')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </td>
+                                    @endif
                                     <td class="px-4 py-3 text-center">
                                         <button wire:click="removeDetail({{ $index }})" type="button"
                                             class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
