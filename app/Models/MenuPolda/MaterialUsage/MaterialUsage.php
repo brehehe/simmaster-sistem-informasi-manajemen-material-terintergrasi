@@ -38,7 +38,8 @@ class MaterialUsage extends Model
     public static function generateCode()
     {
         $date = now()->format('Ymd');
-        $lastRecord = self::whereDate('created_at', '=', now()->toDateString())
+        $lastRecord = self::withTrashed()
+            ->whereDate('created_at', '=', now()->toDateString())
             ->latest('created_at')
             ->first();
 

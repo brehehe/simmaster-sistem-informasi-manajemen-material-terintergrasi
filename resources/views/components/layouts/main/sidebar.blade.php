@@ -45,6 +45,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
+                @if(in_array(Auth::user()->level_menu,[1,2]))
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polda.reception') }}" wire:navigate
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.reception*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
@@ -53,6 +54,7 @@
                         Penerimaan Material
                     </a>
                 </div>
+                @endif
                 <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polda.rack-assignment') }}" wire:navigate
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
@@ -77,6 +79,7 @@
                         Material Rusak
                     </a>
                 </div>
+                @if(in_array(Auth::user()->level_menu,[1,2]))
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polda.material-shipment') }}" wire:navigate
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-shipment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
@@ -85,6 +88,7 @@
                         Distribusi Material
                     </a>
                 </div>
+                @endif
                 <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polda.stock-opname') }}" wire:navigate
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">

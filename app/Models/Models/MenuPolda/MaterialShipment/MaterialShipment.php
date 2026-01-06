@@ -57,7 +57,7 @@ class MaterialShipment extends Model
         $prefix = 'SHP';
 
         if ($regionalPoliceId) {
-            $regionalPolice = RegionalPolice::find($regionalPoliceId);
+            $regionalPolice = RegionalPolice::withTrashed()->find($regionalPoliceId);
             if ($regionalPolice) {
                 // Extract first 3 letters of regional police name
                 $name = strtoupper(substr(preg_replace('/[^A-Z]/i', '', $regionalPolice->name), 0, 3));

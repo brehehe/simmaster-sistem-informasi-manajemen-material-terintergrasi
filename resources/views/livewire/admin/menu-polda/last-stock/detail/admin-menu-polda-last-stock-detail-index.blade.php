@@ -81,10 +81,10 @@
                         </label>
                         @if ($canSelectRegionalPolice)
                             <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
-                                <select id="select-regional-police" x-data x-ref="input" x-init="$($refs.input).selectize({
+                                <select id="select-regional-police" @disabled($lastStockId) x-data x-ref="input" x-init="$($refs.input).selectize({
                                     dropdownParent: 'body',
                                     allowClear: true,
-                                    plugins: ['clear_button'],
+                                    plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
                                     onChange: function(e) {
                                         @this.set('regionalPoliceId', e ? e : '');
                                     }
@@ -114,10 +114,10 @@
                         </label>
                         @if ($canSelectPoliceStation)
                             <div wire:ignore wire:key="select-police-station-{{ rand() }}">
-                                <select id="select-police-station" x-data x-ref="input" x-init="$($refs.input).selectize({
+                                <select id="select-police-station" @disabled($lastStockId) x-data x-ref="input" x-init="$($refs.input).selectize({
                                     dropdownParent: 'body',
                                     allowClear: true,
-                                    plugins: ['clear_button'],
+                                    plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
                                     onChange: function(e) {
                                         @this.set('policeStationId', e ? e : '');
                                     }
@@ -145,18 +145,9 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Deskripsi (Opsional)
                         </label>
-                        <textarea wire:model="description" rows="3" placeholder="Masukkan deskripsi (opsional)"
+                        <textarea wire:model="description" @disabled($lastStockId) rows="3" placeholder="Masukkan deskripsi (opsional)"
                             class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white">
                         </textarea>
-                    </div>
-
-                    <!-- Is Active -->
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" wire:model="is_active" id="is_active"
-                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="is_active" class="text-sm font-semibold text-gray-700">
-                            Aktif
-                        </label>
                     </div>
                 </div>
             @endif
@@ -200,8 +191,10 @@
                                     style="min-width: 150px;">Serial 2</th>
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
                                     style="min-width: 120px;">Qty</th>
+                                @if (!$lastStockId)
                                 <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase"
                                     style="min-width: 80px;">Aksi</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -210,14 +203,21 @@
                                     <td class="px-4 py-3 text-sm text-gray-600">{{ $index + 1 }}</td>
                                     <td class="px-4 py-3">
                                         <div wire:ignore wire:key="select-type-{{ rand() }}">
-                                            <select id="select-type" x-data x-ref="input" x-init="$($refs.input).selectize({
-                                                dropdownParent: 'body',
-                                                allowClear: true,
-                                                plugins: ['clear_button'],
-                                                onChange: function(e) {
-                                                    @this.set('details.{{ $index }}.type_id', e ? e : '');
+                                            <select id="select-type"
+                                                @disabled($lastStockId)
+                                                x-data x-ref="input" x-init="
+                                                const selectize = $($refs.input).selectize({
+                                                    dropdownParent: 'body',
+                                                    allowClear: true,
+                                                    plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
+                                                    onChange: function(e) {
+                                                        @this.set('details.{{ $index }}.type_id', e ? e : '');
+                                                    }
+                                                })[0].selectize;
+                                                if ($refs.input.disabled) {
+                                                    selectize.disable();
                                                 }
-                                            });"
+                                            "
                                                 wire:model="details.{{ $index }}.type_id">
                                                 <option value="">-- Pilih Polres --</option>
                                                 @foreach ($types as $type)
@@ -232,15 +232,22 @@
                                     <td class="px-4 py-3">
                                         <div wire:ignore
                                             wire:key="select-type-detail-{{ $index }}-{{ $detail['type_id'] ?? 'empty' }}-{{ rand() }}">
-                                            <select id="select-type-detail-{{ $index }}" x-data x-ref="input"
-                                                x-init="$($refs.input).selectize({
+                                            <select id="select-type-detail-{{ $index }}"
+                                                @disabled($lastStockId)
+                                                x-data x-ref="input"
+                                                x-init="
+                                                const selectize = $($refs.input).selectize({
                                                     dropdownParent: 'body',
                                                     allowClear: true,
-                                                    plugins: ['clear_button'],
+                                                    plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
                                                     onChange: function(e) {
                                                         @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
                                                     }
-                                                });"
+                                                })[0].selectize;
+                                                if ($refs.input.disabled) {
+                                                    selectize.disable();
+                                                }
+                                            "
                                                 wire:model="details.{{ $index }}.type_detail_id">
                                                 <option value="">-- Pilih --</option>
                                                 @if (!empty($detail['type_id']))
@@ -257,15 +264,22 @@
                                     <td class="px-4 py-3">
                                         <div wire:ignore
                                             wire:key="select-rack-{{ $index }}-{{ $regionalPoliceId }}-{{ $policeStationId }}-{{ rand() }}">
-                                            <select id="select-rack-{{ $index }}" x-data x-ref="input"
-                                                x-init="$($refs.input).selectize({
+                                            <select id="select-rack-{{ $index }}"
+                                                @disabled($lastStockId)
+                                                x-data x-ref="input"
+                                                x-init="
+                                                const selectize = $($refs.input).selectize({
                                                     dropdownParent: 'body',
                                                     allowClear: true,
-                                                    plugins: ['clear_button'],
+                                                    plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
                                                     onChange: function(e) {
                                                         @this.set('details.{{ $index }}.rack_id', e ? e : '');
                                                     }
-                                                });"
+                                                })[0].selectize;
+                                                if ($refs.input.disabled) {
+                                                    selectize.disable();
+                                                }
+                                            "
                                                 wire:model="details.{{ $index }}.rack_id">
                                                 <option value="">-- Pilih --</option>
                                                 @foreach ($racks as $rack)
@@ -279,41 +293,47 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text" wire:model="details.{{ $index }}.code"
+                                            @disabled($lastStockId)
                                             placeholder="Kode barang"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text"
                                             wire:model="details.{{ $index }}.number_serial_first"
+                                            @disabled($lastStockId)
                                             placeholder="Serial pertama"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text"
                                             wire:model="details.{{ $index }}.number_serial_second"
+                                            @disabled($lastStockId)
                                             placeholder="Serial kedua"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="number" wire:model="details.{{ $index }}.quantity"
+                                            @disabled($lastStockId)
                                             min="0" step="0.01" placeholder="Qty"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white">
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
                                         @error('details.' . $index . '.quantity')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <button wire:click="removeDetail({{ $index }})" type="button"
-                                            class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                                            title="Hapus">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </td>
+                                    @if (!$lastStockId)
+                                        <td class="px-4 py-3 text-center">
+                                            <button wire:click="removeDetail({{ $index }})" type="button"
+                                                class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                                                title="Hapus">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                         </tbody>

@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin SIMMASTER',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
+            'level_menu' => 1,
         ]);
 
         $user->assignRole('Admin');
@@ -40,30 +41,30 @@ class DatabaseSeeder extends Seeder
             UserTypeSeeder::class,
             UserSeeder::class,
             // Rack seeder - must run before stock seeders
-            RackSeeder::class,
+            // RackSeeder::class,
             // Stock seeders - core tables first
-            StockSeeder::class,
-            StockDetailSeeder::class,
+            // StockSeeder::class,
+            // StockDetailSeeder::class,
             // Last stock tables
-            LastStockSeeder::class,
-            LastStockDetailSeeder::class,
+            // LastStockSeeder::class,
+            // LastStockDetailSeeder::class,
             // History stock
-            HistoryStockSeeder::class,
+            // HistoryStockSeeder::class,
             // Transaction tables
-            ReceptionSeeder::class,
-            ReceptionDetailSeeder::class,
-            RackAssignmentSeeder::class,
-            RackAssignmentDetailSeeder::class,
-            MaterialUsageSeeder::class,
-            MaterialUsageDetailSeeder::class,
-            MaterialDamageSeeder::class,
-            MaterialDamageDetailSeeder::class,
-            MaterialShipmentSeeder::class,
-            MaterialShipmentDetailSeeder::class,
-            StockOpnameSeeder::class,
-            StockOpnameDetailSeeder::class,
-            MutationStockSeeder::class,
-            MutationStockDetailSeeder::class,
+            // ReceptionSeeder::class,
+            // ReceptionDetailSeeder::class,
+            // RackAssignmentSeeder::class,
+            // RackAssignmentDetailSeeder::class,
+            // MaterialUsageSeeder::class,
+            // MaterialUsageDetailSeeder::class,
+            // MaterialDamageSeeder::class,
+            // MaterialDamageDetailSeeder::class,
+            // MaterialShipmentSeeder::class,
+            // MaterialShipmentDetailSeeder::class,
+            // StockOpnameSeeder::class,
+            // StockOpnameDetailSeeder::class,
+            // MutationStockSeeder::class,
+            // MutationStockDetailSeeder::class,
         ]);
     }
 }

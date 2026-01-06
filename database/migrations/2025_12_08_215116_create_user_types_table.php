@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->jsonb('types')->nullable();
+            $table->integer('level_user')->default(1);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();

@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Stock\HistoryStock;
 use App\Models\Type\Type;
+use App\Models\Type\TypeDetail;
 use App\Models\Police\RegionalPolice;
 use App\Models\Police\PoliceStation;
 
@@ -17,6 +18,7 @@ class AdminMenuPoldaHistoryIndex extends Component
     public $search = '';
     public $filterStatusType = '';
     public $filterTypeId = '';
+    public $filterTypeDetailId = '';
     public $filterRegionalPoliceId = '';
     public $filterPoliceStationId = '';
     public $perPage = 10;
@@ -25,6 +27,7 @@ class AdminMenuPoldaHistoryIndex extends Component
         'search' => ['except' => ''],
         'filterStatusType' => ['except' => ''],
         'filterTypeId' => ['except' => ''],
+        'filterTypeDetailId' => ['except' => ''],
         'filterRegionalPoliceId' => ['except' => ''],
         'filterPoliceStationId' => ['except' => ''],
     ];
@@ -40,6 +43,11 @@ class AdminMenuPoldaHistoryIndex extends Component
     }
 
     public function updatingFilterTypeId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterTypeDetailId()
     {
         $this->resetPage();
     }
@@ -60,6 +68,11 @@ class AdminMenuPoldaHistoryIndex extends Component
 
         $query = HistoryStock::with(['lastStock', 'lastStockDetail', 'type', 'typeDetail', 'regionalPolice', 'policeStation', 'rack'])
             ->where('is_active', true);
+
+        // Filter by Type Detail ID
+        if ($this->filterTypeDetailId) {
+            $query->where('type_detail_id', $this->filterTypeDetailId);
+        }
 
         // Role-based filtering
         if ($user->hasRole('Polda')) {
@@ -95,10 +108,12 @@ class AdminMenuPoldaHistoryIndex extends Component
 
         // Dropdown data
         $types = Type::where('is_active', true)->orderBy('name')->get();
+        $typeDetails = $this->filterTypeId ? TypeDetail::where('type_id', $this->filterTypeId)->where('is_active', true)->orderBy('name')->get() : [];
 
         return view('livewire.admin.menu-polda.history.admin-menu-polda-history-index', [
             'historyStocks' => $historyStocks,
             'types' => $types,
+            'typeDetails' => $typeDetails,
         ])->layout('components.layouts.main.app');
     }
 }

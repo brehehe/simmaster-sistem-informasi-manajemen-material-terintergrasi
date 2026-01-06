@@ -74,7 +74,7 @@
             .selectize-input>.clear-button,
             .selectize-input>a.clear {
                 position: absolute;
-                right: 2.5rem;
+                right: 2rem;
                 top: 50%;
                 transform: translateY(-50%);
                 display: inline-flex;
@@ -83,6 +83,18 @@
                 margin: 0;
                 padding: 2px;
                 line-height: 1;
+            }
+
+            .selectize-control.plugin-clear_button.single .clear {
+    right: calc(7px - 4px + 1.5rem);
+    top: -2px;
+}
+
+            /* Fix Arrow Vertical Alignment */
+            .selectize-control.single .selectize-input:after {
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                margin-top: 0 !important;
             }
 
             .selectize-dropdown {
@@ -120,9 +132,13 @@
                 color: white !important;
             }
 
-            .selectize-input.disabled {
-                opacity: 0.6;
-                background-color: #f3f4f6;
+            .selectize-control.single .selectize-input.disabled {
+                background: #f6f3f4 !important;
+                background-color: #f6f3f4 !important;
+                color: #6a7282 !important;
+                border-color: #e5e7eb !important;
+                cursor: not-allowed !important;
+                opacity: 1 !important;
             }
         </style>
     </head>

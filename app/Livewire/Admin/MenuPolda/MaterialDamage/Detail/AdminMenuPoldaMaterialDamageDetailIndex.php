@@ -155,6 +155,12 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
             ->where('is_active', true)
             ->where('quantity', '>', 0);
 
+        // Filter by UserType authorization
+        $user = auth()->user();
+        if ($user->userType && !empty($user->userType->types)) {
+            $query->whereIn('type_id', $user->userType->types);
+        }
+
         if ($this->regionalPoliceId) {
             $query->where('regional_police_id', $this->regionalPoliceId)->whereNull('police_station_id');
         }

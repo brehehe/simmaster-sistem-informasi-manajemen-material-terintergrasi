@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignUuid('regional_police_id')->nullable();
             $table->foreignUuid('police_station_id')->nullable();
             $table->foreignUuid('user_type_id')->nullable();
+            $table->integer('level_menu')->default(1);
             $table->string('password');
             $table->rememberToken();
             $table->softDeletes(); // otomatis kolom deleted_at

@@ -149,12 +149,11 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('menu-polres.last-stock.edit', $lastStock->id) }}" wire:navigate
-                                        class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors duration-150"
+                                        class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-150"
                                         title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path
-                                                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 3C5.454 3 1.73 6.11.458 10c1.272 3.89 4.996 7 9.542 7s8.27-3.11 9.542-7C18.27 6.11 14.546 3 10 3zm0 11a4 4 0 110-8 4 4 0 010 8z"/>
+                                            <path d="M10 8a2 2 0 100 4 2 2 0 000-4z"/>
                                         </svg>
                                     </a>
                                     <button wire:click="openDeleteModal('{{ $lastStock->id }}')"

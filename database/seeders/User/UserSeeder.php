@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
         $password = Hash::make('password'); // hash sekali saja
 
         // Ambil semua user type sekali saja
-        $userTypes = UserType::select('id', 'name')->get();
+        $userTypes = UserType::select('id', 'name','level_user')->get();
 
         // Eager load policeStations, biar tidak query ulang per Polda
         $regionalPolices = RegionalPolice::select('id', 'name')
@@ -33,6 +33,7 @@ class UserSeeder extends Seeder
             $email = Str::slug($regionalPolice->name) . '@sbst.test';
 
             $user = User::create([
+                'level_menu'        => 1,
                 'name'              => $regionalPolice->name,
                 'email'             => $email,
                 'password'          => $password,
@@ -47,6 +48,7 @@ class UserSeeder extends Seeder
                     $email = Str::slug($userType->name . '-' . $regionalPolice->name) . '@sbst.test';
 
                     $user = User::create([
+                        'level_menu'        => $userType->level_user === 1 ? 2 : 3,
                         'name'             => $userType->name . ' ' . $regionalPolice->name,
                         'email'            => $email,
                         'password'         => $password,
@@ -63,6 +65,7 @@ class UserSeeder extends Seeder
                 $email = Str::slug($policeStation->name) . '@sbst.test';
 
                 $user = User::create([
+                    'level_menu'        => 1,
                     'name'             => $policeStation->name,
                     'email'            => $email,
                     'password'         => $password,
@@ -77,6 +80,7 @@ class UserSeeder extends Seeder
                     $email = Str::slug($userType->name . '-' . $policeStation->name) . '@sbst.test';
 
                     $user = User::create([
+                        'level_menu'        => $userType->level_user === 1 ? 2 : 3,
                         'name'             => $userType->name . ' ' . $policeStation->name,
                         'email'            => $email,
                         'password'         => $password,

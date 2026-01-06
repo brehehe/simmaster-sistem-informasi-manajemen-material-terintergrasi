@@ -61,13 +61,33 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Polres <span class="text-red-500">*</span>
                         </label>
-                        <select wire:model.live="policeStationId"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                            <option value="">-- Pilih Polres --</option>
-                            @foreach ($policeStations as $ps)
-                                <option value="{{ $ps->id }}">{{ $ps->name }}</option>
-                            @endforeach
-                        </select>
+                        <div wire:ignore wire:key="select-police-station-{{ rand() }}">
+                            <select
+                                id="select-police-station"
+                                wire:model="policeStationId"
+                                x-data
+                                x-ref="input"
+                                x-init="
+                                    const selectize = $($refs.input).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        onChange: function(e) {
+                                            @this.set('policeStationId', e ?? '');
+                                        }
+                                    })[0].selectize;
+
+                                    if ($refs.input.disabled) {
+                                        selectize.disable();
+                                    }
+                                "
+                            >
+                                <option value="">-- Pilih Polres --</option>
+                                @foreach ($policeStations as $ps)
+                                    <option value="{{ $ps->id }}">{{ $ps->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         @error('policeStationId')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -137,18 +157,35 @@
                                             </svg>
                                             Pilih Stock <span class="text-red-500">*</span>
                                         </label>
-                                        <select wire:model.live="details.{{ $index }}.stock_detail_id"
-                                            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white transition-all duration-200">
-                                            <option value="">-- Pilih Stock --</option>
-                                            @foreach ($stockDetails as $stock)
-                                                <option value="{{ $stock->id }}">
-                                                    {{ $stock->type->name ?? '' }} -
-                                                    {{ $stock->typeDetail->name ?? '' }}
-                                                    {{ $stock->rack->name ?? 'Tanpa Rak' }} {{ $stock->code }}
-                                                    (Tersedia: {{ $stock->quantity }})
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <div wire:ignore wire:key="select-stock-detail-{{ rand() }}">
+                                            <select
+                                                id="select-stock-detail"
+                                                wire:model="details.{{ $index }}.stock_detail_id"
+                                                x-data
+                                                x-ref="input"
+                                                x-init="
+                                                    const selectize = $($refs.input).selectize({
+                                                        dropdownParent: 'body',
+                                                        allowClear: true,
+                                                        onChange: function(e) {
+                                                            @this.set('details.{{ $index }}.stock_detail_id', e ?? '');
+                                                        }
+                                                    })[0].selectize;
+
+                                                    if ($refs.input.disabled) {
+                                                        selectize.disable();
+                                                    }
+                                                "
+                                            >
+                                                <option value="">-- Pilih Stock Detail --</option>
+                                                @foreach ($stockDetails as $sd)
+                                                    <option value="{{ $sd->id }}">{{ $sd->type->name ?? '' }} -
+                                                    {{ $sd->typeDetail->name ?? '' }}
+                                                    {{ $sd->rack->name ?? 'Tanpa Rak' }} {{ $sd->code }}
+                                                    (Tersedia: {{ $sd->quantity }})</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                         @error("details.{$index}.stock_detail_id")
                                             <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"

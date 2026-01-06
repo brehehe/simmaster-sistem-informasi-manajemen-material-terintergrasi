@@ -54,6 +54,11 @@ class AdminMenuPolresStockIndex extends Component
             $query->where('police_station_id', $user->police_station_id);
         }
 
+        $user = auth()->user();
+        if ($user->userType && !empty($user->userType->types)) {
+            $query->whereIn('type_id', $user->userType->types);
+        }
+
         // Search
         if ($this->search) {
             $query->where(function ($q) {

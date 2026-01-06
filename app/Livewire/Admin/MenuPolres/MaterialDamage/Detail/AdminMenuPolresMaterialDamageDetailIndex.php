@@ -153,6 +153,12 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             ->where('is_active', true)
             ->where('quantity', '>', 0);
 
+        // Filter by UserType authorization
+        $user = auth()->user();
+        if ($user->userType && !empty($user->userType->types)) {
+            $query->whereIn('type_id', $user->userType->types);
+        }
+
         if ($this->policeStationId) {
             $query->where('police_station_id', $this->policeStationId);
         }

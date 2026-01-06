@@ -91,8 +91,8 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/reception', 'Reception\\AdminMenuPoldaReceptionIndex')
             ->name('menu-polda.reception');
 
-        Route::get('menu-polda/reception/edit/{id}', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
-            ->name('menu-polda.reception.edit');
+        Route::get('menu-polda/reception/detail/{id}', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
+            ->name('menu-polda.reception.detail');
 
         Route::get('menu-polda/reception/create', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
             ->name('menu-polda.reception.create');

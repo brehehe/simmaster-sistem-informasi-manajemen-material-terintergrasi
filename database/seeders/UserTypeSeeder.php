@@ -21,18 +21,19 @@ class UserTypeSeeder extends Seeder
 
         // Define user types with their corresponding type IDs
         $datas = [
-            'BAMAT' => $allTypeIds, // BAMAT has access to all types
-            'BAURTNKB' => $getTypeIds(['TNKB REG', 'TNKB LISTRIK', 'NRKB NOPIL', 'NRKB NOPIL LISTRIK']),
-            'BAURBPKB' => $getTypeIds(['E-BPKB', 'BPKB', 'MUTASI']),
-            'BAURSTNK' => $getTypeIds(['STNK']),
-            'BAURSTCK' => $getTypeIds(['STCK']),
-            'BAURSIMCARD' => $getTypeIds(['SIM CARD']),
+            'BAMAT' => [$allTypeIds, 1], // BAMAT has access to all types
+            'BAURTNKB' => [$getTypeIds(['TNKB REG', 'TNKB LISTRIK', 'NRKB NOPIL', 'NRKB NOPIL LISTRIK']),2],
+            'BAURBPKB' => [$getTypeIds(['E-BPKB', 'BPKB', 'MUTASI']),2],
+            'BAURSTNK' => [$getTypeIds(['STNK']),2],
+            'BAURSTCK' => [$getTypeIds(['STCK']),2],
+            'BAURSIMCARD' => [$getTypeIds(['SIM CARD']),2],
         ];
 
         foreach ($datas as $name => $types) {
             UserType::create([
                 'name' => $name,
-                'types' => $types, // No need for json_encode, model casts it automatically
+                'types' => $types[0], // No need for json_encode, model casts it automatically
+                'level_user' => $types[1],
             ]);
         }
     }

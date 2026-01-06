@@ -11,6 +11,8 @@ use App\Models\Stock\Stock;
 use App\Models\Stock\StockDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class StockService
 {
@@ -425,6 +427,53 @@ class StockService
                     'description' => 'Material ' . $damageTypeLabel . ': ' . $detail->reason,
                     'is_active' => true,
                 ]);
+            }
+        }
+    }
+    /**
+     * Delete reception stock and history
+     */
+    public function deleteReceptionStock(Reception $reception): void
+    {
+        // 1. Delete stock history associated with this reception
+        HistoryStock::where('reception_id', $reception->id)->delete();
+
+        // 2. Reduce stock quantity and delete/update stock details
+        foreach ($reception->receptionDetails as $detail) {
+            // Find stock detail to remove
+            // Eloquent where matches null correctly as IS NULL
+            $stockDetail = StockDetail::where('type_id', $detail->type_id)
+                ->where('type_detail_id', $detail->type_detail_id)
+                ->where('regional_police_id', $reception->regional_police_id)
+                ->where('police_station_id', $reception->police_station_id)
+                ->where('rack_id', $detail->rack_id)
+                ->where('code', $detail->code)
+                ->where('number_serial_first', $detail->number_serial_first)
+                ->where('number_serial_second', $detail->number_serial_second)
+                ->first();
+
+            if ($stockDetail) {
+                if ($stockDetail->quantity <= $detail->quantity) {
+                    $stockDetail->delete();
+                } else {
+                    $stockDetail->quantity -= $detail->quantity;
+                    $stockDetail->save();
+                }
+            }
+
+            // 3. Reduce aggregated stock
+            $stock = Stock::where('type_id', $detail->type_id)
+                ->where('type_detail_id', $detail->type_detail_id)
+                ->where('regional_police_id', $reception->regional_police_id)
+                ->where('police_station_id', $reception->police_station_id)
+                ->first();
+
+            if ($stock) {
+                $stock->quantity -= $detail->quantity;
+                if ($stock->quantity < 0) {
+                    $stock->quantity = 0;
+                }
+                $stock->save();
             }
         }
     }

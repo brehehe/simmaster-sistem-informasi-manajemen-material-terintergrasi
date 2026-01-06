@@ -11,7 +11,7 @@
 
     <!-- Filters (Outside Table) -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-{{ in_array(Auth::user()->level_menu, [1,2]) ? 3 : 1}} gap-4">
             <!-- Filter History Type -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Tipe History</label>
@@ -25,6 +25,7 @@
                 </select>
             </div>
 
+            @if (in_array(Auth::user()->level_menu, [1,2]))
             <!-- Filter Type -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Type</label>
@@ -36,6 +37,18 @@
                     @endforeach
                 </select>
             </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
+                <select wire:model.live="filterTypeDetailId"
+                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    <option value="">Semua Type Detail</option>
+                    @foreach ($typeDetails as $td)
+                        <option value="{{ $td->id }}">{{ $td->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
         </div>
     </div>
 

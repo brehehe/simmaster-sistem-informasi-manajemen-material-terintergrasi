@@ -106,13 +106,32 @@
                             </svg>
                             Polda
                         </label>
-                        <select wire:model.live="regional_police_id"
-                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
-                            <option value="">Pilih Polda</option>
-                            @foreach ($regionalPolices as $rp)
-                                <option value="{{ $rp->id }}">{{ $rp->name }}</option>
-                            @endforeach
-                        </select>
+                        <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
+                            <select
+                                id="select-regional-police"
+                                wire:model="regional_police_id"
+                                x-data
+                                x-ref="input"
+                                x-init="
+                                    const selectize = $($refs.input).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        onChange: function(e) {
+                                            @this.set('regional_police_id', e ?? '');
+                                        }
+                                    })[0].selectize;
+
+                                    if ($refs.input.disabled) {
+                                        selectize.disable();
+                                    }
+                                "
+                            >
+                                <option value="">-- Pilih Polda --</option>
+                                @foreach ($regionalPolices as $rp)
+                                    <option value="{{ $rp->id }}">{{ $rp->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         @error('regional_police_id')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -130,13 +149,32 @@
                         </svg>
                         Tujuan Polres
                     </label>
-                    <select wire:model="receiver_police_station_id"
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
-                        <option value="">Pilih Polres</option>
-                        @foreach ($policeStations as $ps)
-                            <option value="{{ $ps->id }}">{{ $ps->name }}</option>
-                        @endforeach
-                    </select>
+                    <div wire:ignore wire:key="select-receiver-police-station-{{ rand() }}">
+                        <select
+                            id="select-receiver-police-station"
+                            wire:model="receiver_police_station_id"
+                            x-data
+                            x-ref="input"
+                            x-init="
+                                const selectize = $($refs.input).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    onChange: function(e) {
+                                        @this.set('receiver_police_station_id', e ?? '');
+                                    }
+                                })[0].selectize;
+
+                                if ($refs.input.disabled) {
+                                    selectize.disable();
+                                }
+                            "
+                        >
+                            <option value="">-- Pilih Polres --</option>
+                            @foreach ($policeStations as $ps)
+                                <option value="{{ $ps->id }}">{{ $ps->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     @error('receiver_police_station_id')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -220,20 +258,37 @@
                                         </svg>
                                         Pilih Stock Material
                                     </label>
-                                    <select wire:model.live="details.{{ $index }}.stock_detail_id"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
-                                        <option value="">-- Pilih Stock --</option>
-                                        @foreach ($stockDetails as $sd)
-                                            <option value="{{ $sd->id }}">
-                                                {{ $sd->code }} - {{ $sd->type->name ?? '' }} /
-                                                {{ $sd->typeDetail->name ?? '' }}
-                                                @if ($sd->rack)
-                                                    [Rack: {{ $sd->rack->name }}]
-                                                @endif
-                                                (Qty: {{ $sd->quantity }})
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <div wire:ignore wire:key="select-stock-detail-{{ rand() }}">
+                                        <select
+                                            id="select-stock-detail"
+                                            wire:model="details.{{ $index }}.stock_detail_id"
+                                            x-data
+                                            x-ref="input"
+                                            x-init="
+                                                const selectize = $($refs.input).selectize({
+                                                    dropdownParent: 'body',
+                                                    allowClear: true,
+                                                    onChange: function(e) {
+                                                        @this.set('details.{{ $index }}.stock_detail_id', e ?? '');
+                                                    }
+                                                })[0].selectize;
+
+                                                if ($refs.input.disabled) {
+                                                    selectize.disable();
+                                                }
+                                            "
+                                        >
+                                            <option value="">-- Pilih Stock Detail --</option>
+                                            @foreach ($stockDetails as $sd)
+                                                <option value="{{ $sd->id }}">{{ $sd->code }} - {{ $sd->type->name ?? '' }} /
+                                                                {{ $sd->typeDetail->name ?? '' }}
+                                                                @if ($sd->rack)
+                                                                    [Rack: {{ $sd->rack->name }}]
+                                                                @endif
+                                                                (Qty: {{ $sd->quantity }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                     @error("details.{$index}.stock_detail_id")
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
