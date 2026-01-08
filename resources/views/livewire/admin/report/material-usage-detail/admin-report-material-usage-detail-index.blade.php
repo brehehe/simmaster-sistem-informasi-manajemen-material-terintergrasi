@@ -5,6 +5,39 @@
     </div>
 
     {{-- Filters --}}
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/30">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm">Total Penggunaan</p>
+                    <p class="text-3xl font-bold mt-1">{{ number_format($this->totalItems, 0, ',', '.') }}</p>
+                    <p class="text-xs text-blue-200 mt-1">Transaksi</p>
+                </div>
+                <div class="bg-white/20 rounded-xl p-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-cyan-500 to-teal-600 rounded-2xl p-5 text-white shadow-lg shadow-cyan-500/30">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-cyan-100 text-sm">Total Unit</p>
+                    <p class="text-3xl font-bold mt-1">{{ number_format($this->totalQuantity, 0, ',', '.') }}</p>
+                    <p class="text-xs text-cyan-200 mt-1">Item</p>
+                </div>
+                <div class="bg-white/20 rounded-xl p-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             @if(auth()->user()->hasRole('Admin'))

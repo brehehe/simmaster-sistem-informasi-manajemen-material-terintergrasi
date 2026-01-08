@@ -28,6 +28,52 @@ class AdminReportMaterialUsageDetailIndex extends Component
     #[Url]
     public $typeDetailId = '';
 
+    public function getTotalItemsProperty()
+    {
+        return $this->getFilteredQuery()->count();
+    }
+
+    public function getTotalQuantityProperty()
+    {
+        return $this->getFilteredQuery()->sum('quantity');
+    }
+
+    protected function getFilteredQuery()
+    {
+        $user = auth()->user();
+        $query = MaterialUsageDetail::query()
+            ->whereHas('materialUsage', function ($q) use ($user) {
+                if ($user->hasRole('Admin')) {
+                    if ($this->policeStationId) {
+                         $q->where('police_station_id', $this->policeStationId);
+                    }
+                    if ($this->regionalPoliceId) {
+                         $q->where('regional_police_id', $this->regionalPoliceId);
+                    }
+                } else {
+                    if ($user->policeStation) {
+                        $q->where('police_station_id', $user->policeStation->id);
+                    }
+                    if ($user->regionalPolice) {
+                        $q->where('regional_police_id', $user->regionalPolice->id);
+                    }
+                }
+            })
+            ->when($this->typeId, function($q) {
+                $q->where('type_id', $this->typeId);
+            })
+            ->when($this->typeDetailId, function($q) {
+                $q->where('type_detail_id', $this->typeDetailId);
+            });
+
+        // Filter by user permissions for Types
+        if ($user->userType && !empty($user->userType->types)) {
+            $query->whereIn('type_id', $user->userType->types);
+        }
+
+        return $query;
+    }
+
     public function render()
     {
         $user = auth()->user();
