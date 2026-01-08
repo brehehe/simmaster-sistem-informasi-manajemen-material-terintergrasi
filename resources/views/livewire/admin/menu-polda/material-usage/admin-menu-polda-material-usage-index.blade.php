@@ -70,12 +70,13 @@
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
+
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polda
+                        </th>            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
                         </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polda
-                        </th>
+
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Material</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Qty
@@ -88,14 +89,14 @@
                     @forelse ($materialUsages as $index => $usage)
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $materialUsages->firstItem() + $index }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ $usage?->regionalPolice?->name }}
+                            </td>
                             <td class="px-6 py-4">
                                 <span class="text-sm font-medium text-blue-600">{{ $usage->code }}</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ \Carbon\Carbon::parse($usage->date)->format('d M Y') }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ $usage?->regionalPolice?->name }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <div class="flex flex-col">

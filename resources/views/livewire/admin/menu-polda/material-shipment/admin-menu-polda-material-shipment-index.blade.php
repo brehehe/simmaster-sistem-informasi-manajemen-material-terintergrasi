@@ -45,6 +45,54 @@
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <!-- Search & Filter -->
         <div class="p-4 border-b border-gray-100">
+            <div class="bg-white rounded-xl mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '4' : '3' }} gap-4">
+                    @if(auth()->user()->hasRole('Admin'))
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Pengirim</label>
+                            <div wire:ignore>
+                                <select id="select-regional-police" x-data x-init="
+                                    const selectize = $($el).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        plugins: ['clear_button'],
+                                        onChange: function(val) {
+                                            @this.set('poldaFilter', val);
+                                        }
+                                    })[0].selectize;
+                                "
+                                placeholder="Semua Polda">
+                                    <option value="">Semua Polda</option>
+                                    @foreach ($regionalPolices as $regional)
+                                        <option value="{{ $regional->id }}" @selected($poldaFilter == $regional->id)>{{ $regional->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Penerima</label>
+                        <div wire:ignore>
+                            <select id="select-regional-police" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('polresFilter', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Polres">
+                                <option value="">Semua Polres</option>
+                                @foreach ($policeStations as $policeStation)
+                                    <option value="{{ $policeStation->id }}" @selected($polresFilter == $policeStation->id)>{{ $policeStation->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-600">Tampilkan</span>
@@ -108,6 +156,7 @@
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
                         </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Dari Polda</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tujuan
                             Polres</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Items
@@ -127,6 +176,9 @@
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ \Carbon\Carbon::parse($shipment->shipment_date)->format('d M Y') }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+                                {{ $shipment->senderRegionalPolice->name ?? '-' }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 {{ $shipment->receiverPoliceStation->name ?? '-' }}

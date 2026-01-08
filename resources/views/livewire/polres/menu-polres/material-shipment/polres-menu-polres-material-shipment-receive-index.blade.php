@@ -105,82 +105,90 @@
             <table class="w-full">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Dari
-                            Polda</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Items
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status
-                        </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tipe Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Detail Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No. Seri</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Qty</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Polres</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
-                    @forelse ($shipments as $index => $shipment)
-                        <tr class="hover:bg-blue-50/30 transition-colors duration-200">
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $shipments->firstItem() + $index }}</td>
-                            <td class="px-6 py-4">
-                                <span class="text-sm font-medium text-blue-600">{{ $shipment->code }}</span>
+                    @forelse ($materialShipments as $index => $detail)
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                {{ $materialShipments->firstItem() + $index }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ \Carbon\Carbon::parse($shipment->shipment_date)->format('d M Y') }}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-medium text-blue-600">{{ $detail->materialShipment->code ?? '-' }}</span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 font-medium">
-                                {{ $shipment->senderRegionalPolice->name ?? '-' }}
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($detail->materialShipment->shipment_date)->format('d M Y') }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{{ $shipment->materialShipmentDetails->count() }}
-                                        Items</span>
-                                    <span class="text-xs text-gray-500">Total:
-                                        {{ number_format($shipment->materialShipmentDetails->sum('quantity'), 0) }}
-                                        unit</span>
-                                </div>
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $detail->type->name ?? '-' }}
                             </td>
-                            <td class="px-6 py-4">
-                                @if ($shipment->status === 'shipped')
-                                    <span
-                                        class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 animate-pulse">
-                                        🔵 Menunggu Konfirmasi
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $detail->typeDetail->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                @if($detail->code)
+                                    <span class="text-xs text-gray-500 mb-1">{{ $detail->code }}</span>
+                                @endif
+                                <span>{{ $detail->number_serial_first }}</span>
+                                @if($detail->number_serial_second)
+                                    <span class="text-xs text-gray-500">{{ $detail->number_serial_second }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if ($detail->materialShipment->status === 'sent')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Dikirim
+                                    </span>
+                                @elseif ($detail->materialShipment->status === 'received')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Diterima
                                     </span>
                                 @else
-                                    <span
-                                        class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
-                                        🟢 Sudah Diterima
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        {{ ucfirst($detail->materialShipment->status) }}
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <a href="{{ route('menu-polres.material-shipment.receive.detail', ['id' => $shipment->id]) }}"
-                                    wire:navigate
-                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors font-medium text-sm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                        fill="currentColor">
-                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                        <path fill-rule="evenodd"
-                                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                    Lihat Detail
-                                </a>
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                {{ number_format($detail->quantity, 0) }}
+                            </td>
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                {{ $detail?->materialShipment?->receiverPoliceStation?->name }}
+                            </td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('menu-polres.material-shipment.receive.detail', ['id' => $detail->material_shipment_id]) }}"
+                                       wire:navigate
+                                       class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                       title="Detail">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center whitespace-nowrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                                         d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                 </svg>
-                                <p class="text-gray-500 text-lg font-medium">Tidak ada pengiriman pending</p>
-                                <p class="text-gray-400 text-sm mt-1">Semua pengiriman sudah diterima atau belum ada
-                                    pengiriman baru</p>
+                                <p class="text-gray-500 text-lg font-medium">Tidak ada data pengiriman</p>
+                                <p class="text-gray-400 text-sm mt-1">Belum ada data pengiriman yang diterima</p>
                             </td>
                         </tr>
                     @endforelse
@@ -188,9 +196,10 @@
             </table>
         </div>
 
-        @if ($shipments->hasPages())
+
+        @if ($materialShipments->hasPages())
             <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-                {{ $shipments->links() }}
+                {{ $materialShipments->links() }}
             </div>
         @endif
     </div>

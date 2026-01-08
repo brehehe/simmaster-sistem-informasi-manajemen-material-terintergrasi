@@ -197,6 +197,45 @@
                                         </button>
                                     </td>
                                 </tr>
+
+                                {{-- Service Hierarchy Row --}}
+                                @if ($detail['type_id'] && $this->hasServices($detail['type_id']))
+                                    <tr class="bg-blue-50/30">
+                                        <td colspan="9" class="px-4 py-3">
+                                            <div class="border-l-4 border-blue-400 pl-4">
+                                                <h4 class="text-sm font-semibold text-gray-700 mb-2">Breakdown Service/Service Detail:</h4>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    @foreach ($this->getServicesForType($detail['type_id']) as $service)
+                                                        @if ($service->details_count > 0)
+                                                            {{-- Service with Details --}}
+                                                            <div class="bg-white p-3 rounded-lg border border-blue-200">
+                                                                <h5 class="text-sm font-semibold text-gray-800 mb-2">{{ $service->name }}</h5>
+                                                                @foreach ($service->details as $serviceDetail)
+                                                                    <div class="mb-2 last:mb-0">
+                                                                        <label class="block text-xs text-gray-600 mb-1">{{ $serviceDetail->name }}</label>
+                                                                        <input type="number" min="0" step="0.01"
+                                                                            wire:model="details.{{ $index }}.service_items.{{ $service->id }}.{{ $serviceDetail->id }}.quantity"
+                                                                            placeholder="Qty"
+                                                                            class="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @else
+                                                            {{-- Service  without Details --}}
+                                                            <div class="bg-white p-3 rounded-lg border border-blue-200">
+                                                                <label class="block text-sm font-semibold text-gray-800 mb-1">{{ $service->name }}</label>
+                                                                <input type="number" min="0" step="0.01"
+                                                                    wire:model="details.{{ $index }}.service_items.{{ $service->id }}.quantity"
+                                                                    placeholder="Qty"
+                                                                    class="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>

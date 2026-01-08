@@ -10,26 +10,34 @@ use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Models\Police\RegionalPolice;
 use App\Models\Police\PoliceStation;
+use Livewire\Attributes\Url;
 
 class AdminMenuPoldaHistoryIndex extends Component
 {
-     use WithPagination;
+    use WithPagination;
 
     public $search = '';
-    public $filterStatusType = '';
-    public $filterTypeId = '';
-    public $filterTypeDetailId = '';
-    public $filterRegionalPoliceId = '';
-    public $filterPoliceStationId = '';
     public $perPage = 10;
+
+    #[Url]
+    public $statusType = '';
+
+    #[Url]
+    public $regionalPoliceId = '';
+
+    #[Url]
+    public $typeId = '';
+
+    #[Url]
+    public $typeDetailId = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'filterStatusType' => ['except' => ''],
-        'filterTypeId' => ['except' => ''],
-        'filterTypeDetailId' => ['except' => ''],
-        'filterRegionalPoliceId' => ['except' => ''],
-        'filterPoliceStationId' => ['except' => ''],
+        'statusType' => ['except' => ''],
+        'regionalPoliceId' => ['except' => ''],
+        'typeId' => ['except' => ''],
+        'typeDetailId' => ['except' => ''],
+        'perPage' => ['except' => 10],
     ];
 
     public function updatingSearch()
@@ -37,27 +45,22 @@ class AdminMenuPoldaHistoryIndex extends Component
         $this->resetPage();
     }
 
-    public function updatingFilterType()
+    public function updatedStatusType()
     {
         $this->resetPage();
     }
 
-    public function updatingFilterTypeId()
+    public function updatedRegionalPoliceId()
     {
         $this->resetPage();
     }
 
-    public function updatingFilterTypeDetailId()
+    public function updatedTypeId()
     {
         $this->resetPage();
     }
 
-    public function updatingFilterRegionalPoliceId()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFilterPoliceStationId()
+    public function updatedTypeDetailId()
     {
         $this->resetPage();
     }
@@ -66,53 +69,89 @@ class AdminMenuPoldaHistoryIndex extends Component
     {
         $user = Auth::user();
 
+        // Load filter options
+        $regionalPolices = [];
+        if ($user->hasRole('Admin')) {
+            $regionalPolices = RegionalPolice::orderBy('name')->get();
+        }
+
+        $allTypes = Type::query();
+        if ($user->userType && !empty($user->userType->types)) {
+            $allTypes->whereIn('id', $user->userType->types);
+        }
+        $allTypes = $allTypes->orderBy('name')->get();
+
+        $typeDetails = [];
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
+        } else {
+             $tdQuery = TypeDetail::query();
+             if ($user->userType && !empty($user->userType->types)) {
+                 $tdQuery->whereIn('type_id', $user->userType->types);
+             }
+             $typeDetails = $tdQuery->orderBy('name')->get();
+        }
+
         $query = HistoryStock::with(['lastStock', 'lastStockDetail', 'type', 'typeDetail', 'regionalPolice', 'policeStation', 'rack'])
             ->where('is_active', true);
 
-        // Filter by Type Detail ID
-        if ($this->filterTypeDetailId) {
-            $query->where('type_detail_id', $this->filterTypeDetailId);
+        if ($user->userType && !empty($user->userType->types)) {
+            $query->whereIn('type_id', $user->userType->types);
         }
 
-        // Role-based filtering
+        // Role-based filtering & Police Station Filter
         if ($user->hasRole('Polda')) {
             $query->where('regional_police_id', $user->regional_police_id)->whereNull('police_station_id');
         } elseif ($user->hasRole('Polres')) {
             $query->where('police_station_id', $user->police_station_id);
+        } elseif ($user->hasRole('Admin')) {
+            if ($this->regionalPoliceId) {
+                $query->where('regional_police_id', $this->regionalPoliceId);
+            }
+            $query->whereNull('police_station_id');
+        }
+
+        // Filter by Type ID
+        if ($this->typeId) {
+            $query->where('type_id', $this->typeId);
+        }
+
+        // Filter by Type Detail ID
+        if ($this->typeDetailId) {
+            $query->where('type_detail_id', $this->typeDetailId);
+        }
+
+        // Filter by History Type (in/out/last/first)
+        if ($this->statusType) {
+            $query->where('status_type', $this->statusType);
         }
 
         // Search
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                ->orWhereHas('type', function ($tq) {
-                    $tq->where('name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('typeDetail', function ($tdq) {
-                    $tdq->where('name', 'like', '%' . $this->search . '%');
-                });
+             $keywords = preg_split('/\s+/', trim($this->search));
+             $query->where(function ($q) use ($keywords) {
+                foreach ($keywords as $word) {
+                    $q->where(function ($sub) use ($word) {
+                        $sub->where('code', 'ilike', "%{$word}%")
+                            ->orWhereHas('type', function ($tq) use ($word) {
+                                $tq->where('name', 'ilike', "%{$word}%");
+                            })
+                            ->orWhereHas('typeDetail', function ($tdq) use ($word) {
+                                $tdq->where('name', 'ilike', "%{$word}%");
+                            })
+                            ->orWhere('description', 'ilike', "%{$word}%")
+                            ->orWhere('serial_number', 'ilike', "%{$word}%");
+                    });
+                }
             });
-        }
-
-        // Filter by History Type (in/out/last/first)
-        if ($this->filterStatusType) {
-            $query->where('status_type', $this->filterStatusType);
-        }
-
-        // Filter by Type ID
-        if ($this->filterTypeId) {
-            $query->where('type_id', $this->filterTypeId);
         }
 
         $historyStocks = $query->latest()->paginate($this->perPage);
 
-        // Dropdown data
-        $types = Type::where('is_active', true)->orderBy('name')->get();
-        $typeDetails = $this->filterTypeId ? TypeDetail::where('type_id', $this->filterTypeId)->where('is_active', true)->orderBy('name')->get() : [];
-
         return view('livewire.admin.menu-polda.history.admin-menu-polda-history-index', [
             'historyStocks' => $historyStocks,
-            'types' => $types,
+            'regionalPolices' => $regionalPolices,
+            'allTypes' => $allTypes,
             'typeDetails' => $typeDetails,
         ])->layout('components.layouts.main.app');
     }

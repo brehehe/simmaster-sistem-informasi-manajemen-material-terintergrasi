@@ -45,4 +45,9 @@ class MaterialUsageDetail extends Model
     {
         return $this->belongsTo(Rack::class);
     }
+
+    public function materialUsageDetailItems()
+    {
+        return $this->hasMany(MaterialUsageDetailItem::class);
+    }
 }

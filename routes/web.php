@@ -33,6 +33,12 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('master/type', 'Type\\AdminMasterTypeIndex')
             ->name('master.type');
 
+        Route::get('master/type/service/{type_id}', 'Type\\Service\\AdminMasterTypeServiceIndex')
+            ->name('master.type.service');
+
+        Route::get('master/type/service/{type_id}/{service_id}/detail', 'Type\\Service\\ServiceDetail\\AdminMasterTypeServiceDetailIndex')
+            ->name('master.type.service.detail');
+
         Route::get('master/type-detail', 'TypeDetail\\AdminMasterTypeDetailIndex')
             ->name('master.type-detail');
 
@@ -80,6 +86,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('report/material-usage', 'MaterialUsage\\AdminReportMaterialUsageIndex')
             ->name('report.material-usage');
 
+        Route::get('report/material-usage-detail', 'MaterialUsageDetail\\AdminReportMaterialUsageDetailIndex')
+            ->name('report.material-usage-detail');
+
         Route::get('report/material-damage', 'MaterialDamage\\AdminReportMaterialDamageIndex')
             ->name('report.material-damage');
 
@@ -91,8 +100,8 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/reception', 'Reception\\AdminMenuPoldaReceptionIndex')
             ->name('menu-polda.reception');
 
-        Route::get('menu-polda/reception/detail/{id}', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
-            ->name('menu-polda.reception.detail');
+        Route::get('menu-polda/reception/item', 'Reception\\AdminMenuPoldaReceptionItem')
+            ->name('menu-polda.reception.item');
 
         Route::get('menu-polda/reception/create', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
             ->name('menu-polda.reception.create');
@@ -200,6 +209,8 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         // Material Usage
         Route::get('menu-polres/material-usage', 'MaterialUsage\\AdminMenuPolresMaterialUsageIndex')
             ->name('menu-polres.material-usage');
+            Route::get('menu-polres/material-usage-detail', 'MaterialUsageDetail\\AdminMenuPolresMaterialUsageDetailIndex')
+            ->name('menu-polres.material-usage-detail');
         Route::get('menu-polres/material-usage/create', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage.create');
         Route::get('menu-polres/material-usage/edit/{id}', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
@@ -227,6 +238,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
     Route::group(['namespace' => 'Stock'], function () {
         Route::get('stock/polda', 'Polda\\AdminStockPoldaIndex')
             ->name('stock.polda');
+
+        Route::get('stock/all', 'All\\AdminStockAllIndex')
+            ->name('stock.all');
 
         Route::get('stock/polres', 'Polres\\AdminStockPolresIndex')
             ->name('stock.polres');

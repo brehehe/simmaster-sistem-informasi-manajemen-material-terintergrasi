@@ -6,6 +6,7 @@ use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Police\PoliceStation;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\Police\RegionalPolice;
 
 class AdminMenuPoldaMaterialShipmentIndex extends Component
 {
@@ -16,6 +17,7 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     public ?string $endDate = null;
     public string $statusFilter = '';
     public string $polresFilter = '';
+    public string $poldaFilter = '';
     public int $perPage = 10;
     public bool $showDeleteModal = false;
     public ?string $shipmentId = null;
@@ -66,16 +68,13 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
         $shipments = $query->latest('shipment_date')->paginate($this->perPage);
 
         // Get police stations for filter
-        $policeStations = [];
-        if ($user->hasRole('Polda')) {
-            $policeStations = PoliceStation::where('regional_police_id', $user->regional_police_id)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get();
-        }
+        $policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
+
+        $regionalPolices = RegionalPolice::where('is_active', true)->orderBy('name')->get();
 
         return view('livewire.admin.menu-polda.material-shipment.admin-menu-polda-material-shipment-index', [
             'shipments' => $shipments,
+            'regionalPolices' => $regionalPolices,
             'policeStations' => $policeStations,
         ])->layout('components.layouts.main.app');
     }

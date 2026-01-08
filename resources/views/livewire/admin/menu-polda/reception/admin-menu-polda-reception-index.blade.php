@@ -47,7 +47,91 @@
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <!-- Search & Filter Header -->
         <div class="p-4 border-b border-gray-100">
-            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <!-- Filter Card -->
+            <div class="bg-white rounded-xl mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '4' : '3' }} gap-4">
+                    @if(auth()->user()->hasRole('Admin'))
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polda</label>
+                            <div wire:ignore>
+                                <select id="select-regional-police" x-data x-init="
+                                    const selectize = $($el).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        plugins: ['clear_button'],
+                                        onChange: function(val) {
+                                            @this.set('regionalPoliceId', val);
+                                        }
+                                    })[0].selectize;
+                                "
+                                placeholder="Semua Polda">
+                                    <option value="">Semua Polda</option>
+                                    @foreach ($regionalPolices as $regional)
+                                        <option value="{{ $regional->id }}" @selected($regionalPoliceId == $regional->id)>{{ $regional->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Tipe Transaksi</label>
+                        <select wire:model.live="type"
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                            <option value="">Semua Tipe</option>
+                            <option value="penerimaan">Penerimaan</option>
+                            <option value="stock-awal">Stock Awal</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material</label>
+                        <div wire:ignore>
+                            <select id="select-type" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material">
+                                <option value="">Semua Material</option>
+                                @foreach ($allTypes as $t)
+                                    <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
+                        <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                            <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeDetailId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material Detail">
+                                <option value="">Semua Material Detail</option>
+                                @foreach ($typeDetails as $td)
+                                    <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Search and Date Filter Layout -->
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mt-4">
                 <!-- Per Page Select (Left) -->
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-600">Tampilkan</span>
@@ -66,19 +150,6 @@
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
                     <!-- Date Range Filter -->
                     <div class="flex items-center gap-2">
-                        <select wire:model.live="regionalPoliceId"
-                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                            <option value="">Semua Polda</option>
-                            @foreach ($regionalPolices as $regionalPolice)
-                                <option value="{{ $regionalPolice->id }}">{{ $regionalPolice->name }}</option>
-                            @endforeach
-                        </select>
-                        <select wire:model.live="type"
-                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                            <option value="">Semua Tipe</option>
-                            <option value="penerimaan">Penerimaan</option>
-                            <option value="stock-awal">Stock Awal</option>
-                        </select>
                         <input wire:model.live.debounce.300ms="startDate" type="date" placeholder="Dari Tanggal"
                             class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
                         <span class="text-gray-400">-</span>
@@ -102,20 +173,14 @@
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polda
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jumlah
-                            Item</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status
-                        </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polda</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode</th>
+                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tipe</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Material Detail</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nomer Seri</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jumlah</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -124,62 +189,29 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $receptions->firstItem() + $index }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $reception->code }}</div>
+                              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {{ $reception?->reception?->regionalPolice?->name ?? '-' }}
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="font-medium text-gray-900">{{ $reception->name }}</div>
-                                @if ($reception->description)
-                                    <div class="text-xs text-gray-500 mt-1 max-w-xs truncate">
-                                        {{ $reception->description }}</div>
-                                @endif
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ $reception->reception->code }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ Str::title(Str::replace('-',' ',$reception?->reception?->type)) }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ $reception?->type?->name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ $reception?->typeDetail?->name ?? '-' }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="font-medium text-gray-900">{{ $reception?->code ?? '-' }} {{ $reception?->number_serial_first ?? '-' }} {{ $reception?->number_serial_second ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $reception->date->format('d M Y') }}
+                                {{ $reception?->reception?->date->format('d M Y') ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $reception->regionalPolice->name ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                                    {{ $reception->reception_details_count }} Item
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if ($reception->is_active)
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                        Aktif
-                                    </span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                                        Tidak Aktif
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('menu-polda.reception.detail', $reception->id) }}" wire:navigate
-                                        class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-150"
-                                        title="Detail">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 3C5.454 3 1.73 6.11.458 10c1.272 3.89 4.996 7 9.542 7s8.27-3.11 9.542-7C18.27 6.11 14.546 3 10 3zm0 11a4 4 0 110-8 4 4 0 010 8z"/>
-                                            <path d="M10 8a2 2 0 100 4 2 2 0 000-4z"/>
-                                        </svg>
-                                    </a>
-                                    <button wire:click="openDeleteModal('{{ $reception->id }}')"
-                                        class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-150"
-                                        title="Hapus">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
+                                {{ number_format($reception?->quantity,0,',','.') ?? 0 }}
                             </td>
                         </tr>
                     @empty

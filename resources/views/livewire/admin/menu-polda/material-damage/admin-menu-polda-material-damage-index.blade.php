@@ -35,7 +35,80 @@
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <!-- Search & Filter -->
         <div class="p-4 border-b border-gray-100">
-            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+             <!-- Filter Card -->
+             <div class="bg-white rounded-xl mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '3' : '2' }} gap-4">
+                    @if(auth()->user()->hasRole('Admin'))
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polda</label>
+                            <div wire:ignore>
+                                <select id="select-regional-police" x-data x-init="
+                                    const selectize = $($el).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        plugins: ['clear_button'],
+                                        onChange: function(val) {
+                                            @this.set('regionalPoliceId', val);
+                                        }
+                                    })[0].selectize;
+                                "
+                                placeholder="Semua Polda">
+                                    <option value="">Semua Polda</option>
+                                    @foreach ($regionalPolices as $regional)
+                                        <option value="{{ $regional->id }}" @selected($regionalPoliceId == $regional->id)>{{ $regional->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material</label>
+                        <div wire:ignore>
+                            <select id="select-type" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material">
+                                <option value="">Semua Material</option>
+                                @foreach ($allTypes as $t)
+                                    <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
+                        <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                            <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeDetailId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material Detail">
+                                <option value="">Semua Material Detail</option>
+                                @foreach ($typeDetails as $td)
+                                    <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mt-4">
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-600">Tampilkan</span>
                     <select wire:model.live="perPage"
@@ -70,60 +143,64 @@
             <table class="w-full">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polda
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Material</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Qty
-                        </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Polda</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Material Detail</th>
+                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No. Seri</th>
+                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Qty</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($materialDamages as $index => $damage)
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $materialDamages->firstItem() + $index }}
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ $materialDamages->firstItem() + $index }}
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="text-sm font-medium text-blue-600">{{ $damage->code }}</span>
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                {{ $damage->materialDamage?->regionalPolice?->name }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ \Carbon\Carbon::parse($damage->date)->format('d M Y') }}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-medium text-blue-600">{{ $damage->materialDamage->code }}</span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ $damage?->regionalPolice?->name }}
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($damage->materialDamage->date)->format('d M Y') }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{{ $damage->materialDamageDetails->count() }} Items</span>
-                                    <span class="text-xs text-gray-500">Total:
-                                        {{ number_format($damage->materialDamageDetails->sum('quantity'), 0) }}
-                                        units</span>
-                                </div>
+                             <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $damage->type->name }}
                             </td>
-                            <td class="px-6 py-4 text-sm font-medium text-red-600">
-                                - {{ number_format($damage->materialDamageDetails->sum('quantity'), 0) }}
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $damage->typeDetail->name ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $damage->item_code ?? '' }}
+                                {{ $damage->number_serial_first ?? '' }} {{ $damage->number_serial_second ?? '' }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $damage->damage_type == 'lost' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    {{ $damage->damage_type == 'lost' ? 'Hilang' : 'Rusak' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm font-medium text-red-600 whitespace-nowrap">
+                                - {{ number_format($damage->quantity, 0) }}
+                            </td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('menu-polda.material-damage.edit', $damage->id) }}" wire:navigate
+                                    <a href="{{ route('menu-polda.material-damage.edit', $damage->material_damage_id) }}" wire:navigate
                                         class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
-                                        title="Edit">
+                                        title="Edit Transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path
                                                 d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
                                     </a>
-                                    <button wire:click="openDeleteModal('{{ $damage->id }}')"
+                                    <button wire:click="openDeleteModal('{{ $damage->material_damage_id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                                        title="Hapus">
+                                        title="Hapus Transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path fill-rule="evenodd"

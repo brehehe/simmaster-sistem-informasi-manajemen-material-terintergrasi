@@ -331,11 +331,29 @@ class StockService
                     'regional_police_id' => $rackAssignment->regional_police_id,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
                     'police_station_id' => $rackAssignment->police_station_id,
-                    'rack_id' => $detail->to_rack_id,
+                    'rack_id' => $detail->from_rack_id, // Source Rack
                     'date' => $rackAssignment->date,
                     'type' => 'rack_move',
+                    'status_type' => 'out', // Out from source
                     'quantity' => $detail->quantity,
-                    'description' => 'Rack move: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
+                    'description' => 'Rack move OUT: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
+                    'is_active' => true,
+                ]);
+
+                HistoryStock::create([
+                    'code' => HistoryStock::generateCode(),
+                    'rack_assignment_id' => $rackAssignment->id,
+                    'type_id' => $detail->type_id,
+                    'type_detail_id' => $detail->type_detail_id,
+                    'regional_police_id' => $rackAssignment->regional_police_id,
+                    'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
+                    'police_station_id' => $rackAssignment->police_station_id,
+                    'rack_id' => $detail->to_rack_id, // Destination Rack
+                    'date' => $rackAssignment->date,
+                    'type' => 'rack_move',
+                    'status_type' => 'in', // In to destination
+                    'quantity' => $detail->quantity,
+                    'description' => 'Rack move IN: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
                     'is_active' => true,
                 ]);
             }

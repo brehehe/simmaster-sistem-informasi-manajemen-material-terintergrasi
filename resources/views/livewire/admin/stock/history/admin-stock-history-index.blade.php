@@ -11,11 +11,11 @@
 
     <!-- Filters (Outside Table) -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '3' : '2' }} gap-2">
             <!-- Filter History Type -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Tipe History</label>
-                <select wire:model.live="filterStatusType"
+                <select wire:model.live="statusType"
                     class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                     <option value="">Semua</option>
                     <option value="in">In (Masuk)</option>
@@ -25,40 +25,93 @@
                 </select>
             </div>
 
-            <!-- Filter Type -->
+            @if(auth()->user()->hasRole('Admin'))
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polda</label>
+                    <div wire:ignore>
+                        <select id="select-regional-police" x-data x-init="
+                            const selectize = $($el).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: ['clear_button'],
+                                onChange: function(val) {
+                                    @this.set('regionalPoliceId', val);
+                                }
+                            })[0].selectize;
+                        "
+                        placeholder="Semua Polda">
+                            <option value="">Semua Polda</option>
+                            @foreach ($regionalPolices as $police)
+                                <option value="{{ $police->id }}" @selected($regionalPoliceId == $police->id)>{{ $police->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polres</label>
+                    <div wire:ignore>
+                        <select id="select-regional-police" x-data x-init="
+                            const selectize = $($el).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: ['clear_button'],
+                                onChange: function(val) {
+                                    @this.set('policeStationId', val);
+                                }
+                            })[0].selectize;
+                        "
+                        placeholder="Semua Polres">
+                            <option value="">Semua Polres</option>
+                            @foreach ($policeStations as $policeStation)
+                                <option value="{{ $policeStation->id }}" @selected($policeStationId == $policeStation->id)>{{ $policeStation->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endif
+
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Type</label>
-                <select wire:model.live="filterTypeId"
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                    <option value="">Semua Type</option>
-                    @foreach ($types as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                    @endforeach
-                </select>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material</label>
+                <div wire:ignore>
+                    <select id="select-type" x-data x-init="
+                        const selectize = $($el).selectize({
+                            dropdownParent: 'body',
+                            allowClear: true,
+                            plugins: ['clear_button'],
+                            onChange: function(val) {
+                                @this.set('typeId', val);
+                            }
+                        })[0].selectize;
+                    "
+                    placeholder="Semua Tipe">
+                        <option value="">Semua Material</option>
+                        @foreach ($allTypes as $t)
+                            <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
-            <!-- Filter Regional Police -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polda</label>
-                <select wire:model.live="filterRegionalPoliceId"
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                    <option value="">Semua Polda</option>
-                    @foreach ($regionalPolices as $rp)
-                        <option value="{{ $rp->id }}">{{ $rp->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Filter Police Station -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polres</label>
-                <select wire:model.live="filterPoliceStationId"
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                    <option value="">Semua Polres</option>
-                    @foreach ($policeStations as $ps)
-                        <option value="{{ $ps->id }}">{{ $ps->name }}</option>
-                    @endforeach
-                </select>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
+                <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                    <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                        const selectize = $($el).selectize({
+                            dropdownParent: 'body',
+                            allowClear: true,
+                            plugins: ['clear_button'],
+                            onChange: function(val) {
+                                @this.set('typeDetailId', val);
+                            }
+                        })[0].selectize;
+                    "
+                    placeholder="Semua Material Detail">
+                        <option value="">Semua Material Detail</option>
+                        @foreach ($typeDetails as $td)
+                            <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -95,25 +148,27 @@
             <table class="w-full" style="min-width: 1400px;">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 60px;">No</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
+                            style="width: 200px;">Lokasi</th>
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 200px;">Kode</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 100px;">Tipe</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 120px;">Tanggal</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 120px;">Type</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 150px;">Type Detail</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 180px;">No Seri</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 150px;">Lokasi</th>
-                        <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 100px;">Quantity</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 220px;">Description</th>
                     </tr>
                 </thead>
@@ -122,6 +177,12 @@
                         <tr class="hover:bg-blue-50/50 transition-colors duration-150">
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $historyStocks->firstItem() + $index }}
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="truncate"
+                                    title="{{ $history->regionalPolice->name ?? ($history->policeStation->name ?? '-') }}">
+                                    {{ $history->regionalPolice->name ?? ($history->policeStation->name ?? '-') }}
+                                </div>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <span
@@ -152,25 +213,25 @@
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $history->date->format('d/m/Y') }}
                             </td>
-                            <td class="px-4 py-4 text-sm text-gray-900">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div class="truncate" title="{{ $history->type->name ?? '-' }}">
                                     {{ $history->type->name ?? '-' }}
                                 </div>
                             </td>
-                            <td class="px-4 py-4 text-sm text-gray-900">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div class="truncate" title="{{ $history->typeDetail->name ?? '-' }}">
                                     {{ $history->typeDetail->name ?? '-' }}
                                 </div>
                             </td>
-                            <td class="px-4 py-4 text-sm text-gray-900">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div class="truncate" title="{{ $history->serial_number ?? '-' }}">
                                     {{ $history->serial_number ?? '-' }}
                                 </div>
                             </td>
-                            <td class="px-4 py-4 text-sm text-gray-900">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div class="truncate"
-                                    title="{{ $history->policeStation->name ?? ($history->regionalPolice->name ?? '-') }}">
-                                    {{ $history->policeStation->name ?? ($history->regionalPolice->name ?? '-') }}
+                                    title="{{ $history->regionalPolice->name ?? ($history->regionalPolice->name ?? '-') }}">
+                                    {{ $history->regionalPolice->name ?? ($history->regionalPolice->name ?? '-') }}
                                 </div>
                             </td>
                             <td class="px-4 py-4 text-right whitespace-nowrap">
@@ -179,7 +240,7 @@
                                     {{ $history->status_type == 'out' ? '-' : '+' }}{{ number_format($history->quantity, 0, ',', '.') }}
                                 </span>
                             </td>
-                            <td class="px-4 py-4 text-sm text-gray-600">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                 <div class="truncate" title="{{ $history->description ?? '-' }}">
                                     {{ $history->description ?? '-' }}
                                 </div>

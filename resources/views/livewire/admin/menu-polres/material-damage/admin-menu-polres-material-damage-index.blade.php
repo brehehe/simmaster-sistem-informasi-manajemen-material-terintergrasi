@@ -31,6 +31,79 @@
         </div>
     @endif
 
+    <!-- Filter Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @if(auth()->user()->hasRole('Admin'))
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter Polres</label>
+                    <div wire:ignore>
+                        <select id="select-police-station" x-data x-init="
+                            const selectize = $($el).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: ['clear_button'],
+                                onChange: function(val) {
+                                    @this.set('policeStationId', val);
+                                }
+                            })[0].selectize;
+                        "
+                        placeholder="Semua Polres">
+                            <option value="">Semua Polres</option>
+                            @foreach ($policeStations as $station)
+                                <option value="{{ $station->id }}" @selected($policeStationId == $station->id)>{{ $station->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endif
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Filter Tipe</label>
+                <div wire:ignore>
+                    <select id="select-type" x-data x-init="
+                        const selectize = $($el).selectize({
+                            dropdownParent: 'body',
+                            allowClear: true,
+                            plugins: ['clear_button'],
+                            onChange: function(val) {
+                                @this.set('typeId', val);
+                            }
+                        })[0].selectize;
+                    "
+                    placeholder="Semua Tipe">
+                        <option value="">Semua Tipe</option>
+                        @foreach ($allTypes as $t)
+                            <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Filter Tipe Detail</label>
+                <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                    <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                        const selectize = $($el).selectize({
+                            dropdownParent: 'body',
+                            allowClear: true,
+                            plugins: ['clear_button'],
+                            onChange: function(val) {
+                                @this.set('typeDetailId', val);
+                            }
+                        })[0].selectize;
+                    "
+                    placeholder="Semua Detail">
+                        <option value="">Semua Detail</option>
+                        @foreach ($typeDetails as $td)
+                            <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Table Card -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <!-- Search & Filter -->
@@ -70,49 +143,56 @@
             <table class="w-full">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polda
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Material</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Qty
-                        </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tipe Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Detail Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No. Seri</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Qty</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($materialDamages as $index => $damage)
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $materialDamages->firstItem() + $index }}
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ $materialDamages->firstItem() + $index }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-medium text-blue-600">{{ $damage->materialDamage->code ?? '-' }}</span>
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="text-sm font-medium text-blue-600">{{ $damage->code }}</span>
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($damage->materialDamage->date)->format('d M Y') }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ \Carbon\Carbon::parse($damage->date)->format('d M Y') }}
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $damage->type->name ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">
-                                {{ $damage?->regionalPolice?->name }}
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                {{ $damage->typeDetail->name ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{{ $damage->materialDamageDetails->count() }} Items</span>
-                                    <span class="text-xs text-gray-500">Total:
-                                        {{ number_format($damage->materialDamageDetails->sum('quantity'), 0) }}
-                                        units</span>
-                                </div>
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                @if($damage->item_code)
+                                    <div class="text-xs text-gray-500 mb-1">{{ $damage->item_code }}</div>
+                                @endif
+                                <div>{{ $damage->number_serial_first }}</div>
+                                {{-- Only show second serial if differs or relevant --}}
+                                @if($damage->number_serial_second)
+                                    <div class="text-xs text-gray-500">{{ $damage->number_serial_second }}</div>
+                                @endif
                             </td>
-                            <td class="px-6 py-4 text-sm font-medium text-red-600">
-                                - {{ number_format($damage->materialDamageDetails->sum('quantity'), 0) }}
+                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                                @if($damage->damage_type === 'hilang')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Hilang</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Rusak</span>
+                                @endif
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-sm font-medium text-red-600 whitespace-nowrap">
+                                - {{ number_format($damage->quantity, 0) }}
+                            </td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('menu-polres.material-damage.edit', $damage->id) }}" wire:navigate
+                                    <a href="{{ route('menu-polres.material-damage.edit', $damage->material_damage_id) }}" wire:navigate
                                         class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
                                         title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -121,7 +201,7 @@
                                                 d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
                                     </a>
-                                    <button wire:click="openDeleteModal('{{ $damage->id }}')"
+                                    <button wire:click="openDeleteModal('{{ $damage->material_damage_id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                         title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -136,7 +216,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center whitespace-nowrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"

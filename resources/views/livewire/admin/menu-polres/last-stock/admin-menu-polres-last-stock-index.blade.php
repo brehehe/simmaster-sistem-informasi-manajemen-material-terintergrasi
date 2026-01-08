@@ -4,9 +4,9 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-600">
-                    Stok Terakhir
+                    Stock Awal
                 </h1>
-                <p class="text-gray-500 mt-1">Kelola data stok terakhir barang</p>
+                <p class="text-gray-500 mt-1">Kelola data Stock Awal barang</p>
             </div>
             <a href="{{ route('menu-polres.last-stock.create') }}" wire:navigate
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
@@ -42,6 +42,79 @@
             {{ session('error') }}
         </div>
     @endif
+
+    <!-- Filter Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @if(auth()->user()->hasRole('Admin'))
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter Polres</label>
+                    <div wire:ignore>
+                        <select id="select-police-station" x-data x-init="
+                            const selectize = $($el).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: ['clear_button'],
+                                onChange: function(val) {
+                                    @this.set('policeStationId', val);
+                                }
+                            })[0].selectize;
+                        "
+                        placeholder="Semua Polres">
+                            <option value="">Semua Polres</option>
+                            @foreach ($policeStations as $station)
+                                <option value="{{ $station->id }}" @selected($policeStationId == $station->id)>{{ $station->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endif
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Filter Tipe</label>
+                <div wire:ignore>
+                    <select id="select-type" x-data x-init="
+                        const selectize = $($el).selectize({
+                            dropdownParent: 'body',
+                            allowClear: true,
+                            plugins: ['clear_button'],
+                            onChange: function(val) {
+                                @this.set('typeId', val);
+                            }
+                        })[0].selectize;
+                    "
+                    placeholder="Semua Tipe">
+                        <option value="">Semua Tipe</option>
+                        @foreach ($allTypes as $t)
+                            <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Filter Tipe Detail</label>
+                <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                    <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                        const selectize = $($el).selectize({
+                            dropdownParent: 'body',
+                            allowClear: true,
+                            plugins: ['clear_button'],
+                            onChange: function(val) {
+                                @this.set('typeDetailId', val);
+                            }
+                        })[0].selectize;
+                    "
+                    placeholder="Semua Detail">
+                        <option value="">Semua Detail</option>
+                        @foreach ($typeDetails as $td)
+                            <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Table Card with Search & Filter -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
@@ -88,67 +161,59 @@
             <table class="w-full">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Polres
-                        </th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jumlah
-                            Item</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status
-                        </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Nama/Deskripsi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tipe Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Detail Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No. Seri</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Qty</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($lastStocks as $index => $lastStock)
+                    @forelse ($lastStocks as $index => $detail)
                         <tr class="hover:bg-blue-50/50 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $lastStocks->firstItem() + $index }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $lastStock->code }}</div>
+                                <div class="font-medium text-gray-900">{{ $detail->lastStock->code ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="font-medium text-gray-900">{{ $lastStock->name }}</div>
-                                @if ($lastStock->description)
-                                    <div class="text-xs text-gray-500 mt-1 max-w-xs truncate">
-                                        {{ $lastStock->description }}</div>
+                                <div class="font-medium text-gray-900 whitespace-nowrap">{{ $detail->lastStock->name ?? '-' }}</div>
+                                @if ($detail->lastStock->description)
+                                    <div class="text-xs text-gray-500 mt-1 max-w-xs truncate whitespace-nowrap">
+                                        {{ $detail->lastStock->description }}</div>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $lastStock->date->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($detail->lastStock->date)->format('d M Y') }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $lastStock->policeStation->name ?? '-' }}
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->type->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->typeDetail->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                @if($detail->code)
+                                    <span class="text-xs text-gray-500 mb-1">{{ $detail->code }}</span>
+                                @endif
+                                <span>{{ $detail->number_serial_first }}</span>
+                                @if($detail->number_serial_second)
+                                    <span class="text-xs text-gray-500">{{ $detail->number_serial_second }}</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                                    {{ $lastStock->last_stock_details_count }} Item
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                                    {{ number_format($detail->quantity,0,',','.'). ' Item' }}
                                 </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if ($lastStock->is_active)
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                        Aktif
-                                    </span>
-                                @else
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                                        Tidak Aktif
-                                    </span>
-                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('menu-polres.last-stock.edit', $lastStock->id) }}" wire:navigate
+                                    <a href="{{ route('menu-polres.last-stock.edit', $detail->last_stock_id) }}" wire:navigate
                                         class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-150"
                                         title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -156,7 +221,7 @@
                                             <path d="M10 8a2 2 0 100 4 2 2 0 000-4z"/>
                                         </svg>
                                     </a>
-                                    <button wire:click="openDeleteModal('{{ $lastStock->id }}')"
+                                    <button wire:click="openDeleteModal('{{ $detail->last_stock_id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-150"
                                         title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -171,14 +236,14 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="p-10 text-center">
+                            <td colspan="9" class="p-10 text-center whitespace-nowrap">
                                 <div class="flex flex-col items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                     </svg>
-                                    <p class="text-gray-500 text-lg font-medium">Tidak ada data stok terakhir</p>
+                                    <p class="text-gray-500 text-lg font-medium">Tidak ada data Stock Awal</p>
                                     <p class="text-gray-400 text-sm mt-1">Silakan tambah data baru</p>
                                 </div>
                             </td>
@@ -316,7 +381,7 @@
                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Hapus Data Stok Terakhir</h3>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Hapus Data Stock Awal</h3>
                         <p class="text-gray-500">Apakah Anda yakin ingin menghapus data ini? Semua detail item akan
                             ikut terhapus. Tindakan ini tidak dapat dibatalkan.</p>
                     </div>

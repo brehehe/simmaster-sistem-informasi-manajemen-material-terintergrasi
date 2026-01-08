@@ -49,6 +49,11 @@ class AdminMasterTypeIndex extends Component
         $this->showModal = true;
     }
 
+    public function openService($id)
+    {
+        return $this->redirect(route('master.type.service', ['type_id' => $id]), navigate: true);
+    }
+
     public function openDeleteModal($id)
     {
         $this->typeId = $id;
@@ -122,7 +127,7 @@ class AdminMasterTypeIndex extends Component
     public function render()
     {
         $types = Type::query()
-            ->withCount('typeDetails')
+            ->withCount(['typeDetails', 'services'])
             ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('description', 'like', '%'.$this->search.'%'))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);

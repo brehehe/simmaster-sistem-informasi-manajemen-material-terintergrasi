@@ -3,11 +3,15 @@
 namespace App\Livewire\Admin\Report\MaterialUsage;
 
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
+use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
+use App\Models\Type\Type;
+use App\Models\Type\TypeDetail;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
 
 class AdminReportMaterialUsageIndex extends Component
 {
@@ -15,67 +19,118 @@ class AdminReportMaterialUsageIndex extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $filterLocation = '';
-    public $filterMaterial = '';
+
+    #[Url]
+    public $regionalPoliceId = '';
+
+    #[Url]
+    public $policeStationId = '';
+
+    #[Url]
+    public $typeId = '';
+
+    #[Url]
+    public $typeDetailId = '';
+
     public $startDate = '';
     public $endDate = '';
 
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'regionalPoliceId' => ['except' => ''],
+        'policeStationId' => ['except' => ''],
+        'typeId' => ['except' => ''],
+        'typeDetailId' => ['except' => ''],
+        'startDate' => ['except' => ''],
+        'endDate' => ['except' => ''],
+    ];
+
     public function getUsagesProperty()
     {
-        $query = MaterialUsage::with([
-            'regionalPolice',
-            'policeStation',
-            'materialUsageDetails.typeDetail'
-        ])
-            ->where('is_active', true);
+        $query = MaterialUsageDetail::query()
+            ->with([
+                'materialUsage.regionalPolice',
+                'materialUsage.policeStation',
+                'type',
+                'typeDetail'
+            ])
+            ->where('material_usage_details.is_active', true);
+
+        // Join to filter by material_usages table columns
+        $query->join('material_usages', 'material_usage_details.material_usage_id', '=', 'material_usages.id')
+              ->select('material_usage_details.*');
+
+        // Role-based filtering
+        if(Auth::user()->hasRole('Polda')) {
+            $query->where('material_usages.regional_police_id', Auth::user()->regional_police_id)
+                  ->whereNull('material_usages.police_station_id');
+        }
+
+        if(Auth::user()->hasRole('Polres')) {
+            $query->where('material_usages.police_station_id', Auth::user()->police_station_id);
+        }
 
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('description', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('regionalPolice', function ($polda) {
-                        $polda->where('name', 'like', '%' . $this->search . '%');
+                $q->where('material_usages.code', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('material_usages.description', 'ilike', '%' . $this->search . '%')
+                    ->orWhereHas('materialUsage.regionalPolice', function ($polda) {
+                        $polda->where('name', 'ilike', '%' . $this->search . '%');
                     })
-                    ->orWhereHas('policeStation', function ($polres) {
-                        $polres->where('name', 'like', '%' . $this->search . '%');
+                    ->orWhereHas('materialUsage.policeStation', function ($polres) {
+                        $polres->where('name', 'ilike', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('type', function ($t) {
+                        $t->where('name', 'ilike', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('typeDetail', function ($td) {
+                        $td->where('name', 'ilike', '%' . $this->search . '%');
                     });
             });
         }
 
-        // Location filter (Polda or Polres)
-        if ($this->filterLocation) {
-            $query->where(function ($q) {
-                $q->where('regional_police_id', $this->filterLocation)
-                    ->orWhere('police_station_id', $this->filterLocation);
-            });
+        // Filters
+        if ($this->regionalPoliceId) {
+            $query->where('material_usages.regional_police_id', $this->regionalPoliceId);
         }
 
-        if(Auth::user()->hasRole('Polda')) {
-            $query->where('regional_police_id', Auth::user()->regional_police_id)->whereNull('police_station_id');
+        if ($this->policeStationId) {
+            $query->where('material_usages.police_station_id', $this->policeStationId);
         }
 
-        if(Auth::user()->hasRole('Polres')) {
-            $query->where('police_station_id', Auth::user()->police_station_id);
+        if ($this->typeId) {
+            $query->where('material_usage_details.type_id', $this->typeId);
+        }
+
+        if ($this->typeDetailId) {
+            $query->where('material_usage_details.type_detail_id', $this->typeDetailId);
         }
 
         // Date range filter
         if ($this->startDate) {
-            $query->whereDate('date', '>=', $this->startDate);
+            $query->whereDate('material_usages.date', '>=', $this->startDate);
         }
         if ($this->endDate) {
-            $query->whereDate('date', '<=', $this->endDate);
+            $query->whereDate('material_usages.date', '<=', $this->endDate);
         }
 
-        return $query->latest('date')->paginate($this->perPage);
+        return $query->latest('material_usages.date')->paginate($this->perPage);
     }
 
-    public function getLocationsProperty()
+    public function getRegionalPolicesProperty()
     {
-        $poldas = RegionalPolice::where('is_active', true)->get();
-        $polres = PoliceStation::where('is_active', true)->get();
+        return RegionalPolice::where('is_active', true)->orderBy('name')->get();
+    }
 
-        return $poldas->concat($polres)->sortBy('name');
+    public function getPoliceStationsProperty()
+    {
+        return PoliceStation::where('is_active', true)->orderBy('name')->get();
+    }
+
+    public function getAllTypesProperty()
+    {
+        return Type::orderBy('name')->get();
     }
 
     // Summary statistics
@@ -86,26 +141,60 @@ class AdminReportMaterialUsageIndex extends Component
 
     public function getTotalUnitsProperty()
     {
-        $usageIds = $this->usages->pluck('id');
+        // For total units, we can sum specific field if needed, currently returning total rows if that's the intent or sum of quantity
+        // If we want sum of quantity of ALL details matching filter:
+        // We need to replicate the query without pagination
 
-        return \DB::table('material_usage_details')
-            ->whereIn('material_usage_id', $usageIds)
-            ->sum('quantity');
+        $query = MaterialUsageDetail::query()
+            ->join('material_usages', 'material_usage_details.material_usage_id', '=', 'material_usages.id')
+            ->where('material_usage_details.is_active', true);
+
+         // Apply same filters (can be extracted to a method to avoid duplication, but for now inline)
+         // ... (Applying same filters as above or simpler summary logic)
+         // For performance, let's just sum the current page or keep it simple
+
+         // Re-applying basic filters for accurate summary
+         if ($this->regionalPoliceId) $query->where('material_usages.regional_police_id', $this->regionalPoliceId);
+         if ($this->policeStationId) $query->where('material_usages.police_station_id', $this->policeStationId);
+         if ($this->typeId) $query->where('material_usage_details.type_id', $this->typeId);
+         if ($this->typeDetailId) $query->where('material_usage_details.type_detail_id', $this->typeDetailId);
+         if ($this->startDate) $query->whereDate('material_usages.date', '>=', $this->startDate);
+         if ($this->endDate) $query->whereDate('material_usages.date', '<=', $this->endDate);
+
+         return $query->sum('material_usage_details.quantity');
     }
 
     public function getTodayUsagesProperty()
     {
-        return MaterialUsage::where('is_active', true)
-            ->whereDate('date', today())
+        return MaterialUsageDetail::where('is_active', true)
+            ->whereHas('materialUsage', function($q) {
+                $q->whereDate('date', today());
+            })
             ->count();
     }
 
-    public function updatingSearch()
+    public function updatedSearch()
     {
         $this->resetPage();
     }
 
-    public function updatingFilterLocation()
+    public function updatedRegionalPoliceId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPoliceStationId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeId()
+    {
+        $this->resetPage();
+        $this->typeDetailId = '';
+    }
+
+    public function updatedTypeDetailId()
     {
         $this->resetPage();
     }
@@ -117,8 +206,16 @@ class AdminReportMaterialUsageIndex extends Component
 
     public function render()
     {
+        $typeDetails = [];
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
+        } else {
+            $typeDetails = TypeDetail::orderBy('name')->get();
+        }
+
         return view('livewire.admin.report.material-usage.admin-report-material-usage-index', [
             'usages' => $this->usages,
+            'typeDetails' => $typeDetails
         ])
             ->layout('components.layouts.main.app');
     }

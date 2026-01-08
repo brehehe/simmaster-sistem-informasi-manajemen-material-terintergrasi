@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('material_usage_detail_items', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid('material_usage_id');
+            $table->uuid('material_usage_detail_id');
+            $table->uuid('stock_detail_id')->nullable();
+            $table->uuid('service_id')->nullable();
+            $table->uuid('service_detail_id')->nullable();
+            $table->uuid('type_id')->nullable();
+            $table->uuid('type_detail_id')->nullable();
+            $table->uuid('rack_id')->nullable();
+            $table->string('item_code')->nullable();
+            $table->string('number_serial_first')->nullable();
+            $table->string('number_serial_second')->nullable();
+            $table->decimal('quantity', 15, 2)->default(0);
+            $table->string('usage_type');
+            $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('material_usage_id')->references('id')->on('material_usages')->onDelete('cascade');
+            $table->foreign('material_usage_detail_id')->references('id')->on('material_usage_details')->onDelete('cascade');
+            $table->foreign('stock_detail_id')->references('id')->on('stock_details')->onDelete('set null');
+            $table->foreign('service_id')->references('id')->on('services')->onDelete('set null');
+            $table->foreign('service_detail_id')->references('id')->on('service_details')->onDelete('set null');
+            $table->foreign('type_id')->references('id')->on('types')->onDelete('set null');
+            $table->foreign('type_detail_id')->references('id')->on('type_details')->onDelete('set null');
+            $table->foreign('rack_id')->references('id')->on('racks')->onDelete('set null');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('material_usage_detail_items');
+    }
+};

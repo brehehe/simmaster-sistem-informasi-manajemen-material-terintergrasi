@@ -3,7 +3,12 @@
 namespace App\Livewire\Admin\Report\Delivery;
 
 use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
 use App\Models\Police\PoliceStation;
+use App\Models\Police\RegionalPolice;
+use App\Models\Type\Type;
+use App\Models\Type\TypeDetail;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,56 +16,139 @@ class AdminReportDeliveryIndex extends Component
 {
     use WithPagination;
 
+
+    #[Url]
+    public $typeId = '';
+
+    #[Url]
+    public $typeDetailId = '';
+
     public $search = '';
     public $perPage = 10;
     public $filterStatus = '';
+    public $filterPolda = '';
     public $filterPolres = '';
     public $startDate = '';
     public $endDate = '';
 
-    // Get deliveries from MaterialShipment table
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'filterStatus' => ['except' => ''],
+        'filterPolda' => ['except' => ''],
+        'filterPolres' => ['except' => ''],
+        'typeId' => ['except' => ''],
+        'typeDetailId' => ['except' => ''],
+        'startDate' => ['except' => ''],
+        'endDate' => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterPolda()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterPolres()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeDetailId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingFilterStatus() { $this->resetPage(); }
+    public function updatingFilterPolres() { $this->resetPage(); }
+
+    // Get deliveries (details)
     public function getDeliveriesProperty()
     {
-        $query = MaterialShipment::with([
-            'senderRegionalPolice',
-            'receiverPoliceStation',
-            'materialShipmentDetails.typeDetail',
-            'receivedByUser'
-        ])
-            ->where('is_active', true)
-            ->where('status', '!=', 'draft'); // Only show shipped/received shipments
+        $query = MaterialShipmentDetail::query()
+            ->select('material_shipment_details.*')
+            ->join('material_shipments', 'material_shipment_details.material_shipment_id', '=', 'material_shipments.id')
+            ->with([
+                'materialShipment',
+                'materialShipment.senderRegionalPolice',
+                'materialShipment.receiverPoliceStation',
+                'materialShipment.receivedByUser',
+                'type',
+                'typeDetail'
+            ])
+            ->where('material_shipments.is_active', true)
+            ->where('material_shipments.status', '!=', 'draft');
 
         // Search filter
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('courier_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('vehicle_number', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('receiverPoliceStation', function ($polres) {
-                        $polres->where('name', 'like', '%' . $this->search . '%');
-                    });
+                $q->where('material_shipments.code', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('material_shipments.courier_name', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('material_shipments.vehicle_number', 'ilike', '%' . $this->search . '%')
+                    ->orWhereHas('materialShipment.senderRegionalPolice', function ($polres) {
+                        $polres->where('name', 'ilike', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('materialShipment.receiverPoliceStation', function ($polres) {
+                        $polres->where('name', 'ilike', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('type', function ($t) {
+                        $t->where('name', 'ilike', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('typeDetail', function ($td) {
+                        $td->where('name', 'ilike', '%' . $this->search . '%');
+                    })
+                    ->orWhere('material_shipment_details.number_serial_first', 'ilike', '%' . $this->search . '%');
             });
         }
 
         // Status filter
         if ($this->filterStatus) {
-            $query->where('status', $this->filterStatus);
+            $query->where('material_shipments.status', $this->filterStatus);
+        }
+
+        if ($this->filterPolda) {
+            $query->where('material_shipments.sender_regional_police_id', $this->filterPolda);
         }
 
         // Polres filter
         if ($this->filterPolres) {
-            $query->where('receiver_police_station_id', $this->filterPolres);
+            $query->where('material_shipments.receiver_police_station_id', $this->filterPolres);
+        }
+
+        // Type filter
+        if ($this->typeId) {
+            $query->where('material_shipment_details.type_id', $this->typeId);
+        }
+
+        // Type Detail filter
+        if ($this->typeDetailId) {
+            $query->where('material_shipment_details.type_detail_id', $this->typeDetailId);
         }
 
         // Date range filter
         if ($this->startDate) {
-            $query->whereDate('shipment_date', '>=', $this->startDate);
+            $query->whereDate('material_shipments.shipment_date', '>=', $this->startDate);
         }
         if ($this->endDate) {
-            $query->whereDate('shipment_date', '<=', $this->endDate);
+            $query->whereDate('material_shipments.shipment_date', '<=', $this->endDate);
         }
 
-        return $query->latest('shipment_date')
+        return $query->orderBy('material_shipments.shipment_date', 'desc')
             ->paginate($this->perPage);
     }
 
@@ -79,10 +167,20 @@ class AdminReportDeliveryIndex extends Component
             ->get();
     }
 
-    // Summary statistics
+    public function getRegionalPolicesProperty()
+    {
+        return RegionalPolice::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
+    // Summary statistics (Adjusted for details view if needed, but keeping aggregate logic for cards)
     public function getTotalShipmentsProperty()
     {
-        return $this->deliveries->total();
+        // Count distinct shipments
+        return MaterialShipment::where('is_active', true)
+            ->where('status', '!=', 'draft')
+            ->count();
     }
 
     public function getReceivedCountProperty()
@@ -105,21 +203,10 @@ class AdminReportDeliveryIndex extends Component
 
     public function getTotalUnitsProperty()
     {
-        $shipmentIds = $this->deliveries->pluck('id');
-
-        return \DB::table('material_shipment_details')
-            ->whereIn('material_shipment_id', $shipmentIds)
-            ->sum('quantity');
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFilterStatus()
-    {
-        $this->resetPage();
+         return MaterialShipmentDetail::whereHas('materialShipment', function($q) {
+             $q->where('is_active', true)
+               ->where('status', '!=', 'draft');
+         })->sum('quantity');
     }
 
     public function paginationView()
@@ -127,16 +214,23 @@ class AdminReportDeliveryIndex extends Component
         return 'vendor.livewire.custom-pagination';
     }
 
-    public function updatingFilterPolres()
-    {
-        $this->resetPage();
-    }
-
     public function render()
     {
+        $allTypes = Type::orderBy('name')->get();
+
+        $typeDetails = [];
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
+        } else {
+             $typeDetails = TypeDetail::orderBy('name')->get();
+        }
+
         return view('livewire.admin.report.delivery.admin-report-delivery-index', [
             'deliveries' => $this->deliveries,
+            'allTypes' => $allTypes,
+            'typeDetails' => $typeDetails,
         ])
             ->layout('components.layouts.main.app');
     }
+
 }

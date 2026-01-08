@@ -5,24 +5,33 @@ namespace App\Livewire\Admin\Stock\Polda;
 use App\Models\Police\RegionalPolice;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Models\Type\TypeDetail;
+use Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Url;
 
 class AdminStockPoldaIndex extends Component
 {
     use WithPagination;
 
+    #[Url]
+    public $typeId = '';
+
+    #[Url]
+    public $typeDetailId = '';
+
+    #[Url]
+    public $regionalPoliceId = '';
+
     public $search = '';
-    public $filterTypeId = '';
-    public $filterRegionalPoliceId = '';
     public $perPage = 10;
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'filterTypeId' => ['except' => ''],
-        'filterRegionalPoliceId' => ['except' => ''],
+        'typeId' => ['except' => ''],
+        'typeDetailId' => ['except' => ''],
+        'regionalPoliceId' => ['except' => ''],
     ];
 
     public function updatingSearch()
@@ -30,94 +39,151 @@ class AdminStockPoldaIndex extends Component
         $this->resetPage();
     }
 
-    public function updatingFilterTypeId()
+    public function updatingTypeId()
     {
         $this->resetPage();
     }
 
-    public function updatingFilterRegionalPoliceId()
+    public function updatingTypeDetailId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingRegionalPoliceId()
     {
         $this->resetPage();
     }
 
     public function render()
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        // Get stock details grouped by type
-        $query = StockDetail::with(['type', 'typeDetail', 'rack', 'regionalPolice', 'policeStation'])
-            ->whereNull('police_station_id') // Stock Polda level
-            ->where('is_active', true);
+        // Load filter options
+        $regionalPolices = [];
+        if ($user->hasRole('Admin')) {
+            $regionalPolices = RegionalPolice::orderBy('name')->get();
+        }
 
-        // Role-based filtering
-        if ($user->hasRole('Polda')) {
+        $allTypes = Type::query();
+        if ($user->userType && !empty($user->userType->types)) {
+            $allTypes->whereIn('id', $user->userType->types);
+        }
+        $allTypes = $allTypes->orderBy('name')->get();
+
+        $typeDetails = [];
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
+        } else {
+             $tdQuery = TypeDetail::query();
+             if ($user->userType && !empty($user->userType->types)) {
+                 $tdQuery->whereIn('type_id', $user->userType->types);
+             }
+             $typeDetails = $tdQuery->orderBy('name')->get();
+        }
+
+        // ================= BASE QUERY =================
+        $query = StockDetail::query()
+            ->where('is_active', true)
+            ->whereNotNull('regional_police_id');
+
+        // ================= ROLE & POLICE STATION FILTER =================
+        if ($user->hasRole('Admin')) {
+             if ($this->regionalPoliceId) {
+                $query->where('regional_police_id', $this->regionalPoliceId);
+            }
+        } else {
             $query->where('regional_police_id', $user->regional_police_id);
         }
 
-        // Search
+        if ($user->userType && !empty($user->userType->types)) {
+            $query->whereIn('type_id', $user->userType->types);
+        }
+
+        // ================= SEARCH =================
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->whereHas('type', function ($tq) {
-                    $tq->where('name', 'like', '%' . $this->search . '%');
-                })
-                    ->orWhereHas('typeDetail', function ($tdq) {
-                        $tdq->where('name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhereHas('rack', function ($rq) {
-                        $rq->where('name', 'like', '%' . $this->search . '%');
-                    });
+            $search = $this->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('type', fn ($t) =>
+                    $t->where('name', 'like', "%{$search}%")
+                )
+                ->orWhereHas('typeDetail', fn ($td) =>
+                    $td->where('name', 'like', "%{$search}%")
+                )
+                ->orWhereHas('rack', fn ($r) =>
+                    $r->where('name', 'like', "%{$search}%")
+                );
             });
         }
 
-        // Filter by Type
-        if ($this->filterTypeId) {
-            $query->where('type_id', $this->filterTypeId);
+        // ================= TYPE & TYPE DETAIL FILTER =================
+        if ($this->typeId) {
+            $query->where('type_id', $this->typeId);
         }
 
-        // Filter by Regional Police
-        if ($this->filterRegionalPoliceId) {
-            $query->where('regional_police_id', $this->filterRegionalPoliceId)->whereNull('police_station_id');
+        if ($this->typeDetailId) {
+            $query->where('type_detail_id', $this->typeDetailId);
         }
 
-        // Get stock details and group by type_id
-        $stockDetails = $query->orderBy('type_id')->get();
+        // ================= AKUMULASI SERIAL =================
+        $stockDetails = $query
+            ->selectRaw('
+                type_id,
+                type_detail_id,
+                rack_id,
+                regional_police_id,
+                code,
+                number_serial_first,
+                number_serial_second,
+                SUM(quantity) as total_quantity
+            ')
+            ->groupBy(
+                'type_id',
+                'type_detail_id',
+                'rack_id',
+                'regional_police_id',
+                'code',
+                'number_serial_first',
+                'number_serial_second'
+            )
+            ->with(['type', 'typeDetail', 'rack', 'regionalPolice'])
+            ->orderBy('type_id')
+            ->get();
 
-        // Group by type
-        $groupedStocks = $stockDetails->groupBy('type_id')->map(function ($items, $typeId) {
-            $type = $items->first()->type;
-            $totalQuantity = $items->sum('quantity');
+        // ================= GROUP PER TYPE & POLICE STATION =================
+        $groupedStocks = $stockDetails
+            ->groupBy(function ($item) {
+                return $item->regional_police_id . '-' . $item->type_id;
+            })
+            ->map(function ($items) {
+                return [
+                    'regionalPolice'  => $items->first()->regionalPolice,
+                    'type'           => $items->first()->type,
+                    'total_quantity' => $items->sum('total_quantity'),
+                    'details'        => $items,
+                ];
+            })
+            ->values();
 
-            return [
-                'type' => $type,
-                'total_quantity' => $totalQuantity,
-                'details' => $items,
-            ];
-        });
-
-        // Manual pagination
-        $page = $this->getPage();
+        // ================= PAGINATION =================
+        $page    = $this->getPage();
         $perPage = $this->perPage;
-        $total = $groupedStocks->count();
+        $total   = $groupedStocks->count();
 
-        $paginatedStocks = $groupedStocks->slice(($page - 1) * $perPage, $perPage)->values();
-
-        // Create pagination manually
         $stocks = new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedStocks,
+            $groupedStocks->slice(($page - 1) * $perPage, $perPage),
             $total,
             $perPage,
             $page,
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
-        // Dropdown data
-        $types = Type::where('is_active', true)->orderBy('name')->get();
-        $regionalPolices = RegionalPolice::where('is_active', true)->orderBy('name')->get();
-
         return view('livewire.admin.stock.polda.admin-stock-polda-index', [
-            'stocks' => $stocks,
-            'types' => $types,
+            'stocks'      => $stocks,
             'regionalPolices' => $regionalPolices,
+            'allTypes' => $allTypes,
+            'typeDetails' => $typeDetails,
         ])->layout('components.layouts.main.app');
     }
+
 }

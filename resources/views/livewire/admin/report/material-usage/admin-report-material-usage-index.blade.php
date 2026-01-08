@@ -70,23 +70,136 @@
 
     <!-- Table Card -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+        <!-- Search & Filter Header -->
         <div class="p-4 border-b border-gray-100">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">Tampilkan</span>
-                        <select wire:model.live="perPage" class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </select>
-                        <span class="text-sm text-gray-600">data</span>
+             <!-- Filter Card -->
+            <div class="bg-white rounded-xl mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    @if(Auth::user()->hasRole('Admin'))
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polda</label>
+                            <div wire:ignore>
+                                <select id="select-polda" x-data x-init="
+                                    const selectize = $($el).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        plugins: ['clear_button'],
+                                        onChange: function(val) {
+                                            @this.set('regionalPoliceId', val);
+                                        }
+                                    })[0].selectize;
+                                "
+                                placeholder="Semua Polda">
+                                    <option value="">Semua Polda</option>
+                                    @foreach ($this->regionalPolices as $polda)
+                                        <option value="{{ $polda->id }}" @selected($regionalPoliceId == $polda->id)>{{ $polda->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polres</label>
+                            <div wire:ignore>
+                                <select id="select-polres" x-data x-init="
+                                    const selectize = $($el).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        plugins: ['clear_button'],
+                                        onChange: function(val) {
+                                            @this.set('policeStationId', val);
+                                        }
+                                    })[0].selectize;
+                                "
+                                placeholder="Semua Polres">
+                                    <option value="">Semua Polres</option>
+                                    @foreach ($this->policeStations as $polres)
+                                        <option value="{{ $polres->id }}" @selected($policeStationId == $polres->id)>{{ $polres->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material</label>
+                        <div wire:ignore>
+                            <select id="select-type" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material">
+                                <option value="">Semua Material</option>
+                                @foreach ($this->allTypes as $t)
+                                    <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
+                        <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                            <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeDetailId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material Detail">
+                                <option value="">Semua Material Detail</option>
+                                @foreach ($typeDetails as $td)
+                                    <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="relative w-full md:w-80">
-                    <input wire:model.live.debounce.300ms="search" type="text" placeholder="Cari kode atau lokasi..."
-                        class="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+            </div>
+
+            <!-- Existing Search and Date Filter Layout -->
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mt-4">
+                <!-- Per Page Select (Left) -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">Tampilkan</span>
+                    <select wire:model.live="perPage"
+                        class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span class="text-sm text-gray-600">data</span>
+                </div>
+
+                <!-- Search & Date Filter (Right) -->
+                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+                    <!-- Date Range Filter -->
+                    <div class="flex items-center gap-2">
+                        <input wire:model.live.debounce.300ms="startDate" type="date" placeholder="Dari Tanggal"
+                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                        <span class="text-gray-400">-</span>
+                        <input wire:model.live.debounce.300ms="endDate" type="date" placeholder="Sampai Tanggal"
+                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative w-full md:w-80">
+                        <input wire:model.live.debounce.300ms="search" type="text"
+                            placeholder="Cari kode atau lokasi..."
+                            class="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,43 +212,45 @@
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Lokasi</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Total Item</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Total Unit</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Detail Material</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Qty</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($usages as $index => $usage)
+                    @forelse ($usages as $index => $detail)
                         <tr class="hover:bg-purple-50/50 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $usages->firstItem() + $index }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700">
-                                    {{ $usage->code }}
+                                    {{ $detail->materialUsage->code }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $usage->date ? \Carbon\Carbon::parse($usage->date)->format('d M Y') : '-' }}
+                                {{ $detail->materialUsage->date ? \Carbon\Carbon::parse($detail->materialUsage->date)->format('d M Y') : '-' }}
                             </td>
                             <td class="px-6 py-4">
                                 <div class="font-medium text-gray-900">
-                                    {{ $usage->regionalPolice->name ?? $usage->policeStation->name ?? '-' }}
+                                    {{ $detail->materialUsage->regionalPolice->name ?? $detail->materialUsage->policeStation->name ?? '-' }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700">
-                                    {{ $usage->materialUsageDetails->count() }} jenis
-                                </span>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->type->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->typeDetail->name ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-green-100 text-green-700">
-                                    {{ number_format($usage->materialUsageDetails->sum('quantity')) }} unit
+                                    {{ number_format($detail->quantity) }} unit
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $usage->description ?? '-' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ $detail->materialUsage->description ?? '-' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="p-10 text-center">
+                            <td colspan="8" class="p-10 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

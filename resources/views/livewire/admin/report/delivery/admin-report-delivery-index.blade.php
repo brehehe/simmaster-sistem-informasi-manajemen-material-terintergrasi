@@ -99,43 +99,149 @@
         </div>
     </div>
 
+
     <!-- Table Card -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <!-- Search & Filter Header -->
         <div class="p-4 border-b border-gray-100">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">Tampilkan</span>
-                        <select wire:model.live="perPage"
-                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </select>
-                        <span class="text-sm text-gray-600">data</span>
+            <!-- Filter Card -->
+            <div class="bg-white rounded-xl mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @if(Auth::user()->hasRole('Admin'))
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Dari (Polda)</label>
+                            <div wire:ignore>
+                                <select id="select-polres" x-data x-init="
+                                    const selectize = $($el).selectize({
+                                        dropdownParent: 'body',
+                                        allowClear: true,
+                                        plugins: ['clear_button'],
+                                        onChange: function(val) {
+                                            @this.set('filterPolda', val);
+                                        }
+                                    })[0].selectize;
+                                "
+                                placeholder="Semua Polda">
+                                    <option value="">Semua Polda</option>
+                                    @foreach ($this->regionalPolices as $regionalPolice)
+                                        <option value="{{ $regionalPolice->id }}" @selected($filterPolda == $regionalPolice->id)>{{ $regionalPolice->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Tujuan (Polres)</label>
+                        <div wire:ignore>
+                            <select id="select-polres" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('filterPolres', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Polres">
+                                <option value="">Semua Polres</option>
+                                @foreach ($this->policeStations as $polres)
+                                    <option value="{{ $polres->id }}" @selected($filterPolres == $polres->id)>{{ $polres->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <select wire:model.live="filterStatus"
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Status</label>
+                        <select wire:model.live="filterStatus"
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                            <option value="">Semua Status</option>
+                            @foreach ($this->statuses as $key => $label)
+                                <option value="{{ $key }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material</label>
+                        <div wire:ignore>
+                            <select id="select-type" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material">
+                                <option value="">Semua Material</option>
+                                @foreach ($allTypes as $t)
+                                    <option value="{{ $t->id }}" @selected($typeId == $t->id)>{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
+                        <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
+                            <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('typeDetailId', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Material Detail">
+                                <option value="">Semua Material Detail</option>
+                                @foreach ($typeDetails as $td)
+                                    <option value="{{ $td->id }}" @selected($typeDetailId == $td->id)>{{ $td->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Search and Date Filter Layout -->
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mt-4">
+                <!-- Per Page Select (Left) -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">Tampilkan</span>
+                    <select wire:model.live="perPage"
                         class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                        <option value="">Semua Status</option>
-                        @foreach ($this->statuses as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
-                        @endforeach
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
                     </select>
-                    <select wire:model.live="filterPolres"
-                        class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                        <option value="">Semua Polres</option>
-                        @foreach ($this->policeStations as $polres)
-                            <option value="{{ $polres->id }}">{{ $polres->name }}</option>
-                        @endforeach
-                    </select>
+                    <span class="text-sm text-gray-600">data</span>
                 </div>
 
-                <div class="relative w-full md:w-80">
-                    <input wire:model.live.debounce.300ms="search" type="text"
-                        placeholder="Cari kode, tujuan atau kurir..."
-                        class="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                <!-- Search & Date Filter (Right) -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+                    <!-- Date Range Filter -->
+                    <div class="flex items-center gap-2">
+                        <input wire:model.live.debounce.300ms="startDate" type="date" placeholder="Dari Tanggal"
+                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                        <span class="text-gray-400">-</span>
+                        <input wire:model.live.debounce.300ms="endDate" type="date" placeholder="Sampai Tanggal"
+                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-80">
+                        <input wire:model.live.debounce.300ms="search" type="text"
+                            placeholder="Cari kode, tujuan atau kurir..."
+                            class="w-full pl-4 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,23 +251,27 @@
             <table class="w-full" id="deliveryReportTable">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode
                             Pengiriman</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal
                             Kirim</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tujuan
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tujuan
                         </th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Total Item</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Total Unit</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                            Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                            Detail Material</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                            No Seri</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                            Qty</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                             Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($deliveries as $index => $shipment)
+                    @forelse ($deliveries as $index => $detail)
                         <tr class="hover:bg-cyan-50/50 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $deliveries->firstItem() + $index }}
@@ -169,39 +279,45 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-100 text-cyan-700">
-                                    {{ $shipment->code }}
+                                    {{ $detail->materialShipment->code }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $shipment->shipment_date ? Carbon\Carbon::parse($shipment->shipment_date)->format('d M Y') : '-' }}
+                                {{ $detail->materialShipment->shipment_date ? Carbon\Carbon::parse($detail->materialShipment->shipment_date)->format('d M Y') : '-' }}
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div>
                                     <div class="font-medium text-gray-900">
-                                        {{ $shipment->receiverPoliceStation->name ?? '-' }}</div>
-                                    <div class="text-xs text-gray-500 truncate max-w-xs">
-                                        {{ $shipment->receiverPoliceStation->address ?? '-' }}</div>
+                                        {{ $detail->materialShipment->receiverPoliceStation->name ?? '-' }}</div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span
-                                    class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700">
-                                    {{ $shipment->materialShipmentDetails->count() }} jenis
-                                </span>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->type->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->typeDetail->name ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $detail->number_serial_first }}
+                                @if($detail->number_serial_last)
+                                - {{ $detail->number_serial_last }}
+                                @elseif($detail->number_serial_second)
+                                - {{ $detail->number_serial_second }}
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span
                                     class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-700">
-                                    {{ number_format($shipment->materialShipmentDetails->sum('quantity')) }} unit
+                                    {{ number_format($detail->quantity) }} unit
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if ($shipment->status === 'received')
+                                @if ($detail->materialShipment->status === 'received')
                                     <span
                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                                         Terkirim
                                     </span>
-                                @elseif($shipment->status === 'shipped')
+                                @elseif($detail->materialShipment->status === 'shipped')
                                     <span
                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
                                         Dalam Perjalanan
@@ -209,7 +325,7 @@
                                 @else
                                     <span
                                         class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                                        {{ ucfirst($shipment->status) }}
+                                        {{ ucfirst($detail->materialShipment->status) }}
                                     </span>
                                 @endif
                             </td>

@@ -3,8 +3,11 @@
 namespace App\Livewire\Admin\MenuPolres\MaterialUsage\Detail;
 
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
+use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem;
 use App\Models\Police\PoliceStation;
 use App\Models\Rack\Rack;
+use App\Models\Service\Service;
+use App\Models\Stock\HistoryStockDetail;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
@@ -32,6 +35,8 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public $typeDetails = [];
     public $racks = [];
     public $policeStations = [];
+    public $services = [];  // Services grouped by type_id
+    public $serviceDetails = [];  // Service details grouped by service_id
 
     protected StockService $stockService;
 
@@ -49,6 +54,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             $this->loadMaterialUsage();
         } else {
             $this->code = MaterialUsage::generateCode();
+            $this->policeStationId = auth()->user()->police_station_id;
             $this->date = now()->format('Y-m-d');
             $this->addDetail();
         }
@@ -58,7 +64,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
     protected function loadMaterialUsage()
     {
-        $materialUsage = MaterialUsage::with('materialUsageDetails')->findOrFail($this->materialUsageId);
+        $materialUsage = MaterialUsage::with(['materialUsageDetails.materialUsageDetailItems'])->findOrFail($this->materialUsageId);
 
         $this->code = $materialUsage->code;
         $this->date = $materialUsage->date->format('Y-m-d');
@@ -70,6 +76,19 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->loadStockDetails();
 
         foreach ($materialUsage->materialUsageDetails as $detail) {
+            $serviceItems = [];
+
+            // Load service items for this detail
+            foreach ($detail->materialUsageDetailItems as $item) {
+                if ($item->service_detail_id) {
+                    // Has service detail (nested structure)
+                    $serviceItems[$item->service_id][$item->service_detail_id]['quantity'] = $item->quantity;
+                } else {
+                    // Direct service (no detail)
+                    $serviceItems[$item->service_id]['quantity'] = $item->quantity;
+                }
+            }
+
             $this->details[] = [
                 'stock_detail_id' => $detail->stock_detail_id,
                 'type_id' => $detail->type_id,
@@ -82,7 +101,13 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 'available_quantity' => $detail->quantity,
                 'usage_type' => $detail->usage_type,
                 'description' => $detail->description ?? '',
+                'service_items' => $serviceItems,
             ];
+
+            // Load services for this type
+            if ($detail->type_id) {
+                $this->loadServicesForType($detail->type_id);
+            }
         }
     }
 
@@ -111,8 +136,9 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             'number_serial_second' => '',
             'quantity' => 0,
             'available_quantity' => 0,
-            'usage_type' => '',
+            'usage_type' => 'Material Digunakan',
             'description' => '',
+            'service_items' => [],  // Hierarchical service/service detail quantities
         ];
     }
 
@@ -140,6 +166,11 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 $this->details[$index]['number_serial_first'] = $stockDetail->number_serial_first ?? '';
                 $this->details[$index]['number_serial_second'] = $stockDetail->number_serial_second ?? '';
                 $this->details[$index]['available_quantity'] = $stockDetail->quantity;
+
+                // Load services for this type
+                if ($stockDetail->type_id) {
+                    $this->loadServicesForType($stockDetail->type_id);
+                }
             }
         }
     }
@@ -216,7 +247,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 }
 
                 foreach ($this->details as $detail) {
-                    $materialUsage->materialUsageDetails()->create([
+                    $materialUsageDetail = $materialUsage->materialUsageDetails()->create([
                         'stock_detail_id' => $detail['stock_detail_id'],
                         'type_id' => $detail['type_id'],
                         'type_detail_id' => $detail['type_detail_id'],
@@ -229,6 +260,11 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                         'description' => $detail['description'] ?? '',
                         'is_active' => true,
                     ]);
+
+                    // Process service items if they exist
+                    if (!empty($detail['service_items'])) {
+                        $this->processServiceItems($materialUsage, $materialUsageDetail, $detail);
+                    }
                 }
 
                 $this->stockService->processMaterialUsage($materialUsage);
@@ -240,6 +276,113 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    protected function loadServicesForType($typeId)
+    {
+        if (!isset($this->services[$typeId])) {
+            $this->services[$typeId] = Service::where('type_id', $typeId)
+                ->where('is_active', true)
+                ->withCount('details')
+                ->with('details')
+                ->orderBy('name')
+                ->get();
+        }
+    }
+
+    protected function processServiceItems($materialUsage, $materialUsageDetail, $detail)
+    {
+        foreach ($detail['service_items'] as $serviceId => $serviceData) {
+            if (is_array($serviceData)) {
+                // Check if this has service details (nested structure)
+                $hasServiceDetails = false;
+                foreach ($serviceData as $key => $value) {
+                    if (is_array($value) && isset($value['quantity'])) {
+                        $hasServiceDetails = true;
+                        // Service Detail level quantity
+                        $this->createDetailItemAndHistory(
+                            $materialUsage,
+                            $materialUsageDetail,
+                            $detail,
+                            $serviceId,
+                            $key,  // service_detail_id
+                            $value['quantity']
+                        );
+                    }
+                }
+
+                // If no service details, it's a direct service quantity
+                if (!$hasServiceDetails && isset($serviceData['quantity'])) {
+                    $this->createDetailItemAndHistory(
+                        $materialUsage,
+                        $materialUsageDetail,
+                        $detail,
+                        $serviceId,
+                        null,  // no service_detail_id
+                        $serviceData['quantity']
+                    );
+                }
+            }
+        }
+    }
+
+    protected function createDetailItemAndHistory($materialUsage, $materialUsageDetail, $detail, $serviceId, $serviceDetailId, $quantity)
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        // Create MaterialUsageDetailItem
+        $detailItem = MaterialUsageDetailItem::create([
+            'material_usage_id' => $materialUsage->id,
+            'material_usage_detail_id' => $materialUsageDetail->id,
+            'stock_detail_id' => $detail['stock_detail_id'],
+            'service_id' => $serviceId,
+            'service_detail_id' => $serviceDetailId,
+            'type_id' => $detail['type_id'],
+            'type_detail_id' => $detail['type_detail_id'],
+            'rack_id' => $detail['rack_id'],
+            'item_code' => $detail['item_code'],
+            'number_serial_first' => $detail['number_serial_first'],
+            'number_serial_second' => $detail['number_serial_second'],
+            'quantity' => $quantity,
+            'usage_type' => $detail['usage_type'],
+            'description' => $detail['description'] ?? '',
+            'is_active' => true,
+        ]);
+
+        // Get police_station for this material usage
+        $policeStation = \App\Models\Police\PoliceStation::find($materialUsage->police_station_id);
+
+        // Create HistoryStockDetail
+        HistoryStockDetail::create([
+            'code' => $materialUsage->code . '-' . uniqid(),
+            'material_usage_detail_item_id' => $detailItem->id,
+            'type_id' => $detail['type_id'],
+            'type_detail_id' => $detail['type_detail_id'],
+            'service_id' => $serviceId,
+            'service_detail_id' => $serviceDetailId,
+            'regional_police_id' => $policeStation->regional_police_id ?? null,
+            'police_station_id' => $materialUsage->police_station_id,
+            'rack_id' => $detail['rack_id'],
+            'date' => $materialUsage->date,
+            'serial_number' => $detail['number_serial_first'],
+            'status_type' => 'out',  // Material usage is an outflow
+            'quantity' => $quantity,
+            'description' => $detail['description'] ?? '',
+            'is_active' => true,
+        ]);
+    }
+
+    public function getServicesForType($typeId)
+    {
+        return $this->services[$typeId] ?? [];
+    }
+
+    public function hasServices($typeId)
+    {
+        $this->loadServicesForType($typeId);
+        return !empty($this->services[$typeId]) && $this->services[$typeId]->count() > 0;
     }
 
     public function render()

@@ -167,10 +167,18 @@
                 </div>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polres.material-usage') }}" wire:navigate
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-usage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-usage','menu-polres.material-usage.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-usage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-usage','menu-polres.material-usage.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                         Material Digunakan
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polres.material-usage-detail') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.material-usage-detail') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.material-usage-detail') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Digunakan Detail
                     </a>
                 </div>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
@@ -310,6 +318,12 @@
                             class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.polres*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                         Stok Polres
                     </a>
+                    <a href="{{ route('stock.all') }}" wire:navigate
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.all*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.all*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Semua Stok
+                    </a>
                     <a href="{{ route('stock.history') }}" wire:navigate
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.history*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
@@ -338,13 +352,13 @@
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.reception-regional-police', 'report.reception-regional-police.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                     Laporan Penerimaan
                 </a>
-                @endif
                 <a href="{{ route('report.delivery') }}" wire:navigate
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.delivery', 'report.delivery.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.delivery', 'report.delivery.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                     Laporan Distribusi Polres
                 </a>
+                @endif
                 <a href="{{ route('report.reception') }}" wire:navigate
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.reception', 'report.reception.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
@@ -357,12 +371,12 @@
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.stock-opname', 'report.stock-opname.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                     Laporan Stock Opname
                 </a> -->
-                <a href="{{ route('report.stock') }}" wire:navigate
+                <!-- <a href="{{ route('report.stock') }}" wire:navigate
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.stock') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.stock') ? 'bg-white' : 'bg-blue-400' }}"></span>
                     Laporan Stok Material
-                </a>
+                </a> -->
                 <!-- <a href="{{ route('report.stock-in') }}" wire:navigate
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.stock-in') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
@@ -379,7 +393,13 @@
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.material-usage') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.material-usage') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                    Laporan Pemakaian Material
+                    Laporan Material Digunakan
+                </a>
+                <a href="{{ route('report.material-usage-detail') }}" wire:navigate
+                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.material-usage-detail') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                    <span
+                        class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.material-usage-detail') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                    Laporan Material Digunakan Detail
                 </a>
                 <a href="{{ route('report.material-damage') }}" wire:navigate
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.material-damage') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">

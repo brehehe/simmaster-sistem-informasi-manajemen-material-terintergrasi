@@ -87,8 +87,8 @@
                         </svg>
                         Tanggal Pengiriman
                     </label>
-                    <input type="date" wire:model="shipment_date"
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
+                    <input type="date" wire:model="shipment_date" @disabled($shipmentId)
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed">
                     @error('shipment_date')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -110,6 +110,7 @@
                             <select
                                 id="select-regional-police"
                                 wire:model="regional_police_id"
+                                @disabled($shipmentId)
                                 x-data
                                 x-ref="input"
                                 x-init="
@@ -153,6 +154,7 @@
                         <select
                             id="select-receiver-police-station"
                             wire:model="receiver_police_station_id"
+                            @disabled($shipmentId)
                             x-data
                             x-ref="input"
                             x-init="
@@ -191,8 +193,8 @@
                         </svg>
                         Catatan (Opsional)
                     </label>
-                    <textarea wire:model="notes" rows="3"
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                    <textarea wire:model="notes" rows="3" @disabled($shipmentId)
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
                         placeholder="Tambahkan catatan pengiriman..."></textarea>
                 </div>
             </div>
@@ -211,6 +213,7 @@
                     </svg>
                     Detail Material
                 </h2>
+                @if(!$shipmentId)
                 <button wire:click="addDetail" type="button"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -220,6 +223,7 @@
                     </svg>
                     Tambah Item
                 </button>
+                @endif
             </div>
         </div>
 
@@ -236,6 +240,7 @@
                             </div>
 
                             <!-- Delete Button -->
+                            @if(!$shipmentId)
                             <button wire:click="removeDetail({{ $index }})" type="button"
                                 class="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -245,6 +250,7 @@
                                         clip-rule="evenodd" />
                                 </svg>
                             </button>
+                            @endif
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <!-- Stock Selection -->
@@ -262,6 +268,7 @@
                                         <select
                                             id="select-stock-detail"
                                             wire:model="details.{{ $index }}.stock_detail_id"
+                                            @disabled($shipmentId)
                                             x-data
                                             x-ref="input"
                                             x-init="
@@ -347,9 +354,9 @@
                                         </svg>
                                         Quantity (Max: {{ $detail['available_quantity'] }})
                                     </label>
-                                    <input type="number" wire:model.live="details.{{ $index }}.quantity"
+                                    <input type="number" wire:model.live="details.{{ $index }}.quantity" @disabled($shipmentId)
                                         min="1" max="{{ $detail['available_quantity'] }}"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed">
                                     @error("details.{$index}.quantity")
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -369,9 +376,9 @@
                                 <!-- Notes -->
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-600 mb-2">Catatan Item</label>
-                                    <input type="text" wire:model="details.{{ $index }}.notes"
+                                    <input type="text" wire:model="details.{{ $index }}.notes" @disabled($shipmentId)
                                         placeholder="Catatan tambahan untuk item ini..."
-                                        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
+                                        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed">
                                 </div>
                             </div>
                         </div>
@@ -398,7 +405,7 @@
             Batal
         </a>
 
-        @if (!$isEditMode || ($shipment && $shipment->status === 'draft'))
+        @if (!$shipmentId && (!$isEditMode || ($shipment && $shipment->status === 'draft')))
             <button wire:click="save(false)" type="button"
                 class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl hover:from-gray-300 hover:to-gray-400 shadow-lg transition-all duration-200 text-center">
                 💾 Simpan Draft
