@@ -295,7 +295,7 @@
                                                                     <div class="mb-2 last:mb-0">
                                                                         <label class="block text-xs text-gray-600 mb-1">{{ $serviceDetail->name }}</label>
                                                                         <input type="number" min="0" step="0.01"
-                                                                            wire:model="details.{{ $index }}.service_items.{{ $service->id }}.{{ $serviceDetail->id }}.quantity"
+                                                                            wire:model.live="details.{{ $index }}.service_items.{{ $service->id }}.{{ $serviceDetail->id }}.quantity"
                                                                             placeholder="Qty" {{ $isEditMode ? 'disabled' : '' }}
                                                                             class="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 {{ $isEditMode ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}">
                                                                     </div>
@@ -306,7 +306,7 @@
                                                             <div class="bg-white p-3 rounded-lg border border-purple-200">
                                                                 <label class="block text-sm font-semibold text-gray-800 mb-1">{{ $service->name }}</label>
                                                                 <input type="number" min="0" step="0.01"
-                                                                    wire:model="details.{{ $index }}.service_items.{{ $service->id }}.quantity"
+                                                                    wire:model.live="details.{{ $index }}.service_items.{{ $service->id }}.quantity"
                                                                     placeholder="Qty" {{ $isEditMode ? 'disabled' : '' }}
                                                                     class="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 {{ $isEditMode ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}">
                                                             </div>

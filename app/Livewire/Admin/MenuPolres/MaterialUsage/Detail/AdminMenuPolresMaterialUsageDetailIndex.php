@@ -35,8 +35,8 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public $typeDetails = [];
     public $racks = [];
     public $policeStations = [];
-    public $services = [];  // Services grouped by type_id
-    public $serviceDetails = [];  // Service details grouped by service_id
+    protected $services = [];  // Services grouped by type_id
+    protected $serviceDetails = [];  // Service details grouped by service_id
 
     protected StockService $stockService;
 
@@ -173,6 +173,44 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 }
             }
         }
+
+        // Calculate total quantity if service items are updated
+        if ($field === 'service_items') {
+            $this->calculateTotalQuantity($index);
+        }
+    }
+
+    protected function calculateTotalQuantity($index)
+    {
+        $total = 0;
+        if (isset($this->details[$index]['service_items']) && is_array($this->details[$index]['service_items'])) {
+            foreach ($this->details[$index]['service_items'] as $serviceData) {
+                if (is_array($serviceData)) {
+                    // Check for direct quantity
+                    if (isset($serviceData['quantity'])) {
+                        $total += (float) $serviceData['quantity'];
+                    }
+
+                    // Check for nested details
+                    foreach ($serviceData as $value) {
+                         // sub-items are arrays with 'quantity'
+                         if (is_array($value) && isset($value['quantity'])) {
+                              $total += (float) $value['quantity'];
+                         }
+                    }
+                }
+            }
+        }
+
+        $available = $this->details[$index]['available_quantity'] ?? 0;
+
+        if ($total > $available) {
+            $this->addError("details.{$index}.quantity", "Jumlah total ({$total}) melebihi stok tersedia ({$available}).");
+        } else {
+             $this->resetErrorBag("details.{$index}.quantity");
+        }
+
+        $this->details[$index]['quantity'] = $total;
     }
 
     public function updatedPoliceStationId()
@@ -227,6 +265,22 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public function save()
     {
         $this->validate();
+
+        // Custom validation for stock availability
+        $hasError = false;
+        foreach ($this->details as $index => $detail) {
+            $quantity = (float) $detail['quantity'];
+            $available = (float) ($detail['available_quantity'] ?? 0);
+
+            if ($quantity > $available) {
+                $this->addError("details.{$index}.quantity", "Jumlah total ({$quantity}) melebihi stok tersedia ({$available}).");
+                $hasError = true;
+            }
+        }
+
+        if ($hasError) {
+            return;
+        }
 
         try {
             DB::transaction(function () {
