@@ -78,6 +78,7 @@
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">No</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Nama</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Harga</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Deskripsi</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase">Aksi</th>
                     </tr>
@@ -87,6 +88,7 @@
                         <tr class="hover:bg-blue-50/50 transition-colors">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $serviceDetails->firstItem() + $index }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $detail->name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ number_format($detail->price, 0, ',', '.') }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $detail->description ?? '-' }}</td>
 
                             <td class="px-6 py-4 text-center">

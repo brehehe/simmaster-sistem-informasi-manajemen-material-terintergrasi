@@ -138,10 +138,16 @@ class MaterialShipment extends Model
                     ]);
                 }
 
+                // Resolve service_id / service_detail_id from source stock
+                $serviceId = $stockDetail?->service_id ?? null;
+                $serviceDetailId = $stockDetail?->service_detail_id ?? null;
+
                 // 2. ADD to Polres stock
                 $polresStock = Stock::firstOrCreate([
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
+                    'service_id' => $serviceId,
+                    'service_detail_id' => $serviceDetailId,
                     'police_station_id' => $this->receiver_police_station_id,
                     'regional_police_id' => null,
                 ], [
@@ -153,10 +159,12 @@ class MaterialShipment extends Model
                 $polresStock->save();
 
                 // Create StockDetail at Polres WITHOUT rack
-                StockDetail::create([
+                $newStockDetail = StockDetail::create([
                     'stock_id' => $polresStock->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
+                    'service_id' => $serviceId,
+                    'service_detail_id' => $serviceDetailId,
                     'code' => $detail->code,
                     'number_serial_first' => $detail->number_serial_first,
                     'number_serial_second' => $detail->number_serial_second,
@@ -170,8 +178,8 @@ class MaterialShipment extends Model
                 // Create history_stock entry for Polres (positive = in)
                 HistoryStock::create([
                     'code' => HistoryStock::generateCode(),
-                    'last_stock_id' => null,
-                    'last_stock_detail_id' => null,
+                    'last_stock_id' => $polresStock->id,
+                    'last_stock_detail_id' => $newStockDetail->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
                     'regional_police_id' => null,

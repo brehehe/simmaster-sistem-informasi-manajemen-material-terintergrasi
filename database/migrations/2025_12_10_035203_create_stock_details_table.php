@@ -19,15 +19,15 @@ return new class extends Migration
             $table->foreignUuid('regional_police_id')->nullable();
             $table->foreignUuid('police_station_id')->nullable();
             $table->foreignUuid('rack_id')->nullable();
-            $table->char('code')->nullable();
+            $table->string('code')->nullable();
             $table->string('number_serial_first')->nullable();
             $table->string('number_serial_second')->nullable();
-            $table->decimal('quantity')->default(0);
+            $table->decimal('quantity', 15, 2)->default(0);
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
-            $table->index(['deleted_at','created_at','is_active']);
+            $table->index(['deleted_at', 'created_at', 'is_active']);
         });
     }
 

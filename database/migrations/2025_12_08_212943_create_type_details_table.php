@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('type_details', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('type_id');
+            $table->decimal('price', 15, 2)->default(0);
             $table->string('name');
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);

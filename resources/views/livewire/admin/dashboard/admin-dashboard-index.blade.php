@@ -127,6 +127,22 @@
         </div>
     </div>
 
+    <!-- Target vs Pencapaian Chart -->
+    <div class="rounded-2xl border border-blue-100 bg-white p-6 shadow-lg mb-8">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Grafik Target dan Pencapaian</h3>
+                <p class="text-sm text-gray-500">Berdasarkan target dan material usage per lokasi</p>
+            </div>
+            <div class="text-sm text-gray-500">
+                Lokasi: <span id="targetAchievementLocation" class="font-semibold text-blue-600">-</span>
+            </div>
+        </div>
+        <div style="height: 320px; position: relative;">
+            <canvas id="targetAchievementChart"></canvas>
+        </div>
+    </div>
+
     <!-- Charts Row -->
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
         <!-- Line Chart - Larger -->
@@ -409,6 +425,119 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const targetAchievementData = @json($targetAchievementChart);
+        const targetAchievementPalette = [
+            '#2563eb',
+            '#f97316',
+            '#10b981',
+            '#eab308',
+            '#8b5cf6',
+            '#ef4444',
+            '#14b8a6',
+            '#0ea5e9',
+            '#a855f7',
+            '#22c55e',
+        ];
+
+        const hexToRgba = (hex, alpha) => {
+            const normalized = hex.replace('#', '');
+            const bigint = parseInt(normalized, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        const targetAchievementCtx = document.getElementById('targetAchievementChart');
+        const targetAchievementLocation = document.getElementById('targetAchievementLocation');
+        let targetAchievementChart = null;
+        let targetAchievementIndex = 0;
+
+        if (targetAchievementCtx && targetAchievementData.locations.length > 0) {
+            const initialLocation = targetAchievementData.locations[0];
+
+            targetAchievementLocation.textContent = initialLocation.label;
+
+            const targetColors = targetAchievementData.types.map((_, index) =>
+                targetAchievementPalette[index % targetAchievementPalette.length]
+            );
+            const achievementColors = targetColors.map((color) => hexToRgba(color, 0.35));
+            const targetBackgroundColors = targetColors.map((color) => hexToRgba(color, 0.55));
+
+            targetAchievementChart = new Chart(targetAchievementCtx, {
+                type: 'bar',
+                data: {
+                    labels: targetAchievementData.types,
+                    datasets: [
+                        {
+                            label: 'Target',
+                            data: initialLocation.target,
+                            backgroundColor: targetBackgroundColors,
+                            borderColor: targetColors,
+                            borderWidth: 1,
+                            borderRadius: 6,
+                        },
+                        {
+                            label: 'Pencapaian',
+                            data: initialLocation.actual,
+                            backgroundColor: achievementColors,
+                            borderColor: targetColors,
+                            borderWidth: 1,
+                            borderRadius: 6,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            setInterval(() => {
+                targetAchievementIndex = (targetAchievementIndex + 1) % targetAchievementData.locations.length;
+                const location = targetAchievementData.locations[targetAchievementIndex];
+
+                targetAchievementLocation.textContent = location.label;
+                targetAchievementChart.data.datasets[0].data = location.target;
+                targetAchievementChart.data.datasets[1].data = location.actual;
+                targetAchievementChart.update();
+            }, 10000);
+        }
+
         // Line Chart - History Stock Trend
         const lineCtx = document.getElementById('lineChart');
         if (lineCtx) {

@@ -12,6 +12,9 @@ use App\Models\Type\TypeDetail;
 use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Service\Service;
+use App\Models\Reception\ReceptionDetailItem;
+use App\Models\Stock\HistoryStockDetail;
 use Livewire\Component;
 
 class AdminMenuPoldaReceptionDetailIndex extends Component
@@ -25,6 +28,9 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     public string $name = '';
     public string $date = '';
     public string $type = '';
+    public ?string $typeId = null;
+    public bool $is_type_detail = false;
+    public bool $is_with_serial_number = false;
     public ?string $regionalPoliceId = null;
     public ?string $policeStationId = null;
     public ?string $description = null;
@@ -33,6 +39,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     // Detail Items
     public array $details = [];
     public int $detailCounter = 0;
+    public $services = []; 
 
     // Dropdowns Data
     public $regionalPolices = [];
@@ -56,33 +63,44 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
 
         if ($this->isEditMode) {
             // Edit mode - load existing data
-            $reception = Reception::with('receptionDetails')->findOrFail($id);
+            $reception = Reception::with(['receptionDetails.receptionDetailItems'])->findOrFail($id);
 
             $this->code = $reception->code;
             $this->name = $reception->name;
             $this->date = $reception->date->format('Y-m-d');
             $this->type = $reception->type;
+            $this->typeId = $reception->type_id;
+            
+            if ($this->typeId) {
+                $typeRef = Type::find($this->typeId);
+                $this->is_type_detail = $typeRef ? $typeRef->typeDetails->isNotEmpty() : false;
+                $this->is_with_serial_number = $typeRef ? $typeRef->is_with_serial_number : false;
+                $this->loadTypeData($this->typeId);
+            }
+
             $this->regionalPoliceId = $reception->regional_police_id;
             $this->policeStationId = $reception->police_station_id;
             $this->description = $reception->description;
             $this->is_active = $reception->is_active;
 
-            // Load detail items
+            // Load detail items as a flat list
             foreach ($reception->receptionDetails as $detail) {
-                $this->details[] = [
-                    'id' => $detail->id,
-                    'type_id' => $detail->type_id,
-                    'is_type_detail' => false,
-                    'type_detail_id' => $detail->type_detail_id,
-                    'is_with_serial_number' => $detail?->type?->is_with_serial_number,
-                    // 'rack_id' => $detail->rack_id,
-                    'code' => $detail->code,
-                    'number_serial_first' => $detail->number_serial_first,
-                    'number_serial_second' => $detail->number_serial_second,
-                    'quantity' => $detail->quantity,
-                    'description' => $detail->description,
-                    'is_active' => $detail->is_active,
-                ];
+                foreach ($detail->receptionDetailItems as $item) {
+                    $this->details[] = [
+                        'id' => $item->id, // Use item's ID or leave null if just creating
+                        'type_detail_id' => $item->type_detail_id ?? '',
+                        'service_id' => $item->service_id ?? '',
+                        'service_detail_id' => $item->service_detail_id ?? '',
+                        'quantity' => (float)$item->quantity,
+                        'code' => $item->item_code ?? '',
+                        'number_serial_first' => $item->number_serial_first ?? '',
+                        'number_serial_second' => $item->number_serial_second ?? '',
+                        'is_active' => true,
+                    ];
+                }
+            }
+            if (empty($this->details)) {
+                $this->addDetail();
             }
         } else {
             // Create mode
@@ -104,27 +122,82 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         }
     }
 
-    public function updatedDetails() {
-        foreach ($this->details as $index => $detail) {
-            $this->details[$index]['is_type_detail'] = $detail['type_id'] ? Type::find($detail['type_id'])->typeDetails->isNotEmpty() : false;
-            $this->details[$index]['is_with_serial_number'] = $detail['type_id'] ? Type::find($detail['type_id'])->is_with_serial_number : false;
+    public function updated($propertyName)
+    {
+        // Auto-fill type_detail_id when service_id is selected
+        if (preg_match('/^details\.(\d+)\.service_id$/', $propertyName, $matches)) {
+            $index = $matches[1];
+            $serviceId = $this->details[$index]['service_id'];
+            
+            if ($serviceId) {
+                $service = collect($this->services)->firstWhere('id', $serviceId);
+                $typeDetailId = data_get($service, 'type_detail_id');
+                
+                // If the selected service is bound to a specific TypeDetail, auto-select it
+                if ($typeDetailId) {
+                    $this->details[$index]['type_detail_id'] = $typeDetailId;
+                }
+                
+                // Reset service detail
+                $this->details[$index]['service_detail_id'] = '';
+            }
+        }
+        
+        // Clear service_id if type_detail_id changes and current service doesn't belong to it
+        if (preg_match('/^details\.(\d+)\.type_detail_id$/', $propertyName, $matches)) {
+            $index = $matches[1];
+            $typeDetailId = $this->details[$index]['type_detail_id'];
+            $serviceId = $this->details[$index]['service_id'];
+            
+            if ($serviceId) {
+                $service = collect($this->services)->firstWhere('id', $serviceId);
+                $svcTypeDetailId = data_get($service, 'type_detail_id');
+                
+                // If the currently selected service doesn't match the newly selected type detail
+                // Or if it's a global service (null type_detail_id) we can keep it, but UI logic is cleaner if we clear
+                if ($svcTypeDetailId !== null && $svcTypeDetailId != $typeDetailId) {
+                    $this->details[$index]['service_id'] = '';
+                    $this->details[$index]['service_detail_id'] = '';
+                }
+            }
         }
     }
 
+    public function updatedTypeId($value)
+    {
+        if ($value) {
+            $typeRef = Type::find($value);
+            $this->is_type_detail = $typeRef ? $typeRef->typeDetails->isNotEmpty() : false;
+            $this->is_with_serial_number = $typeRef ? $typeRef->is_with_serial_number : false;
+            $this->loadTypeData($value);
+        } else {
+            $this->is_type_detail = false;
+            $this->is_with_serial_number = false;
+            $this->typeDetails = [];
+            $this->services = [];
+        }
+
+        // Clear existing details when type changes
+        $this->details = [];
+        $this->addDetail();
+    }
+
+    public function updatedDetails($value, $key) {
+        $parts = explode('.', $key);
+        $index = $parts[0] ?? null;
+        $field = $parts[1] ?? null;
+    }
     public function addDetail()
     {
         $this->details[] = [
             'id' => null,
-            'type_id' => null,
-            'is_type_detail' => false,
-            'type_detail_id' => null,
-            'is_with_serial_number' => false,
-            // 'rack_id' => null,
-            'code' => '',
-            'number_serial_first' => '',
+            'type_detail_id' => '', 
+            'service_id' => '', 
+            'service_detail_id' => '', 
+            'quantity' => 0, 
+            'code' => '', 
+            'number_serial_first' => '', 
             'number_serial_second' => '',
-            'quantity' => 0,
-            'description' => '',
             'is_active' => true,
         ];
         $this->detailCounter++;
@@ -217,14 +290,16 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             'date' => 'required|date',
             'description' => 'nullable|string',
             'type' => 'required|in:stock-awal,penerimaan',
+            'typeId' => 'required|exists:types,id',
             'is_active' => 'boolean',
-            'details.*.type_id' => 'nullable|exists:types,id',
+            // Flat array validation structure
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
-            // 'details.*.rack_id' => 'nullable|exists:racks,id',
+            'details.*.service_id' => 'nullable|exists:services,id',
+            'details.*.service_detail_id' => 'nullable|exists:service_details,id',
+            'details.*.quantity' => 'nullable|numeric|min:0',
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
-            'details.*.quantity' => 'required|numeric|min:0',
         ];
 
         // Admin can select regional_police_id, Polda uses their own
@@ -245,11 +320,29 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             'name.required' => 'Nama wajib diisi.',
             'date.required' => 'Tanggal wajib diisi.',
             'type.required' => 'Tipe wajib dipilih.',
+            'typeId.required' => 'Material wajib dipilih.',
             'regionalPoliceId.required' => 'Polda wajib dipilih.',
             'policeStationId.required' => 'Polres wajib dipilih.',
-            'details.*.quantity.required' => 'Jumlah wajib diisi.',
-            'details.*.quantity.min' => 'Jumlah minimal 0.',
         ];
+    }
+
+    protected function loadTypeData($typeId)
+    {
+        if (!$typeId) {
+            $this->typeDetails = collect();
+            $this->services = collect();
+            return;
+        }
+        
+        $this->typeDetails = TypeDetail::where('type_id', $typeId)->where('is_active', true)->orderBy('name')->get();
+        $this->services = Service::with('details')
+            ->where('is_active', true)
+            ->where(function($q) use ($typeId) {
+                $q->where('type_id', $typeId)
+                  ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
+            })
+            ->orderBy('name')
+            ->get();        
     }
 
     public function save()
@@ -263,6 +356,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                 'name' => $this->name,
                 'date' => $this->date,
                 'type' => $this->type,
+                'type_id' => $this->typeId,
                 'regional_police_id' => $this->regionalPoliceId,
                 'police_station_id' => $this->policeStationId,
                 'description' => $this->description,
@@ -282,20 +376,24 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                 $reception = Reception::create($data);
             }
 
-            // Create/Update detail items
-            foreach ($this->details as $detail) {
-                ReceptionDetail::create([
-                    'reception_id' => $reception->id,
-                    'type_id' => $detail['type_id'] ?: null,
-                    'type_detail_id' => $detail['type_detail_id'] ?: null,
-                    // // 'rack_id' => $detail['rack_id'] ?: null,
-                    'code' => $detail['code'],
-                    'number_serial_first' => $detail['number_serial_first'],
-                    'number_serial_second' => $detail['number_serial_second'],
-                    'quantity' => $detail['quantity'],
-                    'description' => $detail['description'],
-                    'is_active' => $detail['is_active'] ?? true,
-                ]);
+            // Create a single ReceptionDetail parent for this reception
+            $receptionDetail = ReceptionDetail::create([
+                'reception_id' => $reception->id,
+                'type_id' => $this->typeId ?: null,
+                'type_detail_id' => null, 
+                'code' => null,
+                'number_serial_first' => null,
+                'number_serial_second' => null,
+                'quantity' => collect($this->details)->sum('quantity'),
+                'description' => $this->description ?? '',
+                'is_active' => true,
+            ]);
+
+            // Create detail items
+            foreach ($this->details as $payload) {
+                if (($payload['quantity'] ?? 0) > 0) {
+                    $this->createDetailItemAndHistory($reception, $receptionDetail, $payload);
+                }
             }
 
             // Process stock updates and history
@@ -313,6 +411,62 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         }
     }
 
+    protected function processServiceItems($reception, $receptionDetail, $detail)
+    {
+        foreach ($detail['service_items'] as $itemData) {
+            $this->createDetailItemAndHistory(
+                $reception, $receptionDetail, $detail, 
+                $itemData
+            );
+        }
+    }
+
+    protected function createDetailItemAndHistory($reception, $receptionDetail, $payload)
+    {
+        $quantity = $payload['quantity'] ?? 0;
+        if ($quantity <= 0) return;
+
+        $typeDetailId = !empty($payload['type_detail_id']) ? $payload['type_detail_id'] : null;
+        $serviceId = !empty($payload['service_id']) ? $payload['service_id'] : null;
+        $serviceDetailId = !empty($payload['service_detail_id']) ? $payload['service_detail_id'] : null;
+        $code = $payload['code'] ?? null;
+        $sn1 = $payload['number_serial_first'] ?? null;
+        $sn2 = $payload['number_serial_second'] ?? null;
+
+        $detailItem = ReceptionDetailItem::create([
+            'reception_id' => $reception->id,
+            'reception_detail_id' => $receptionDetail->id,
+            'service_id' => $serviceId,
+            'service_detail_id' => $serviceDetailId,
+            'type_id' => $this->typeId ?: null,
+            'type_detail_id' => $typeDetailId,
+            'item_code' => $code,
+            'number_serial_first' => $sn1,
+            'number_serial_second' => $sn2,
+            'quantity' => $quantity,
+            'description' => $receptionDetail->description ?? '',
+            'is_active' => true,
+        ]);
+
+        $serialText = trim(implode(' ', array_filter([$code, $sn1, $sn2])));
+
+        HistoryStockDetail::create([
+            'code' => $reception->code . '-' . uniqid(),
+            'reception_detail_item_id' => $detailItem->id,
+            'type_id' => $this->typeId ?: null,
+            'type_detail_id' => $typeDetailId,
+            'service_id' => $serviceId,
+            'service_detail_id' => $serviceDetailId,
+            'regional_police_id' => $reception->regional_police_id,
+            'police_station_id' => $reception->police_station_id,
+            'date' => $reception->date,
+            'serial_number' => $serialText ?: null,
+            'status_type' => 'in',
+            'quantity' => $quantity,
+            'description' => $receptionDetail->description ?? '',
+            'is_active' => true,
+        ]);
+    }
 
     public function render()
     {

@@ -8,7 +8,7 @@
                 </h1>
                 <p class="text-gray-500 mt-1">{{ $isEditMode ? 'Perbarui' : 'Buat' }} data Stock Awal</p>
             </div>
-            <a href="{{ route('menu-polda.last-stock') }}" wire:navigate
+            <a href="{{ route('menu-polres.last-stock') }}" wire:navigate
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -37,7 +37,7 @@
         <div class="p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Utama</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                 <!-- Code (Read-only) -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -59,255 +59,273 @@
                     @enderror
                 </div>
 
+                <!-- Material Master Selection -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Material <span class="text-red-500">*</span>
+                    </label>
+                    <div wire:ignore wire:key="select-type-master-{{ rand() }}">
+                        <select id="select-type-master" @disabled($lastStockId) x-data x-ref="input" x-init="
+                            const selectize = $($refs.input).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
+                                onChange: function(e) {
+                                    @this.set('typeId', e ? e : '');
+                                }
+                            })[0].selectize;
+                            if ($refs.input.disabled) { selectize.disable(); }
+                        "
+                            wire:model="typeId">
+                            <option value="">-- Pilih Material --</option>
+                            @foreach ($types as $type)
+                                <option value="{{ $type->id }}"
+                                    {{ $typeId == $type->id ? 'selected' : '' }}>
+                                    {{ $type->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('typeId')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
-            @if (Auth::user()->hasRole('Admin'))
-                <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
-                    <!-- Regional Police -->
 
-                    <!-- Police Station (Optional) -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Polres
-                        </label>
-                        @if ($canSelectPoliceStation)
-                            <div wire:ignore wire:key="select-police-station-{{ rand() }}">
-                                <select id="select-police-station" @disabled($lastStockId) x-data x-ref="input" x-init="$($refs.input).selectize({
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Police Station (Optional for Admin, auto for Polres) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Polres
+                    </label>
+                    @if ($canSelectPoliceStation)
+                        <div wire:ignore wire:key="select-police-station-{{ rand() }}">
+                            <select id="select-police-station" @disabled($lastStockId) x-data x-ref="input" x-init="
+                                const selectize = $($refs.input).selectize({
                                     dropdownParent: 'body',
                                     allowClear: true,
                                     plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
                                     onChange: function(e) {
                                         @this.set('policeStationId', e ? e : '');
                                     }
-                                });"
-                                    wire:model="policeStationId">
-                                    <option value="">-- Pilih Polres --</option>
-                                    @foreach ($policeStations as $ps)
-                                        <option value="{{ $ps->id }}"
-                                            {{ $policeStationId == $ps->id ? 'selected' : '' }}>{{ $ps->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @else
-                            @php
-                                $selectedPolres = $policeStations->firstWhere('id', $policeStationId);
-                            @endphp
-                            <input type="text" value="{{ $selectedPolres?->name ?? '-' }}" readonly
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
-                        @endif
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Deskripsi (Opsional)
-                        </label>
-                        <textarea wire:model="description" @disabled($lastStockId) rows="3" placeholder="Masukkan deskripsi (opsional)"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                        </textarea>
-                    </div>
+                                })[0].selectize;
+                                if ($refs.input.disabled) { selectize.disable(); }
+                            "
+                                wire:model="policeStationId">
+                                <option value="">-- Pilih Polres --</option>
+                                @foreach ($policeStations as $ps)
+                                    <option value="{{ $ps->id }}"
+                                        {{ $policeStationId == $ps->id ? 'selected' : '' }}>{{ $ps->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @else
+                        @php
+                            $selectedPolres = $policeStations->firstWhere('id', $policeStationId);
+                        @endphp
+                        <input type="text" value="{{ $selectedPolres?->name ?? '-' }}" readonly
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
+                    @endif
                 </div>
-            @endif
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Deskripsi (Opsional)
+                    </label>
+                    <textarea wire:model="description" @disabled($lastStockId) rows="1" placeholder="Masukkan deskripsi (opsional)"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"></textarea>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Detail Items Card -->
-    <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-visible mb-20">
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Detail Item Barang</h2>
-                @if (!$lastStockId)
+                <h2 class="text-xl font-bold text-gray-900">Perincian Item</h2>
+                @if (!$lastStockId && $typeId)
                     <button wire:click="addDetail" type="button"
-                        class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                        class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                         </svg>
-                        Tambah Item
+                        Tambah Baris
                     </button>
                 @endif
             </div>
 
-            @if (count($details) > 0)
-                <div class="space-y-4">
-                    @foreach ($details as $index => $detail)
-                        <div wire:key="detail-{{ $index }}"
-                            class="relative bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border border-gray-200/80 shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 overflow-visible">
-                            <!-- Item Number Badge -->
-                            <div
-                                class="absolute top-0 left-0 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-br-2xl font-bold text-sm shadow-lg z-10">
-                                Item #{{ $index + 1 }}
-                            </div>
-
-                            <div class="p-6 pt-14">
-                                <!-- Remove Button -->
-                                @if (!$lastStockId && count($details) > 1)
-                                    <button type="button" wire:click="removeDetail({{ $index }})"
-                                        class="absolute top-4 right-4 p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200"
-                                        title="Hapus Item">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
+            @if ($typeId)
+                <div class="overflow-x-auto overflow-y-visible min-h-[400px]">
+                    <table class="w-full text-sm text-left border-separate border-spacing-y-2">
+                        <thead class="text-xs uppercase text-gray-400 font-bold">
+                            <tr>
+                                <th class="px-4 py-3">No</th>
+                                <th class="px-4 py-3 min-w-[200px]">Detail Material</th>
+                                <th class="px-4 py-3 min-w-[200px]">Servis</th>
+                                <th class="px-4 py-3 min-w-[200px]">Detail Servis</th>
+                                <th class="px-4 py-3 min-w-[200px]">Rak</th>
+                                @if ($is_with_serial_number)
+                                    <th class="px-4 py-3 min-w-[150px]">Kode</th>
+                                    <th class="px-4 py-3 min-w-[150px]">SN 1</th>
+                                    <th class="px-4 py-3 min-w-[150px]">SN 2</th>
                                 @endif
-
-                                <!-- Form Fields Grid -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- Material Type Selection -->
-                                    <div class="md:col-span-2">
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                            </svg>
-                                            Material <span class="text-red-500">*</span>
-                                        </label>
-                                        <div wire:ignore wire:key="select-type-{{ rand() }}">
-                                            <select id="select-type" @disabled($lastStockId) x-data x-ref="input" x-init="
-                                                const selectize = $($refs.input).selectize({
+                                <th class="px-4 py-3 min-w-[120px]">Qty <span class="text-red-500">*</span></th>
+                                @if (!$lastStockId)
+                                    <th class="px-4 py-3 w-[50px]">Action</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody class="overflow-visible">
+                            @foreach ($details as $index => $detail)
+                                <tr wire:key="row-{{ $index }}" class="bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-200">
+                                    <td class="px-4 py-3 font-bold text-gray-500 rounded-l-xl">{{ $index + 1 }}</td>
+                                    
+                                    <!-- Detail Material -->
+                                    <td class="px-4 py-3 overflow-visible">
+                                        <div wire:ignore wire:key="td-{{ $index }}-{{ $typeId }}-{{ rand() }}">
+                                            <select @disabled($lastStockId) class="selectize-td" x-data x-ref="input" x-init="
+                                                $($refs.input).selectize({
                                                     dropdownParent: 'body',
                                                     allowClear: true,
-                                                    plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
                                                     onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.type_id', e ? e : '');
+                                                        @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
                                                     }
-                                                })[0].selectize;
-                                                if ($refs.input.disabled) {
-                                                    selectize.disable();
-                                                }
-                                            "
-                                                wire:model="details.{{ $index }}.type_id">
-                                                <option value="">-- Pilih Material --</option>
-                                                @foreach ($types as $type)
-                                                    <option value="{{ $type->id }}"
-                                                        {{ $detail['type_id'] == $type->id ? 'selected' : '' }}>
-                                                        {{ $type->name }}
-                                                    </option>
+                                                });
+                                            " wire:model="details.{{ $index }}.type_detail_id">
+                                                <option value="">-- Semua --</option>
+                                                @foreach ($typeDetails as $td)
+                                                    <option value="{{ $td->id }}">{{ $td->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                    </div>
+                                    </td>
 
-                                    <!-- Type Detail (Conditional) -->
-                                    @if ($detail['is_type_detail'])
-                                        <div class="md:col-span-2">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Detail Material <span class="text-red-500">*</span>
-                                            </label>
-                                            <div wire:ignore
-                                                wire:key="select-type-detail-{{ $index }}-{{ $detail['type_id'] ?? 'empty' }}-{{ rand() }}">
-                                                <select id="select-type-detail-{{ $index }}" @disabled($lastStockId) x-data
-                                                    x-ref="input" x-init="
-                                                    const selectize = $($refs.input).selectize({
-                                                        dropdownParent: 'body',
-                                                        allowClear: true,
-                                                        plugins: {{ $lastStockId ? '[]' : "['clear_button']" }},
-                                                        onChange: function(e) {
-                                                            @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
-                                                        }
-                                                    })[0].selectize;
-                                                    if ($refs.input.disabled) {
-                                                        selectize.disable();
+                                    <!-- Service -->
+                                    <td class="px-4 py-3 overflow-visible">
+                                        <div wire:ignore wire:key="svc-{{ $index }}-{{ $typeId }}-{{ rand() }}">
+                                            <select @disabled($lastStockId) class="selectize-svc" x-data x-ref="input" x-init="
+                                                $($refs.input).selectize({
+                                                    dropdownParent: 'body',
+                                                    allowClear: true,
+                                                    onChange: function(e) {
+                                                        @this.set('details.{{ $index }}.service_id', e ? e : '');
                                                     }
-                                                "
-                                                    wire:model="details.{{ $index }}.type_detail_id">
-                                                    <option value="">-- Pilih Detail --</option>
-                                                    @if (!empty($detail['type_id']))
-                                                        @foreach (\App\Models\Type\TypeDetail::where('type_id', $detail['type_id'])->where('is_active', true)->orderBy('name')->get() as $td)
-                                                            <option value="{{ $td->id }}"
-                                                                {{ $detail['type_detail_id'] == $td->id ? 'selected' : '' }}>
-                                                                {{ $td->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    @endif
-                                                </select>
-                                            </div>
+                                                });
+                                            " wire:model="details.{{ $index }}.service_id">
+                                                <option value="">-- Semua --</option>
+                                                @foreach ($services as $svc)
+                                                    <option value="{{ $svc->id }}">{{ $svc->name }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
+                                    </td>
+
+                                    <!-- Service Detail -->
+                                    <td class="px-4 py-3 overflow-visible">
+                                        <div wire:ignore wire:key="svcd-{{ $index }}-{{ $detail['service_id'] ?? 'none' }}-{{ rand() }}">
+                                            <select @disabled($lastStockId) class="selectize-svcd" x-data x-ref="input" x-init="
+                                                $($refs.input).selectize({
+                                                    dropdownParent: 'body',
+                                                    allowClear: true,
+                                                    onChange: function(e) {
+                                                        @this.set('details.{{ $index }}.service_detail_id', e ? e : '');
+                                                    }
+                                                });
+                                            " wire:model="details.{{ $index }}.service_detail_id">
+                                                <option value="">-- Semua --</option>
+                                                @if (!empty($detail['service_id']))
+                                                    @foreach (\App\Models\Service\ServiceDetail::where('service_id', $detail['service_id'])->where('is_active', true)->orderBy('name')->get() as $sd)
+                                                        <option value="{{ $sd->id }}">{{ $sd->name }}</option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </td>
+
+                                    <!-- Rack -->
+                                    <td class="px-4 py-3 overflow-visible">
+                                        <div wire:ignore wire:key="rack-{{ $index }}-{{ $policeStationId ?? 'none' }}-{{ rand() }}">
+                                            <select @disabled($lastStockId) class="selectize-rack" x-data x-ref="input" x-init="
+                                                $($refs.input).selectize({
+                                                    dropdownParent: 'body',
+                                                    allowClear: true,
+                                                    onChange: function(e) {
+                                                        @this.set('details.{{ $index }}.rack_id', e ? e : '');
+                                                    }
+                                                });
+                                            " wire:model="details.{{ $index }}.rack_id">
+                                                <option value="">-- Tanpa Rak --</option>
+                                                @foreach ($racks as $rack)
+                                                    <option value="{{ $rack->id }}">{{ $rack->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </td>
+
+                                    @if ($is_with_serial_number)
+                                        <td class="px-4 py-3">
+                                            <input type="text" wire:model.blur="details.{{ $index }}.code" @disabled($lastStockId)
+                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="Kode">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_first" @disabled($lastStockId)
+                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="SN1">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_second" @disabled($lastStockId)
+                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="SN2">
+                                        </td>
                                     @endif
 
-                                    <!-- Serial Number Fields -->
-                                    @if ($detail['is_with_serial_number'])
-                                        <div wire:key="code-{{ $index }}">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Kode Barang
-                                            </label>
-                                            <input type="text" wire:model="details.{{ $index }}.code"
-                                                @disabled($lastStockId) placeholder="Kode barang"
-                                                class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        </div>
-                                        <div wire:key="serial-1-{{ $index }}">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Serial Number 1
-                                            </label>
-                                            <input type="text"
-                                                wire:model="details.{{ $index }}.number_serial_first"
-                                                @disabled($lastStockId) placeholder="Serial pertama"
-                                                class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        </div>
-                                        <div wire:key="serial-2-{{ $index }}">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Serial Number 2
-                                            </label>
-                                            <input type="text"
-                                                wire:model="details.{{ $index }}.number_serial_second"
-                                                @disabled($lastStockId) placeholder="Serial kedua"
-                                                class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        </div>
-                                    @endif
+                                    <td class="px-4 py-3">
+                                        <input type="number" wire:model.blur="details.{{ $index }}.quantity" @disabled($lastStockId) step="0.01"
+                                            class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="0">
+                                    </td>
 
-                                    <!-- Quantity -->
-                                    <div class="{{ $detail['is_with_serial_number'] ? '' : 'md:col-span-2' }}">
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
-                                            </svg>
-                                            Quantity <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="number" wire:model="details.{{ $index }}.quantity"
-                                            @disabled($lastStockId) min="0" step="0.01" placeholder="Qty"
-                                            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        @error('details.' . $index . '.quantity')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                                    @if (!$lastStockId)
+                                        <td class="px-4 py-3 rounded-r-xl">
+                                            <button type="button" wire:click="removeDetail({{ $index }})"
+                                                class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             @else
-                <div class="py-10 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                <div class="py-12 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
-                    <p class="text-gray-500 text-lg font-medium">Belum ada item detail</p>
-                    <p class="text-gray-400 text-sm mt-1">Klik "Tambah Item" untuk menambahkan detail barang</p>
+                    <p class="text-gray-500 text-lg font-medium">Pilih Master Material terlebih dahulu</p>
+                    <p class="text-gray-400 text-sm mt-1">Gunakan dropdown Material di bagian Informasi Utama</p>
                 </div>
             @endif
         </div>
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-6 flex items-center justify-end gap-3">
-        <a href="{{ route('menu-polda.last-stock') }}" wire:navigate
-            class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
-            Batal
-        </a>
-        @if (!$lastStockId)
-            <button wire:click="save" type="button"
-                class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
-                <span wire:loading.remove wire:target="save">Simpan Data</span>
-                <span wire:loading wire:target="save">Menyimpan...</span>
-            </button>
-        @endif
+    <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-4 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+        <div class="max-w-7xl mx-auto flex items-center justify-end gap-3 px-4">
+            <a href="{{ route('menu-polres.last-stock') }}" wire:navigate
+                class="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+                Batal
+            </a>
+            @if (!$lastStockId)
+                <button wire:click="save" type="button"
+                    class="px-8 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
+                    <span wire:loading.remove wire:target="save">Simpan Data Stock Awal</span>
+                    <span wire:loading wire:target="save">Memproses...</span>
+                </button>
+            @endif
+        </div>
     </div>
 </div>

@@ -9,7 +9,7 @@
                 <p class="text-gray-500 mt-1">Monitoring pengiriman material ke satuan kerja</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="exportToExcel('deliveryReportTable', 'laporan-pengiriman')"
+                <button wire:click="exportExcel"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -18,8 +18,7 @@
                     </svg>
                     Export Excel
                 </button>
-                <button
-                    onclick="exportToPDF({ tableId: 'deliveryReportTable', title: 'Laporan Pengiriman Material', filename: 'laporan-pengiriman', summaryCards: [{ label: 'Total', value: '{{ $this->totalShipments }}' }, { label: 'Terkirim', value: '{{ $this->receivedCount }}' }, { label: 'Dalam Perjalanan', value: '{{ $this->inTransitCount }}' }] })"
+                <button wire:click="exportPdf"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -357,5 +356,30 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('js/report-export.js') }}"></script>
+    {{-- <script src="{{ asset('js/report-export.js') }}"></script> --}}
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('export-delivery-pdf', (event) => {
+                const { headers, data, fileName } = event[0];
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+
+                doc.setFontSize(16);
+                doc.text('Laporan Pengiriman Material', 14, 15);
+                doc.setFontSize(10);
+                doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+                doc.autoTable({
+                    head: [headers],
+                    body: data,
+                    startY: 30,
+                    theme: 'grid',
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    headStyles: { fillColor: [6, 182, 212] }, // Cyan-600 match (approx)
+                });
+
+                doc.save(fileName);
+            });
+        });
+    </script>
 @endpush

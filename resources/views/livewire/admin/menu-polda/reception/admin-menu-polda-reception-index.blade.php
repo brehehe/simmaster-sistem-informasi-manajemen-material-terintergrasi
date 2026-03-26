@@ -177,10 +177,9 @@
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Kode</th>
                          <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tipe</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Material</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Material Detail</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nomer Seri</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Jumlah</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Jumlah Total</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -190,28 +189,42 @@
                                 {{ $receptions->firstItem() + $index }}
                             </td>
                               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $reception?->reception?->regionalPolice?->name ?? '-' }}
+                                {{ $reception?->regionalPolice?->name ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $reception->reception->code }}</div>
+                                <div class="font-medium text-gray-900">{{ $reception->code }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ Str::title(Str::replace('-',' ',$reception?->reception?->type)) }}</div>
+                                <div class="font-medium text-gray-900">{{ Str::title(Str::replace('-',' ',$reception->type)) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $reception?->type?->name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $reception?->typeDetail?->name ?? '-' }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="font-medium text-gray-900">{{ $reception?->code ?? '-' }} {{ $reception?->number_serial_first ?? '-' }} {{ $reception?->number_serial_second ?? '-' }}</div>
+                                <div class="font-medium text-gray-900">{{ $reception->typeMaterial?->name ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $reception?->reception?->date->format('d M Y') ?? '-' }}
+                                {{ $reception?->date->format('d M Y') ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ number_format($reception?->quantity,0,',','.') ?? 0 }}
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-center font-bold">
+                                {{ number_format($reception->receptionDetails->sum('quantity'),0,',','.') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button wire:click="viewDetail('{{ $reception->id }}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <a href="{{ route('menu-polda.reception.print', $reception->id) }}" target="_blank" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Print SPPM">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                    <button wire:click="openDeleteModal('{{ $reception->id }}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -342,7 +355,6 @@
         @endif
     </div>
 
-    <!-- Delete Confirmation Modal -->
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -375,6 +387,83 @@
                             class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Detail Modal -->
+    @if ($showDetailModal && $selectedReception)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 transition-opacity bg-gray-900/70 backdrop-blur-sm" wire:click="closeModal">
+                </div>
+
+                <!-- Modal Content -->
+                <div class="relative inline-block w-full max-w-5xl my-8 text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
+                    
+                    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Detail Transaksi: {{ $selectedReception->code }}</h3>
+                            <p class="text-sm text-gray-500 mt-1">{{ Str::title(Str::replace('-',' ',$selectedReception->type)) }} • {{ $selectedReception->date->format('d M Y') }}</p>
+                        </div>
+                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="overflow-x-auto rounded-xl border border-gray-200">
+                            <table class="w-full text-sm text-left align-top">
+                                <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold text-center w-12">No</th>
+                                        <th class="px-4 py-3 font-semibold">Detail Material</th>
+                                        <th class="px-4 py-3 font-semibold">Service</th>
+                                        <th class="px-4 py-3 font-semibold">Service Detail</th>
+                                        <th class="px-4 py-3 font-semibold">Kode Barang</th>
+                                        <th class="px-4 py-3 font-semibold">SN 1</th>
+                                        <th class="px-4 py-3 font-semibold">SN 2</th>
+                                        <th class="px-4 py-3 font-semibold text-center w-24">Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @forelse($selectedReceptionDetails as $index => $item)
+                                        <tr class="hover:bg-gray-50/50">
+                                            <td class="px-4 py-3 text-center text-gray-500">{{ $index + 1 }}</td>
+                                            <td class="px-4 py-3 font-medium text-gray-900">{{ $item->typeDetail->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-gray-600">{{ $item->service->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-gray-600">{{ $item->serviceDetail->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-gray-600 font-mono">{{ $item->item_code ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-gray-600 font-mono">{{ $item->number_serial_first ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-gray-600 font-mono">{{ $item->number_serial_second ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-center font-bold text-gray-900 bg-gray-50/30">{{ number_format($item->quantity,0,',','.') }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 italic">Tidak ada rincian item.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border-t border-gray-100 flex justify-end">
+                        <a href="{{ route('menu-polda.reception.print', $selectedReception->id) }}" target="_blank"
+                            class="px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition-all duration-200">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                                </svg>
+                                Print SPPM
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>

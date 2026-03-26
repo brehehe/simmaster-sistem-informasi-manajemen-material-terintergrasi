@@ -44,6 +44,11 @@ class AdminMenuPoldaReceptionIndex extends Component
     public bool $showDeleteModal = false;
     public ?string $receptionId = null;
 
+    // Detail Modal
+    public bool $showDetailModal = false;
+    public $selectedReceptionDetails = [];
+    public ?Reception $selectedReception = null;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'startDate' => ['except' => null],
@@ -104,7 +109,29 @@ class AdminMenuPoldaReceptionIndex extends Component
     public function closeModal()
     {
         $this->showDeleteModal = false;
+        $this->showDetailModal = false;
         $this->receptionId = null;
+        $this->selectedReception = null;
+        $this->selectedReceptionDetails = [];
+    }
+
+    public function viewDetail($id)
+    {
+        $this->selectedReception = Reception::with([
+            'regionalPolice', 
+            'policeStation', 
+            'typeMaterial',
+            'receptionDetails.receptionDetailItems.typeDetail',
+            'receptionDetails.receptionDetailItems.service',
+            'receptionDetails.receptionDetailItems.serviceDetail'
+        ])->findOrFail($id);
+        
+        // Extract all the items from the single details wrapper
+        $this->selectedReceptionDetails = $this->selectedReception->receptionDetails->flatMap(function($detail) {
+            return $detail->receptionDetailItems;
+        });
+
+        $this->showDetailModal = true;
     }
 
     public function delete(StockService $stockService)
@@ -120,8 +147,12 @@ class AdminMenuPoldaReceptionIndex extends Component
             // Revert stock changes and delete history
             $stockService->deleteReceptionStock($reception);
 
-            // Delete all details first
-            $reception->receptionDetails()->delete();
+            // Cascade delete manually: items first, then details
+            foreach($reception->receptionDetails as $detail) {
+                // Delete the new flattened breakdown items
+                $detail->receptionDetailItems()->delete();
+                $detail->delete();
+            }
 
             // Then delete the main record
             $reception->delete();
@@ -149,41 +180,37 @@ class AdminMenuPoldaReceptionIndex extends Component
              $typeDetails = TypeDetail::query()->orderBy('name')->get();
         }
 
-        $receptions = ReceptionDetail::query()
-            ->select('reception_details.*')
-            ->join('receptions', 'reception_details.reception_id', '=', 'receptions.id')
-            ->join('types', 'reception_details.type_id', '=', 'types.id')
-            ->leftJoin('type_details', 'reception_details.type_detail_id', '=', 'type_details.id')
-            ->with(['reception','reception.regionalPolice', 'reception.policeStation','type','typeDetail'])
+        $receptions = Reception::query()
+            ->select('receptions.*')
+            ->with(['regionalPolice', 'policeStation', 'typeMaterial', 'receptionDetails'])
             // Role-based filtering
             ->when($user->hasRole('Polda'), function ($query) use ($user) {
                 $query->where('receptions.regional_police_id', $user->regional_police_id);
             })
             // Search
             ->when($this->search, function ($query) {
-
                 $keywords = preg_split('/\s+/', trim($this->search));
-
                 $query->where(function ($q) use ($keywords) {
-
                     foreach ($keywords as $word) {
-
                         $q->where(function ($sub) use ($word) {
-
                             $sub->where('receptions.code', 'ilike', "%{$word}%")
                                 ->orWhere('receptions.type', 'ilike', "%{$word}%")
-                                ->orWhere('types.name', 'ilike', "%{$word}%")
-                                ->orWhere('type_details.name', 'ilike', "%{$word}%")
-                                ->orWhere('reception_details.code', 'ilike', "%{$word}%")
-                                ->orWhere('reception_details.number_serial_first', 'ilike', "%{$word}%");
-
-                            if (Schema::hasColumn('reception_details', 'number_serial_last')) {
-                                $sub->orWhere('reception_details.number_serial_last', 'ilike', "%{$word}%");
-                            }
-
+                                ->orWhereHas('typeMaterial', function($t) use ($word) {
+                                    $t->where('name', 'like', "%{$word}%");
+                                })
+                                ->orWhereHas('receptionDetails.receptionDetailItems', function($rdi) use ($word) {
+                                    $rdi->where('item_code', 'ilike', "%{$word}%")
+                                        ->orWhere('number_serial_first', 'ilike', "%{$word}%")
+                                        ->orWhere('number_serial_second', 'ilike', "%{$word}%")
+                                        ->orWhereHas('typeDetail', function($td) use ($word) {
+                                            $td->where('name', 'ilike', "%{$word}%");
+                                        })
+                                        ->orWhereHas('service', function($s) use ($word) {
+                                            $s->where('name', 'ilike', "%{$word}%");
+                                        });
+                                });
                         });
                     }
-
                 });
             })
             ->when($this->regionalPoliceId, function ($query) {
@@ -193,10 +220,12 @@ class AdminMenuPoldaReceptionIndex extends Component
                 $query->where('receptions.type', $this->type);
             })
             ->when($this->typeId, function ($query) {
-                $query->where('reception_details.type_id', $this->typeId);
+                $query->where('receptions.type_id', $this->typeId);
             })
             ->when($this->typeDetailId, function ($query) {
-                $query->where('reception_details.type_detail_id', $this->typeDetailId);
+                $query->whereHas('receptionDetails.receptionDetailItems', function($q) {
+                    $q->where('type_detail_id', $this->typeDetailId);
+                });
             })
             // Date filter
             ->when($this->startDate, function ($query) {
@@ -208,7 +237,6 @@ class AdminMenuPoldaReceptionIndex extends Component
             ->orderBy('receptions.date', 'desc')
             ->orderBy('receptions.created_at', 'desc')
             ->paginate($this->perPage);
-            // dd($receptions);
 
         return view('livewire.admin.menu-polda.reception.admin-menu-polda-reception-index', [
             'regionalPolices' => $regionalPolices,

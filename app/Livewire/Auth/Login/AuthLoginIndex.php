@@ -30,7 +30,7 @@ class AuthLoginIndex extends Component
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             session()->regenerate();
-            return $this->redirect(route('dashboard'), navigate: true);
+            return $this->redirect(route('dashboard'));
         }
 
         $this->addError('email', 'Email atau password salah.');

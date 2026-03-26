@@ -22,6 +22,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
 
     public ?string $serviceDetailId = null;
     public string $name = '';
+    public string $price = '';
     public ?string $description = null;
     public bool $is_active = true;
 
@@ -51,6 +52,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
         $this->serviceDetailId = $id;
         $serviceDetail = ServiceDetail::findOrFail($id);
         $this->name = $serviceDetail->name;
+        $this->price = (float) $serviceDetail->price;
         $this->description = $serviceDetail->description;
         $this->is_active = $serviceDetail->is_active;
         $this->showModal = true;
@@ -73,6 +75,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
     {
         $this->serviceDetailId = null;
         $this->name = '';
+        $this->price = '';
         $this->description = null;
         $this->is_active = true;
         $this->resetValidation();
@@ -82,6 +85,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
     {
         return [
             'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
@@ -92,6 +96,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
         return [
             'name.required' => 'Nama wajib diisi.',
             'name.max' => 'Nama maksimal 255 karakter.',
+            'price.required' => 'Harga wajib diisi.',
         ];
     }
 
@@ -103,6 +108,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
                 $serviceDetail = ServiceDetail::findOrFail($this->serviceDetailId);
                 $serviceDetail->update([
                     'name' => $this->name,
+                    'price' => $this->price,
                     'description' => $this->description,
                     'is_active' => $this->is_active
                 ]);
@@ -111,6 +117,7 @@ class AdminMasterTypeServiceDetailIndex extends Component
                 ServiceDetail::create([
                     'service_id' => $this->service_id,
                     'name' => $this->name,
+                    'price' => $this->price,
                     'description' => $this->description,
                     'is_active' => $this->is_active
                 ]);

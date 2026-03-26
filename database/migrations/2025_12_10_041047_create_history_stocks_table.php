@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('history_stocks', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->char('code',50)->unique();
+            $table->string('code', 50)->unique();
             $table->foreignUuid('last_stock_id')->nullable();
             $table->foreignUuid('last_stock_detail_id')->nullable();
             $table->foreignUuid('type_id')->nullable();
@@ -23,13 +23,13 @@ return new class extends Migration
             $table->foreignUuid('rack_id')->nullable();
             $table->date('date');
             $table->longText('serial_number')->nullable();
-            $table->enum('status_type',['in','first','last','out'])->default('in');
-            $table->decimal('quantity')->default(0);
+            $table->enum('status_type', ['in', 'first', 'last', 'out'])->default('in');
+            $table->decimal('quantity', 15, 2)->default(0);
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
-            $table->index(['deleted_at','created_at','is_active']);
+            $table->index(['deleted_at', 'created_at', 'is_active']);
         });
     }
 

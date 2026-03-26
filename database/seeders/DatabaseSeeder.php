@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Spatie\Role;
-use Illuminate\Support\Facades\Hash;
-use Database\Seeders\Type\TypeSeeder;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Database\Seeders\Type\TypeDetailSeeder;
+use Database\Seeders\Type\TypeSeeder;
 use Database\Seeders\User\UserSeeder;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             TypeDetailSeeder::class,
             RegionalPoliceSeeder::class,
             PoliceStationSeeder::class,
+            TargetSeeder::class,
             UserTypeSeeder::class,
             UserSeeder::class,
             // Rack seeder - must run before stock seeders
@@ -55,8 +56,8 @@ class DatabaseSeeder extends Seeder
             // ReceptionDetailSeeder::class,
             // RackAssignmentSeeder::class,
             // RackAssignmentDetailSeeder::class,
-            // MaterialUsageSeeder::class,
-            // MaterialUsageDetailSeeder::class,
+            MaterialUsageSeeder::class,
+            MaterialUsageDetailSeeder::class,
             // MaterialDamageSeeder::class,
             // MaterialDamageDetailSeeder::class,
             // MaterialShipmentSeeder::class,

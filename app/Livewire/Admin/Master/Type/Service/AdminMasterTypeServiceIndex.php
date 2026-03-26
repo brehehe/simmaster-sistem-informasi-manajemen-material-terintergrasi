@@ -20,6 +20,7 @@ class AdminMasterTypeServiceIndex extends Component
 
     public ?string $serviceId = null;
     public string $name = '';
+    public string $price = '';
     public ?string $description = null;
     public bool $is_active = true;
 
@@ -48,6 +49,7 @@ class AdminMasterTypeServiceIndex extends Component
         $this->serviceId = $id;
         $service = Service::findOrFail($id);
         $this->name = $service->name;
+        $this->price = (float) $service->price;
         $this->description = $service->description;
         $this->is_active = $service->is_active;
         $this->showModal = true;
@@ -70,6 +72,7 @@ class AdminMasterTypeServiceIndex extends Component
     {
         $this->serviceId = null;
         $this->name = '';
+        $this->price = '';
         $this->description = null;
         $this->is_active = true;
         $this->resetValidation();
@@ -79,6 +82,7 @@ class AdminMasterTypeServiceIndex extends Component
     {
         return [
             'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
@@ -89,6 +93,7 @@ class AdminMasterTypeServiceIndex extends Component
         return [
             'name.required' => 'Nama wajib diisi.',
             'name.max' => 'Nama maksimal 255 karakter.',
+            'price.required' => 'Harga wajib diisi.',
         ];
     }
 
@@ -100,6 +105,7 @@ class AdminMasterTypeServiceIndex extends Component
                 $service = Service::findOrFail($this->serviceId);
                 $service->update([
                     'name' => $this->name,
+                    'price' => $this->price,
                     'description' => $this->description,
                     'is_active' => $this->is_active
                 ]);
@@ -108,6 +114,7 @@ class AdminMasterTypeServiceIndex extends Component
                 Service::create([
                     'type_id' => $this->type_id,
                     'name' => $this->name,
+                    'price' => $this->price,
                     'description' => $this->description,
                     'is_active' => $this->is_active
                 ]);

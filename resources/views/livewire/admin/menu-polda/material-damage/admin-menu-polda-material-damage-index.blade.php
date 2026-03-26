@@ -144,14 +144,11 @@
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Polda</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Polda / Polres</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode Lap</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Material</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Material Detail</th>
-                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No. Seri</th>
-                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Qty</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Item Count</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Deskripsi</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
@@ -160,36 +157,34 @@
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
                             <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{{ $materialDamages->firstItem() + $index }}
                             </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap font-medium">
+                                {{ $damage->policeStation?->name ?? ($damage->regionalPolice?->name ?? '-') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-blue-600 font-bold">
+                                {{ $damage->code }}
+                            </td>
                             <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                {{ $damage->materialDamage?->regionalPolice?->name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm font-medium text-blue-600">{{ $damage->materialDamage->code }}</span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                {{ \Carbon\Carbon::parse($damage->materialDamage->date)->format('d M Y') }}
-                            </td>
-                             <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                {{ $damage->type->name }}
+                                {{ \Carbon\Carbon::parse($damage->date)->format('d M Y') }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                {{ $damage->typeDetail->name ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                {{ $damage->item_code ?? '' }}
-                                {{ $damage->number_serial_first ?? '' }} {{ $damage->number_serial_second ?? '' }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $damage->damage_type == 'lost' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                    {{ $damage->damage_type == 'lost' ? 'Hilang' : 'Rusak' }}
+                                <span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold">
+                                    {{ $damage->materialDamageDetails->count() }} Item
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm font-medium text-red-600 whitespace-nowrap">
-                                - {{ number_format($damage->quantity, 0) }}
+                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                {{ $damage->description ?: '-' }}
                             </td>
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('menu-polda.material-damage.edit', $damage->material_damage_id) }}" wire:navigate
+                                    <button wire:click="viewDetail('{{ $damage->id }}')"
+                                        class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                        title="Lihat Detail Breakdown">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <a href="{{ route('menu-polda.material-damage.edit', $damage->id) }}" wire:navigate
                                         class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
                                         title="Edit Transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -198,7 +193,7 @@
                                                 d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
                                     </a>
-                                    <button wire:click="openDeleteModal('{{ $damage->material_damage_id }}')"
+                                    <button wire:click="openDeleteModal('{{ $damage->id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                         title="Hapus Transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -228,125 +223,136 @@
             </table>
         </div>
 
-        <!-- Pagination -->
-        @if ($materialDamages->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-sm text-gray-600">
-                        Menampilkan <span class="font-semibold">{{ $materialDamages->firstItem() }}</span>
-                        sampai <span class="font-semibold">{{ $materialDamages->lastItem() }}</span>
-                        dari <span class="font-semibold">{{ $materialDamages->total() }}</span> hasil
-                    </div>
-                    <div class="flex items-center gap-1">
-                        @if ($materialDamages->onFirstPage())
-                            <span class="px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </span>
-                        @else
-                            <button wire:click="previousPage"
-                                class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        @endif
-                        @php
-                            $currentPage = $materialDamages->currentPage();
-                            $lastPage = $materialDamages->lastPage();
-                            $start = max(1, $currentPage - 2);
-                            $end = min($lastPage, $currentPage + 2);
-                        @endphp
-                        @if ($start > 1)
-                            <button wire:click="gotoPage(1)"
-                                class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">1</button>
-                            @if ($start > 2)
-                                <span class="px-2 py-2 text-sm text-gray-400">...</span>
-                            @endif
-                        @endif
-                        @for ($page = $start; $page <= $end; $page++)
-                            @if ($page == $currentPage)
-                                <span
-                                    class="px-3 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg">{{ $page }}</span>
-                            @else
-                                <button wire:click="gotoPage({{ $page }})"
-                                    class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $page }}</button>
-                            @endif
-                        @endfor
-                        @if ($end < $lastPage)
-                            @if ($end < $lastPage - 1)
-                                <span class="px-2 py-2 text-sm text-gray-400">...</span>
-                            @endif
-                            <button wire:click="gotoPage({{ $lastPage }})"
-                                class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $lastPage }}</button>
-                        @endif
-                        @if ($materialDamages->hasMorePages())
-                            <button wire:click="nextPage"
-                                class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        @else
-                            <span class="px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        @else
-            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+        <!-- Pagination (existing) -->
+        <!-- Pagination Footer -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="text-sm text-gray-600">
-                    Menampilkan <span class="font-semibold">{{ $materialDamages->count() }}</span> hasil
+                    Menampilkan <span class="font-semibold">{{ $materialDamages->firstItem() }}</span> 
+                    sampai <span class="font-semibold">{{ $materialDamages->lastItem() }}</span> 
+                    dari <span class="font-semibold">{{ $materialDamages->total() }}</span> hasil
+                </div>
+                <div>
+                    {{ $materialDamages->links() }}
                 </div>
             </div>
-        @endif
+        </div>
     </div>
 
-    <!-- Delete Modal -->
-    @if ($showDeleteModal)
+    <!-- Detail Modal -->
+    @if ($showDetailModal && $selectedMaterialDamage)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Backdrop -->
                 <div class="fixed inset-0 transition-opacity bg-gray-900/70 backdrop-blur-sm" wire:click="closeModal">
                 </div>
-                <div
-                    class="relative inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
-                    <div class="text-center">
-                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-                            <svg class="h-8 w-8 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
+
+                <!-- Modal Content -->
+                <div class="relative inline-block w-full max-w-5xl my-8 text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
+                    
+                    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Detail Breakdown Material Rusak: {{ $selectedMaterialDamage->code }}</h3>
+                            <p class="text-sm text-gray-500 mt-1">{{ $selectedMaterialDamage->policeStation?->name ?? ($selectedMaterialDamage->regionalPolice?->name ?? '-') }} • {{ \Carbon\Carbon::parse($selectedMaterialDamage->date)->format('d M Y') }}</p>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Hapus Data Material Rusak</h3>
-                        <p class="text-gray-500">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat
-                            dibatalkan.</p>
-                    </div>
-                    <div class="mt-6 flex gap-3">
-                        <button wire:click="closeModal"
-                            class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
-                            Batal
+                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
-                        <button wire:click="delete"
-                            class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
-                            Ya, Hapus
+                    </div>
+
+                    <div class="p-6">
+                        @if($selectedMaterialDamage->description)
+                            <div class="mb-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100 italic text-blue-800 text-sm">
+                                "{{ $selectedMaterialDamage->description }}"
+                            </div>
+                        @endif
+
+                        <div class="overflow-x-auto rounded-xl border border-gray-200">
+                            <table class="w-full text-sm text-left align-top">
+                                <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-3 font-semibold text-center w-12">No</th>
+                                        <th class="px-4 py-3 font-semibold">Material / Detail</th>
+                                        <th class="px-4 py-3 font-semibold">Identitas (Kode | SN)</th>
+                                        <th class="px-4 py-3 font-semibold">Service Group</th>
+                                        <th class="px-4 py-3 font-semibold text-center w-24">Jumlah</th>
+                                        <th class="px-4 py-3 font-semibold">Alasan / Kondisi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach($selectedMaterialDamage->materialDamageDetails as $index => $item)
+                                        <tr class="hover:bg-gray-50/50">
+                                            <td class="px-4 py-3 text-center text-gray-500">{{ $index + 1 }}</td>
+                                            <td class="px-4 py-3">
+                                                <div class="font-bold text-gray-900">{{ $item->type->name ?? '-' }}</div>
+                                                <div class="text-xs text-gray-500">{{ $item->typeDetail->name ?? '-' }}</div>
+                                            </td>
+                                            <td class="px-4 py-3 font-mono text-xs">
+                                                @if($item->item_code) <span class="bg-gray-100 px-1.5 py-0.5 rounded">{{ $item->item_code }}</span><br> @endif
+                                                {{ $item->number_serial_first }} {{ $item->number_serial_second }}
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="font-medium text-blue-700">{{ $item->stockDetail?->service?->name ?? '-' }}</div>
+                                                <div class="text-[10px] text-gray-500 italic">{{ $item->stockDetail?->serviceDetail?->name ?? '' }}</div>
+                                            </td>
+                                            <td class="px-4 py-3 text-center font-bold text-red-600 bg-red-50/20">
+                                                - {{ number_format($item->quantity, 0) }}
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="text-xs font-semibold {{ $item->damage_type == 'lost' ? 'text-red-700' : 'text-orange-700' }}">
+                                                    {{ $item->damage_type == 'lost' ? 'HILANG' : 'RUSAK' }}
+                                                </div>
+                                                <div class="text-[10px] text-gray-500 truncate max-w-[150px]">{{ $item->reason }}</div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border-t border-gray-100 flex justify-end">
+                        <button wire:click="closeModal" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Delete Modal (existing) -->
+    <!-- Delete Modal -->
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" aria-hidden="true" wire:click="closeModal"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Hapus Data Material Rusak</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500">Apakah Anda yakin ingin menghapus data ini? Semua rincian item akan ikut terhapus. Tindakan ini tidak dapat dibatalkan.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                        <button wire:click="delete" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
+                            Hapus
+                        </button>
+                        <button wire:click="closeModal" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all">
+                            Batal
                         </button>
                     </div>
                 </div>

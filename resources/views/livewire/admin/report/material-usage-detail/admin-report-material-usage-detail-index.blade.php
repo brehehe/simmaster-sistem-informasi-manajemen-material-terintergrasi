@@ -1,7 +1,27 @@
 <div>
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Detail Penggunaan Material</h1>
-        <p class="text-gray-600">Daftar detail penggunaan material dikelompokkan berdasarkan tipe material.</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Detail Penggunaan Material</h1>
+                <p class="text-gray-600">Daftar detail penggunaan material dikelompokkan berdasarkan tipe material.</p>
+            </div>
+            <div class="flex gap-2">
+                <button wire:click="exportExcel"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Export Excel
+                </button>
+                <button wire:click="exportPdf"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+                    </svg>
+                    Export PDF
+                </button>
+            </div>
+        </div>
     </div>
 
     {{-- Filters --}}
@@ -386,3 +406,57 @@
         </div>
     @endforelse
 </div>
+
+@push('scripts')
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+             Livewire.on('export-usage-detail-pdf', (event) => {
+                const { reportData, fileName } = event[0];
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+
+                doc.setFontSize(16);
+                doc.text('Detail Penggunaan Material', 14, 15);
+                doc.setFontSize(10);
+                doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+                let currentY = 30;
+
+                reportData.forEach((group, index) => {
+                    if (index > 0) {
+                         if (currentY + 20 > doc.internal.pageSize.height) {
+                             doc.addPage();
+                             currentY = 20;
+                         } else {
+                             currentY += 10;
+                         }
+                    }
+
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(group.title, 14, currentY);
+
+                    doc.autoTable({
+                        head: group.headers,
+                        body: group.data,
+                        startY: currentY + 5,
+                        theme: 'grid',
+                        styles: { fontSize: 7, cellPadding: 1, valign: 'middle' },
+                        headStyles: { fillColor: [59, 130, 246] },
+                        columnStyles: {
+                            0: { halign: 'center' },
+                        },
+                        didDrawPage: function (data) {
+                            currentY = data.cursor.y;
+                        },
+                        margin: { top: 30 }
+                    });
+
+                    currentY = doc.lastAutoTable.finalY;
+                });
+
+                doc.save(fileName);
+            });
+        });
+    </script>
+@endpush

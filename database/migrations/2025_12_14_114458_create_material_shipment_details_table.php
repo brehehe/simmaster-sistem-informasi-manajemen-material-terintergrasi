@@ -17,10 +17,10 @@ return new class extends Migration
             $table->foreignUuid('stock_detail_id')->nullable()->constrained('stock_details')->nullOnDelete();
             $table->foreignUuid('type_id')->nullable();
             $table->foreignUuid('type_detail_id')->nullable();
-            $table->char('code', 50);
-            $table->char('number_serial_first', 50)->nullable();
-            $table->char('number_serial_second', 50)->nullable();
-            $table->decimal('quantity', 10, 2)->default(0);
+            $table->string('code', 50);
+            $table->string('number_serial_first', 50)->nullable();
+            $table->string('number_serial_second', 50)->nullable();
+            $table->decimal('quantity', 15, 2)->default(0);
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

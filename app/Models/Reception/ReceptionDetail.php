@@ -25,6 +25,11 @@ class ReceptionDetail extends Model
         return $this->belongsTo(Reception::class);
     }
 
+    public function receptionDetailItems()
+    {
+        return $this->hasMany(ReceptionDetailItem::class);
+    }
+
     public function type()
     {
         return $this->belongsTo(Type::class);

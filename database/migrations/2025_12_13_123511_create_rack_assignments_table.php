@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('item_code')->nullable();
             $table->string('number_serial_first')->nullable();
             $table->string('number_serial_second')->nullable();
-            $table->decimal('quantity')->default(0);
+            $table->decimal('quantity', 15, 2)->default(0);
             $table->foreignUuid('regional_police_id')->nullable();
             $table->foreignUuid('police_station_id')->nullable();
             $table->date('date');

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('stock_opnames', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->char('code', 50)->unique();
+            $table->string('code', 50)->unique();
             $table->date('opname_date');
 
             // Owner (Polda OR Polres, not both)

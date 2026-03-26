@@ -15,7 +15,7 @@ class MaterialUsageSeeder extends Seeder
 
         $materialUsages = [];
 
-        for ($i = 1; $i <= 500; $i++) {
+        for ($i = 1; $i <= 10000; $i++) {
             $isRegional = rand(0, 1);
 
             $materialUsages[] = [

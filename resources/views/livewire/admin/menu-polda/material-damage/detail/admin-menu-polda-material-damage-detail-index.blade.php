@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-blue-600">
-                    {{ $isEditMode ? 'Edit' : 'Tambah' }} Material Rusak
+                    {{ $isEditMode ? 'Lihat' : 'Tambah' }} Material Rusak
                 </h1>
                 <p class="text-gray-500 mt-1">Kelola material rusak dengan tracking pengurangan stock (Batch)</p>
             </div>
@@ -36,7 +36,7 @@
         <div class="p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Utama</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? 3 : 2 }} gap-6 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Kode <span class="text-red-500">*</span>
@@ -49,19 +49,22 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Tanggal <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" wire:model="date"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    <input type="date" wire:model="date" @disabled($materialDamageId)
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
                     @error('date')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 @if (auth()->user()->hasRole('Admin'))
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Polda <span class="text-red-500">*</span>
                         </label>
-                        <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
+                        @if ($canSelectRegionalPolice ?? true)
+                            <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
                                 <select
                                     id="select-regional-police"
                                     wire:model="regionalPoliceId"
@@ -88,17 +91,60 @@
                                     @endforeach
                                 </select>
                             </div>
+                        @else
+                            @php
+                                $selectedPolda = collect($regionalPolices)->firstWhere('id', $regionalPoliceId);
+                            @endphp
+                            <input type="text" value="{{ $selectedPolda?->name ?? '-' }}" readonly
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
+                        @endif
                         @error('regionalPoliceId')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 @endif
+                
+                <div class="border border-blue-100 bg-blue-50/50 p-4 rounded-xl">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-blue-900 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                        </svg>
+                        Material Utama <span class="text-red-500">*</span>
+                    </label>
+                    <div wire:ignore wire:key="select-type-global-{{ rand() }}">
+                        <select id="select-type-global" @disabled($materialDamageId) x-data x-ref="input" x-init="
+                            const selectize = $($refs.input).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: {{ $materialDamageId ? '[]' : "['clear_button']" }},
+                                onChange: function(e) {
+                                    @this.set('typeId', e ? e : '');
+                                }
+                            })[0].selectize;
+                            if ($refs.input.disabled) {
+                                selectize.disable();
+                            }
+                        " wire:model="typeId">
+                            <option value="">-- Pilih Material --</option>
+                            @foreach ($types as $typeOpt)
+                                <option value="{{ $typeOpt->id }}"
+                                    {{ $typeId == $typeOpt->id ? 'selected' : '' }}>
+                                    {{ $typeOpt->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('typeId')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi (Opsional)</label>
-                <textarea wire:model="description" rows="2" placeholder="Catatan tambahan..."
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"></textarea>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Laporan (Opsional)</label>
+                <textarea wire:model="description" rows="2" placeholder="Catatan laporan..." @disabled($materialDamageId)
+                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500"></textarea>
             </div>
         </div>
     </div>
@@ -107,202 +153,163 @@
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Detail Item Material</h2>
-                <button wire:click="addDetail" type="button"
-                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    Tambah Item
-                </button>
+                <h2 class="text-xl font-bold text-gray-900">Detail Material Rusak</h2>
+                @if (!$materialDamageId)
+                    <button wire:click="addDetail" type="button"
+                        class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Tambah Item
+                    </button>
+                @endif
             </div>
 
             @if (count($details) > 0)
-                <div class="space-y-4">
-                    @foreach ($details as $index => $detail)
-                        <div wire:key="detail-{{ $index }}"
-                            class="relative bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border border-gray-200/80 shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 overflow-hidden">
-                            <!-- Item Number Badge -->
-                            <div
-                                class="absolute top-0 left-0 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-br-2xl font-bold text-sm shadow-lg">
-                                Item #{{ $index + 1 }}
-                            </div>
-
-                            <div class="p-6 pt-14">
-                                <!-- Remove Button -->
-                                @if (count($details) > 1)
-                                    <button type="button" wire:click="removeDetail({{ $index }})"
-                                        class="absolute top-4 right-4 p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200"
-                                        title="Hapus Item">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
+                <div class="overflow-x-auto overflow-y-visible pb-12">
+                    <table class="w-full text-sm text-left align-top border-collapse min-w-[1200px]">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
+                            <tr>
+                                <th class="px-3 py-3 font-semibold w-12 text-center text-xs">No</th>
+                                @if($is_type_detail)
+                                    <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Detail Material</th>
                                 @endif
+                                <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Service</th>
+                                <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Service Detail</th>
+                                @if($is_with_serial_number)
+                                    <th class="px-3 py-3 font-semibold text-xs min-w-[250px]">Identitas Barang (Kode | Serial Number)</th>
+                                @endif
+                                <th class="px-3 py-3 font-semibold text-xs w-32">Kondisi / Alasan</th>
+                                <th class="px-3 py-3 font-semibold text-xs w-28 text-center bg-blue-50">Tersedia</th>
+                                <th class="px-3 py-3 font-semibold text-xs w-24">Rusak <span class="text-red-500">*</span></th>
+                                @if (!$materialDamageId)
+                                    <th class="px-3 py-3 font-semibold w-16 text-center text-xs">Aksi</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($details as $index => $detail)
+                                @php
+                                    $rowTypeDetailId = $detail['type_detail_id'] ?? null;
+                                    $rowServiceId = $detail['service_id'] ?? null;
+                                    $filteredServices = collect($this->services)->where(
+                                        $rowTypeDetailId ? 'type_detail_id' : 'type_id',
+                                        $rowTypeDetailId ? $rowTypeDetailId : $typeId
+                                    );
+                                    $selectedSvc = collect($this->services)->firstWhere('id', $rowServiceId);
+                                    $filteredServiceDetails = data_get($selectedSvc, 'details', []);
+                                @endphp
+                                <tr wire:key="detail-{{ $index }}" class="hover:bg-gray-50/20 transition-colors">
+                                    <td class="px-3 py-3 text-center font-medium text-gray-500 align-top text-xs pt-5">
+                                        {{ $index + 1 }}
+                                    </td>
 
-                                <!-- Form Fields Grid -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- Stock Selection -->
-                                    <div class="md:col-span-2">
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                                            </svg>
-                                            Pilih Stock <span class="text-red-500">*</span>
-                                        </label>
-                                        <div wire:ignore wire:key="select-stock-detail-{{ $index }}-{{ rand() }}">
-                                            <select id="select-stock-detail-{{ $index }}"
-                                                @disabled($materialDamageId)
-                                                x-data x-ref="input"
-                                                x-init="
-                                                const selectize = $($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.stock_detail_id', e ? e : '');
-                                                    }
-                                                })[0].selectize;
-                                                if ($refs.input.disabled) {
-                                                    selectize.disable();
-                                                }
-                                            "
-                                                wire:model="details.{{ $index }}.stock_detail_id">
-                                                <option value="">-- Pilih Stock --</option>
-                                                @foreach ($stockDetails as $stock)
-                                                    <option value="{{ $stock->id }}">
-                                                        {{ $stock->type->name ?? '' }} -
-                                                        {{ $stock->typeDetail->name ?? '' }}
-                                                        {{ $stock->rack->name ?? 'Tanpa Rak' }} {{ $stock->code }}
-                                                        (Tersedia: {{ $stock->quantity }})
-                                                    </option>
+                                    @if($is_type_detail)
+                                        <td class="px-3 py-3 align-top">
+                                            <select wire:model.live="details.{{ $index }}.type_detail_id" @disabled($materialDamageId)
+                                                class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                                <option value="">-- Semua Detail --</option>
+                                                @foreach($this->typeDetails as $td)
+                                                    <option value="{{ data_get($td, 'id') }}">{{ data_get($td, 'name') }}</option>
                                                 @endforeach
                                             </select>
-                                        </div>
-                                        @error("details.{$index}.stock_detail_id")
-                                            <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
-                                                    fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                {{ $message }}
-                                            </p>
-                                        @enderror
-                                    </div>
+                                        </td>
+                                    @endif
+                                    
+                                    <td class="px-3 py-3 align-top">
+                                        <select wire:model.live="details.{{ $index }}.service_id" @disabled($materialDamageId)
+                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                            <option value="">-- Semua Service --</option>
+                                            @foreach($filteredServices as $svc)
+                                                <option value="{{ data_get($svc, 'id') }}">{{ data_get($svc, 'name') }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
 
-                                    <!-- Quantity -->
-                                    <div class="md:col-span-2">
-                                        <label
-                                            class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
-                                            </svg>
-                                            Quantity <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="number" wire:model="details.{{ $index }}.quantity"
-                                            max="{{ $details[$index]['available_quantity'] ?? 0 }}" min="1"
-                                            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200">
-                                        <div class="flex items-center justify-between mt-1">
-                                            <small class="text-xs text-gray-500">Max:
-                                                {{ $details[$index]['available_quantity'] ?? 0 }}</small>
-                                            @if (!empty($details[$index]['quantity']) && $details[$index]['quantity'] > 0)
-                                                <small class="text-xs font-semibold text-blue-600">
-                                                    Sisa:
-                                                    {{ max(0, ($details[$index]['available_quantity'] ?? 0) - ($details[$index]['quantity'] ?? 0)) }}
-                                                </small>
-                                            @endif
+                                    <td class="px-3 py-3 align-top">
+                                        <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($materialDamageId)
+                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                            <option value="">-- Semua --</option>
+                                            @foreach($filteredServiceDetails as $sdt)
+                                                <option value="{{ data_get($sdt, 'id') }}">{{ data_get($sdt, 'name') }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+
+                                    @if($is_with_serial_number)
+                                        <td class="px-3 py-3 align-top">
+                                            <div wire:ignore wire:key="select-stock-key-{{ $index }}-{{ md5(json_encode($detail['available_stocks'] ?? [])) }}">
+                                                <select x-data x-init="
+                                                    const selectize = $($el).selectize({
+                                                        dropdownParent: 'body',
+                                                        allowClear: true,
+                                                        onChange: function(val) {
+                                                            @this.set('details.{{ $index }}.selected_stock_key', val);
+                                                        }
+                                                    })[0].selectize;
+                                                " wire:model="details.{{ $index }}.selected_stock_key" @disabled($materialDamageId)
+                                                    class="w-full text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                                    <option value="">-- Pilih Barang --</option>
+                                                    @foreach($detail['available_stocks'] ?? [] as $stockOpt)
+                                                        <option value="{{ $stockOpt['value'] }}">{{ $stockOpt['label'] }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </td>
+                                    @endif
+
+                                    <td class="px-3 py-3 align-top w-48">
+                                        <div class="space-y-2">
+                                            <select wire:model.defer="details.{{ $index }}.damage_type" @disabled($materialDamageId)
+                                                class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                                <option value="damaged">Rusak Fisik</option>
+                                                <option value="lost">Hilang / Susut</option>
+                                            </select>
+                                            <input type="text" wire:model.defer="details.{{ $index }}.reason" placeholder="Penjelasan keluhan" @disabled($materialDamageId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
                                         </div>
+                                    </td>
+
+                                    <td class="px-3 py-3 align-top bg-blue-50/30">
+                                        <div class="h-full flex flex-col justify-center items-center font-semibold {{ $detail['available_quantity'] > 0 ? 'text-blue-600' : 'text-gray-400' }} pt-2">
+                                            {{ number_format($detail['available_quantity'], 0, ',', '.') }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-3 py-3 align-top">
+                                        <input type="number" min="0" step="1" max="{{ $detail['available_quantity'] }}" wire:model.live="details.{{ $index }}.quantity" placeholder="Qty" @disabled($materialDamageId) class="w-full px-2 py-2 text-xs font-bold text-center rounded border border-red-300 focus:border-red-500 bg-red-50 disabled:bg-gray-100 disabled:text-gray-400 text-red-700">
                                         @error("details.{$index}.quantity")
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            <p class="text-red-500 text-[10px] mt-1 text-center font-medium leading-tight">{{ $message }}</p>
                                         @enderror
-                                    </div>
+                                    </td>
 
-                                    <!-- Reason -->
-                                    <div class="md:col-span-2">
-                                        <label
-                                            class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            Alasan / Keterangan <span class="text-red-500">*</span>
-                                        </label>
-                                        <textarea wire:model="details.{{ $index }}.reason" rows="3"
-                                            placeholder="Jelaskan alasan/keterangan kerusakan..."
-                                            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 resize-none"></textarea>
-                                        @error("details.{$index}.reason")
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <!-- Stock Info Panel -->
-                                @if (!empty($details[$index]['stock_detail_id']))
-                                    <div
-                                        class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200/50 rounded-xl">
-                                        <div class="flex items-start gap-3">
-                                            <div class="p-2 bg-blue-100 rounded-lg">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            </div>
-                                            <div class="flex-1">
-                                                <h4 class="text-sm font-bold text-gray-900 mb-2">Informasi Stock</h4>
-                                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                                                    <div>
-                                                        <span class="text-gray-500">Kode:</span>
-                                                        <p class="font-semibold text-gray-900">
-                                                            {{ $details[$index]['item_code'] }}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-gray-500">Serial 1:</span>
-                                                        <p class="font-semibold text-gray-900">
-                                                            {{ $details[$index]['number_serial_first'] ?: '-' }}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-gray-500">Serial 2:</span>
-                                                        <p class="font-semibold text-gray-900">
-                                                            {{ $details[$index]['number_serial_second'] ?: '-' }}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-gray-500">Tersedia:</span>
-                                                        <p class="font-bold text-blue-600">
-                                                            {{ number_format($details[$index]['available_quantity'], 0) }}
-                                                            unit</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
+                                    @if (!$materialDamageId)
+                                        <td class="px-3 py-3 text-center align-top pt-4">
+                                            @if (count($details) > 1)
+                                                <button type="button" wire:click="removeDetail({{ $index }})"
+                                                    class="p-1.5 inline-flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             @else
-                <div class="py-12 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-4"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="py-10 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                             d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
                     <p class="text-gray-500 text-lg font-medium">Belum ada item detail</p>
-                    <p class="text-gray-400 text-sm mt-1">Klik "Tambah Item" untuk menambahkan detail material</p>
+                    <p class="text-gray-400 text-sm mt-1">Klik "Tambah Item" untuk mengurangi stok yang rusak</p>
                 </div>
             @endif
         </div>
@@ -312,12 +319,14 @@
     <div class="mt-6 flex items-center justify-end gap-3">
         <a href="{{ route('menu-polda.material-damage') }}" wire:navigate
             class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
-            Batal
+            {{ $materialDamageId ? 'Kembali' : 'Batal' }}
         </a>
-        <button wire:click="save" type="button"
-            class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
-            <span wire:loading.remove wire:target="save">{{ $isEditMode ? 'Update Data' : 'Simpan Data' }}</span>
-            <span wire:loading wire:target="save">Menyimpan...</span>
-        </button>
+        @if (!$materialDamageId)
+            <button wire:click="save" type="button"
+                class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
+                <span wire:loading.remove wire:target="save">Simpan Data</span>
+                <span wire:loading wire:target="save">Menyimpan...</span>
+            </button>
+        @endif
     </div>
 </div>

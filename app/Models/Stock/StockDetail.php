@@ -104,4 +104,14 @@ class StockDetail extends Model
     {
         return $this->belongsTo(Rack::class);
     }
+
+    public function service()
+    {
+        return $this->belongsTo(\App\Models\Service\Service::class);
+    }
+
+    public function serviceDetail()
+    {
+        return $this->belongsTo(\App\Models\Service\ServiceDetail::class);
+    }
 }

@@ -19,4 +19,8 @@ class TypeDetail extends Model
     public function type() {
         return $this->belongsTo(Type::class);
     }
+
+    public function services() {
+        return $this->hasMany(\App\Models\Service\Service::class);
+    }
 }

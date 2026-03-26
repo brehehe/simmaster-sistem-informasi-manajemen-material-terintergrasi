@@ -5,14 +5,15 @@ namespace App\Livewire\Admin\Dashboard;
 use App\Models\LastStock\LastStock;
 use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
-use App\Models\Police\PoliceStation;
+use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
 use App\Models\Police\RegionalPolice;
 use App\Models\Reception\Reception;
 use App\Models\Stock\HistoryStock;
 use App\Models\Stock\Stock;
 use App\Models\StockOpname\StockOpname;
+use App\Models\Target\Target;
+use App\Models\Target\TargetDetail;
 use App\Models\Type\Type;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -87,6 +88,9 @@ class AdminDashboardIndex extends Component
         // NEW: Monthly Material Movement
         $materialMovement = $this->getMaterialMovement();
 
+        // NEW: Target vs Pencapaian (rotating per lokasi)
+        $targetAchievementChart = $this->getTargetAchievementChart();
+
         return view('livewire.admin.dashboard.admin-dashboard-index', [
             'totalReceptions' => $totalReceptions,
             'totalStockPolda' => $totalStockPolda,
@@ -105,6 +109,7 @@ class AdminDashboardIndex extends Component
             'typeDistribution' => $typeDistribution,
             'regionalStats' => $regionalStats,
             'materialMovement' => $materialMovement,
+            'targetAchievementChart' => $targetAchievementChart,
         ])->layout('components.layouts.main.app');
     }
 
@@ -212,6 +217,110 @@ class AdminDashboardIndex extends Component
             'labels' => $labels,
             'in' => $data['in'],
             'out' => $data['out'],
+        ];
+    }
+
+    private function getTargetAchievementChart(): array
+    {
+        $target = Target::query()
+            ->where('is_active', true)
+            ->orderByDesc('year')
+            ->first();
+
+        if (! $target) {
+            return [
+                'types' => [],
+                'locations' => [],
+            ];
+        }
+
+        $types = Type::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $locations = [];
+        $regionalPolice = RegionalPolice::query()
+            ->with(['policeStations' => fn ($query) => $query->where('is_active', true)->orderBy('name')])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        foreach ($regionalPolice as $regional) {
+            $locations[] = [
+                'key' => 'regional_'.$regional->id,
+                'label' => $regional->name,
+                'regional_police_id' => $regional->id,
+                'police_station_id' => null,
+            ];
+
+            foreach ($regional->policeStations as $station) {
+                $locations[] = [
+                    'key' => 'station_'.$station->id,
+                    'label' => $station->name,
+                    'regional_police_id' => $station->regional_police_id,
+                    'police_station_id' => $station->id,
+                ];
+            }
+        }
+
+        $usageYear = now()->year;
+        $usageMonth = now()->month;
+
+        $targets = TargetDetail::query()
+            ->select('regional_police_id', 'police_station_id', 'type_id', DB::raw('SUM(quantity) as total'))
+            ->where('target_id', $target->id)
+            ->whereNotNull('type_id')
+            ->groupBy('regional_police_id', 'police_station_id', 'type_id')
+            ->get()
+            ->mapWithKeys(function ($row) {
+                $key = $row->police_station_id
+                    ? 'station_'.$row->police_station_id
+                    : 'regional_'.$row->regional_police_id;
+
+                return [$key.'|'.$row->type_id => (float) $row->total];
+            });
+
+        $actuals = MaterialUsageDetail::query()
+            ->select('material_usages.regional_police_id', 'material_usages.police_station_id', 'material_usage_details.type_id', DB::raw('SUM(material_usage_details.quantity) as total'))
+            ->join('material_usages', 'material_usage_details.material_usage_id', '=', 'material_usages.id')
+            ->whereYear('material_usages.date', $usageYear)
+            // ->whereMonth('material_usages.date', $usageMonth)
+            ->whereNotNull('material_usage_details.type_id')
+            ->groupBy('material_usages.regional_police_id', 'material_usages.police_station_id', 'material_usage_details.type_id')
+            ->get()
+            ->mapWithKeys(function ($row) {
+                $key = $row->police_station_id
+                    ? 'station_'.$row->police_station_id
+                    : 'regional_'.$row->regional_police_id;
+
+                return [$key.'|'.$row->type_id => (float) $row->total];
+            });
+
+        $typeLabels = $types->pluck('name')->toArray();
+
+        $locationPayload = [];
+
+        foreach ($locations as $location) {
+            $targetValues = [];
+            $actualValues = [];
+
+            foreach ($types as $type) {
+                $mapKey = $location['key'].'|'.$type->id;
+                $targetValues[] = $targets[$mapKey] ?? 0;
+                $actualValues[] = $actuals[$mapKey] ?? 0;
+            }
+
+            $locationPayload[] = [
+                'label' => $location['label'],
+                'target' => $targetValues,
+                'actual' => $actualValues,
+            ];
+        }
+
+        return [
+            'types' => $typeLabels,
+            'locations' => $locationPayload,
         ];
     }
 }

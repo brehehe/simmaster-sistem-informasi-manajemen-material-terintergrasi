@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('mutation_stocks', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->char('code', 50)->unique();
+            $table->string('code', 50)->unique();
             $table->date('mutation_date');
             $table->enum('status', ['draft', 'sent', 'received'])->default('draft');
 

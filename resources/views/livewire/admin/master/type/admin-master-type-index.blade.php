@@ -67,6 +67,7 @@
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">No</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Nama</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Harga</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">With Serial Number</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Service</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Detail</th>
@@ -78,6 +79,7 @@
                         <tr class="hover:bg-blue-50/50 transition-colors">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $types->firstItem() + $index }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $type->name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ number_format($type->price, 0, ',', '.') }}</td>
                             <td class="px-6 py-4"><span
                                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-{{ $type->is_with_serial_number ? 'green' : 'blue' }}-100 text-{{ $type->is_with_serial_number ? 'green' : 'blue' }}-700">{{ $type->is_with_serial_number ? 'Ya' : 'Tidak' }}</span></td>
                             <td class="px-6 py-4"><span

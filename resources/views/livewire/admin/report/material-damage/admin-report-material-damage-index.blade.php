@@ -6,12 +6,12 @@
                 <p class="text-gray-500 mt-1">Monitoring material yang mengalami kerusakan</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="exportToExcel('materialDamageTable', 'laporan-material-rusak')"
+                <button wire:click="exportExcel"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                     Export Excel
                 </button>
-                <button onclick="exportToPDF({ tableId: 'materialDamageTable', title: 'Laporan Material Rusak', filename: 'laporan-material-rusak', summaryCards: [{ label: 'Total', value: '{{ $this->totalDamages }}' }] })"
+                <button wire:click="exportPdf"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" /></svg>
                     Export PDF
@@ -259,5 +259,30 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('js/report-export.js') }}"></script>
+    {{-- <script src="{{ asset('js/report-export.js') }}"></script> --}}
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('export-damage-pdf', (event) => {
+                const { headers, data, fileName } = event[0];
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+
+                doc.setFontSize(16);
+                doc.text('Laporan Material Rusak', 14, 15);
+                doc.setFontSize(10);
+                doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+                doc.autoTable({
+                    head: [headers],
+                    body: data,
+                    startY: 30,
+                    theme: 'grid',
+                    styles: { fontSize: 8, cellPadding: 2 },
+                    headStyles: { fillColor: [220, 38, 38] }, // Red-600 match
+                });
+
+                doc.save(fileName);
+            });
+        });
+    </script>
 @endpush

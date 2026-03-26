@@ -20,7 +20,9 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     public string $poldaFilter = '';
     public int $perPage = 10;
     public bool $showDeleteModal = false;
+    public bool $showDetailModal = false;
     public ?string $shipmentId = null;
+    public $selectedShipment = null;
 
     public function paginationView()
     {
@@ -31,7 +33,16 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     {
         $user = auth()->user();
 
-        $query = MaterialShipment::with(['senderRegionalPolice', 'receiverPoliceStation', 'materialShipmentDetails','materialShipmentDetails.type','materialShipmentDetails.typeDetail'])
+        $query = MaterialShipment::with([
+            'senderRegionalPolice', 
+            'receiverPoliceStation', 
+            'materialShipmentDetails',
+            'materialShipmentDetails.stockDetail',
+            'materialShipmentDetails.stockDetail.service',
+            'materialShipmentDetails.stockDetail.serviceDetail',
+            'materialShipmentDetails.type',
+            'materialShipmentDetails.typeDetail'
+        ])
             ->where('is_active', true);
 
         // Role-based: Polda only sees their own shipments
@@ -103,5 +114,27 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
             }
         }
         $this->closeModal();
+    }
+
+    public function viewDetail($id)
+    {
+        $this->shipmentId = $id;
+        $this->selectedShipment = MaterialShipment::with([
+            'senderRegionalPolice',
+            'receiverPoliceStation',
+            'materialShipmentDetails.stockDetail',
+            'materialShipmentDetails.stockDetail.service',
+            'materialShipmentDetails.stockDetail.serviceDetail',
+            'materialShipmentDetails.type',
+            'materialShipmentDetails.typeDetail'
+        ])->find($id);
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetailModal()
+    {
+        $this->showDetailModal = false;
+        $this->selectedShipment = null;
+        $this->shipmentId = null;
     }
 }

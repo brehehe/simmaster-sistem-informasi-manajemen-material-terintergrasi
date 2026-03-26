@@ -22,14 +22,14 @@ return new class extends Migration
             $table->foreignUuid('type_id')->constrained('types')->cascadeOnDelete();
             $table->foreignUuid('type_detail_id')->nullable()->constrained('type_details')->cascadeOnDelete();
             $table->foreignUuid('rack_id')->nullable()->constrained('racks')->nullOnDelete();
-            $table->char('code', 50);
-            $table->char('number_serial_first', 50)->nullable();
-            $table->char('number_serial_second', 50)->nullable();
+            $table->string('code', 50);
+            $table->string('number_serial_first', 50)->nullable();
+            $table->string('number_serial_second', 50)->nullable();
 
             // Quantities
-            $table->decimal('system_quantity', 10, 2)->default(0); // Stock in system
-            $table->decimal('physical_quantity', 10, 2)->default(0); // Actual physical count
-            $table->decimal('difference', 10, 2)->default(0); // physical - system
+            $table->decimal('system_quantity', 15, 2)->default(0); // Stock in system
+            $table->decimal('physical_quantity', 15, 2)->default(0); // Actual physical count
+            $table->decimal('difference', 15, 2)->default(0); // physical - system
 
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);

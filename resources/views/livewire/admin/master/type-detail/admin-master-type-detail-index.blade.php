@@ -66,8 +66,10 @@
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">No</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Nama</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Harga</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Tipe</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Deskripsi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Service</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">Tanggal Dibuat</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase">Aksi</th>
@@ -78,12 +80,16 @@
                         <tr class="hover:bg-blue-50/50 transition-colors">
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $typeDetails->firstItem() + $index }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $detail->name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ number_format($detail->price, 0, ',', '.') }}</td>
                             <td class="px-6 py-4"><span
                                     class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">{{ $detail->type->name ?? '-' }}</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
                                 <div class="max-w-xs truncate">{{ $detail->description ?? '-' }}</div>
                             </td>
+                            <td class="px-6 py-4"><span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{{ $detail->services_count }}
+                                    Service</span></td>
                             <td class="px-6 py-4">
                                 @if ($detail->is_active)
                                     <span
@@ -98,6 +104,15 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
+                                    <button wire:click="openService('{{ $detail->id }}')"
+                                        class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                                        title="Service">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
                                     <button wire:click="openEditModal('{{ $detail->id }}')"
                                         class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100"
                                         title="Edit">

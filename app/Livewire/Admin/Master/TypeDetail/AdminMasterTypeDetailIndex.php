@@ -20,6 +20,7 @@ class AdminMasterTypeDetailIndex extends Component
     public ?string $typeDetailId = null;
     public ?string $type_id = null;
     public string $name = '';
+    public float $price = 0;
     public ?string $description = null;
     public bool $is_active = true;
 
@@ -46,6 +47,7 @@ class AdminMasterTypeDetailIndex extends Component
         $detail = TypeDetail::findOrFail($id);
         $this->type_id = $detail->type_id;
         $this->name = $detail->name;
+        $this->price = (float) $detail->price;
         $this->description = $detail->description;
         $this->is_active = $detail->is_active;
         $this->showModal = true;
@@ -55,6 +57,11 @@ class AdminMasterTypeDetailIndex extends Component
     {
         $this->typeDetailId = $id;
         $this->showDeleteModal = true;
+    }
+
+    public function openService($id)
+    {
+        return $this->redirect(route('master.type-detail.service', ['type_detail_id' => $id]), navigate: true);
     }
 
     public function closeModal()
@@ -69,6 +76,7 @@ class AdminMasterTypeDetailIndex extends Component
         $this->typeDetailId = null;
         $this->type_id = null;
         $this->name = '';
+        $this->price = 0;
         $this->description = null;
         $this->is_active = true;
         $this->resetValidation();
@@ -78,6 +86,7 @@ class AdminMasterTypeDetailIndex extends Component
     {
         return [
             'type_id' => 'required|exists:types,id',
+            'price' => 'nullable',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -88,6 +97,7 @@ class AdminMasterTypeDetailIndex extends Component
     {
         return [
             'type_id.required' => 'Tipe wajib dipilih.',
+            'price.required' => 'Harga wajib diisi.',
             'name.required' => 'Nama wajib diisi.',
         ];
     }
@@ -98,12 +108,12 @@ class AdminMasterTypeDetailIndex extends Component
         try {
             if ($this->isEditMode) {
                 TypeDetail::findOrFail($this->typeDetailId)->update([
-                    'type_id' => $this->type_id, 'name' => $this->name, 'description' => $this->description, 'is_active' => $this->is_active
+                    'type_id' => $this->type_id, 'name' => $this->name, 'price' => $this->price, 'description' => $this->description, 'is_active' => $this->is_active
                 ]);
                 session()->flash('success', 'Detail Tipe berhasil diperbarui.');
             } else {
                 TypeDetail::create([
-                    'type_id' => $this->type_id, 'name' => $this->name, 'description' => $this->description, 'is_active' => $this->is_active
+                    'type_id' => $this->type_id, 'name' => $this->name, 'price' => $this->price, 'description' => $this->description, 'is_active' => $this->is_active
                 ]);
                 session()->flash('success', 'Detail Tipe berhasil ditambahkan.');
             }
@@ -128,6 +138,7 @@ class AdminMasterTypeDetailIndex extends Component
     {
         $typeDetails = TypeDetail::query()
             ->with('type')
+            ->withCount('services')
             ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhereHas('type', fn($tq) => $tq->where('name', 'like', '%'.$this->search.'%')))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);

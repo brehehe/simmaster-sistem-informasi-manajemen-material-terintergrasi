@@ -112,6 +112,16 @@ class Stock extends Model
         return $this->hasMany(StockDetail::class);
     }
 
+    public function service()
+    {
+        return $this->belongsTo(\App\Models\Service\Service::class);
+    }
+
+    public function serviceDetail()
+    {
+        return $this->belongsTo(\App\Models\Service\ServiceDetail::class);
+    }
+
     public function historyStocks()
     {
         return $this->hasMany(HistoryStock::class);

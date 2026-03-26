@@ -1,8 +1,5 @@
 <?php
 
-use App\Livewire\Admin\Dashboard\AdminDashboardIndex;
-use App\Livewire\Admin\Master\PoliceStation\AdminMasterPoliceStationIndex;
-use App\Livewire\Admin\Master\RegionalPolice\AdminMasterRegionalPoliceIndex;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -42,6 +39,12 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('master/type-detail', 'TypeDetail\\AdminMasterTypeDetailIndex')
             ->name('master.type-detail');
 
+        Route::get('master/type-detail/service/{type_detail_id}', 'TypeDetail\\Service\\AdminMasterTypeDetailServiceIndex')
+            ->name('master.type-detail.service');
+
+        Route::get('master/type-detail/service/{type_detail_id}/{service_id}/detail', 'TypeDetail\\Service\\ServiceDetail\\AdminMasterTypeDetailServiceDetailIndex')
+            ->name('master.type-detail.service.detail');
+
         Route::get('master/user', 'User\\AdminMasterUserIndex')
             ->name('master.user');
 
@@ -50,6 +53,15 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
 
         Route::get('master/rack', 'Rack\\AdminMasterRackIndex')
             ->name('master.rack');
+
+        Route::get('master/target', 'Target\\AdminMasterTargetIndex')
+            ->name('master.target');
+
+        Route::get('master/target/create', 'Target\\Detail\\AdminMasterTargetDetailIndex')
+            ->name('master.target.create');
+
+        Route::get('master/target/{target_id}/detail', 'Target\\Detail\\AdminMasterTargetDetailIndex')
+            ->name('master.target.detail');
     });
 
     Route::group(['namespace' => 'Report'], function () {
@@ -106,6 +118,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/reception/create', 'Reception\\Detail\\AdminMenuPoldaReceptionDetailIndex')
             ->name('menu-polda.reception.create');
 
+        Route::get('menu-polda/reception/{id}/print', 'Reception\\AdminMenuPoldaReceptionPrint')
+            ->name('menu-polda.reception.print');
+
         Route::get('menu-polda/mutation-stock', 'MutationStock\\AdminMenuPoldaMutationStockIndex')
             ->name('menu-polda.mutation-stock');
 
@@ -161,6 +176,8 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polda.material-shipment.create');
         Route::get('menu-polda/material-shipment/edit/{id}', 'MaterialShipment\\Detail\\AdminMenuPoldaMaterialShipmentCreate')
             ->name('menu-polda.material-shipment.edit');
+        Route::get('menu-polda/material-shipment/{id}/print', 'MaterialShipment\\AdminMenuPoldaMaterialShipmentPrint')
+            ->name('menu-polda.material-shipment.print');
 
         // Stock Opname
         Route::get('menu-polda/stock-opname', 'StockOpname\\AdminMenuPoldaStockOpnameIndex')
@@ -209,7 +226,7 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         // Material Usage
         Route::get('menu-polres/material-usage', 'MaterialUsage\\AdminMenuPolresMaterialUsageIndex')
             ->name('menu-polres.material-usage');
-            Route::get('menu-polres/material-usage-detail', 'MaterialUsageDetail\\AdminMenuPolresMaterialUsageDetailIndex')
+        Route::get('menu-polres/material-usage-detail', 'MaterialUsageDetail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage-detail');
         Route::get('menu-polres/material-usage/create', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage.create');
@@ -296,6 +313,7 @@ Route::group(['namespace' => 'App\\Livewire\\Auth\\Login'], function () {
 
 Route::post('/logout', function () {
     Auth::logout();
+
     return redirect('/login');
 })->name('logout');
 

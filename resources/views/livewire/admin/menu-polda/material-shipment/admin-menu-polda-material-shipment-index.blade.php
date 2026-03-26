@@ -213,8 +213,8 @@
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <!-- Print PDF Button (for all status) -->
-                                    <button
-                                        onclick='printShippingDocument(@json($shipment))'
+                                    <a href="{{ route('menu-polda.material-shipment.print', $shipment->id) }}"
+                                        target="_blank"
                                         class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                                         title="Cetak PDF">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
@@ -223,7 +223,7 @@
                                                 d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
                                                 clip-rule="evenodd" />
                                         </svg>
-                                    </button>
+                                    </a>
 
                                     @if ($shipment->status === 'draft')
                                         <a href="{{ route('menu-polda.material-shipment.edit', ['id' => $shipment->id]) }}"
@@ -247,16 +247,20 @@
                                             </svg>
                                         </button>
                                     @else
+                                        <button wire:click="viewDetail('{{ $shipment->id }}')" 
+                                            class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                            title="View Detail">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
                                         <a href="{{ route('menu-polda.material-shipment.edit', $shipment->id) }}"
                                             wire:navigate
                                             class="p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-                                            title="View">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                <path fill-rule="evenodd"
-                                                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                    clip-rule="evenodd" />
+                                            title="Edit / View Form">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                             </svg>
                                         </a>
                                     @endif
@@ -289,243 +293,8 @@
         @endif
     </div>
 
-    @push('scripts')
-        <script>
-            function printShippingDocument(shipment) {
-                const {
-                    jsPDF
-                } = window.jspdf;
-                const doc = new jsPDF();
-
-                // Helper function to format date
-                const formatDate = (dateString) => {
-                    const date = new Date(dateString);
-                    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-                    ];
-                    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
-                };
-
-                // Generate QRCode dengan settingan optimal untuk scanning
-                const qrDiv = document.createElement('div');
-                const qr = new QRCode(qrDiv, {
-                    text: shipment.code,
-                    width: 400,
-                    height: 400,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M  // Medium level untuk balance antara data dan error correction
-                });
-
-                // Get canvas setelah QR generated
-                const canvas = qrDiv.querySelector('canvas');
-                const qrImg = canvas.toDataURL('image/png');
-
-                // PDF Layout
-                const pageWidth = doc.internal.pageSize.getWidth();
-                let yPos = 20;
-
-                // === HEADER ===
-                doc.setFontSize(16);
-                doc.setFont('helvetica', 'bold');
-                doc.text('SURAT PENGIRIMAN MATERIAL', pageWidth / 2, yPos, {
-                    align: 'center'
-                });
-
-                yPos += 7;
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-                doc.text('SISTEM INFORMASI MANAJEMEN MATERIAL SBST', pageWidth / 2, yPos, {
-                    align: 'center'
-                });
-
-                yPos += 10;
-                doc.setDrawColor(59, 130, 246);
-                doc.setLineWidth(0.5);
-                doc.line(20, yPos, pageWidth - 20, yPos);
-
-                // === SHIPPING INFO (LEFT) & QR CODE (RIGHT) SIDE BY SIDE ===
-                yPos += 10;
-
-                // Info pengiriman di kiri
-                const infoX = 20;
-                let infoY = yPos;
-
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(11);
-                doc.text('INFORMASI PENGIRIMAN', infoX, infoY);
-
-                infoY += 2;
-                doc.setDrawColor(59, 130, 246);
-                doc.line(infoX, infoY, infoX + 60, infoY);
-
-                infoY += 6;
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-
-                const infoData = [
-                    ['Tanggal', ': ' + formatDate(shipment.shipment_date)],
-                    ['Pengirim', ': ' + (shipment.sender_regional_police?.name || '-')],
-                    ['Penerima', ': ' + (shipment.receiver_police_station?.name || '-')],
-                    ['Status', ': ' + (shipment.status === 'draft' ? 'Draft' : shipment.status === 'shipped' ?
-                        'Terkirim' : 'Diterima')]
-                ];
-
-                infoData.forEach(([label, value]) => {
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(label, infoX, infoY);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(value, infoX + 25, infoY);
-                    infoY += 5;
-                });
-
-                // QRCode di kanan
-                const qrSize = 40; // Increased from 35 to 40 for better scanning
-                const qrX = pageWidth - qrSize - 25;
-                doc.addImage(qrImg, 'PNG', qrX, yPos, qrSize, qrSize);
-
-                // Kode dibawah QR
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.text(shipment.code, qrX + (qrSize / 2), yPos + qrSize + 4, {
-                    align: 'center'
-                });
-
-                // === ITEMS TABLE ===
-                yPos = Math.max(yPos + qrSize + 10, infoY + 5); // Adjust yPos to be below both QR and info
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(11);
-                doc.text('DAFTAR MATERIAL', 20, yPos);
-
-                yPos += 2;
-                doc.setDrawColor(59, 130, 246);
-                doc.line(20, yPos, 70, yPos);
-
-                yPos += 3;
-
-                // Prepare table data
-                const tableData = [];
-                shipment.material_shipment_details.forEach((item, index) => {
-                    tableData.push([
-                        (index + 1).toString(),
-                        item.type?.name || '-',
-                        item.type_detail?.name || '-',
-                        item.code + ' ' + item.number_serial_first + ' - ' + item.number_serial_second || '-',
-                        item.quantity.toString() + ' unit'
-                    ]);
-                });
-
-                doc.autoTable({
-                    startY: yPos,
-                    head: [
-                        ['No', 'Material', 'Detail Material', 'Kode Serial', 'Jumlah']
-                    ],
-                    body: tableData,
-                    theme: 'grid',
-                    headStyles: {
-                        fillColor: [59, 130, 246],
-                        textColor: 255,
-                        fontSize: 9,
-                        fontStyle: 'bold',
-                        halign: 'center'
-                    },
-                    bodyStyles: {
-                        fontSize: 8,
-                        textColor: 50
-                    },
-                    columnStyles: {
-                        0: {
-                            halign: 'center',
-                            cellWidth: 10
-                        },
-                        1: {
-                            cellWidth: 40
-                        },
-                        2: {
-                            cellWidth: 45
-                        },
-                        3: {
-                            cellWidth: 40
-                        },
-                        4: {
-                            halign: 'center',
-                            cellWidth: 25
-                        }
-                    },
-                    margin: {
-                        left: 20,
-                        right: 20
-                    }
-                });
-
-                // === SUMMARY ===
-                yPos = doc.lastAutoTable.finalY + 8;
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Total Item: ' + shipment.material_shipment_details.length + ' jenis material', 20, yPos);
-                yPos += 4;
-                const totalQty = shipment.material_shipment_details.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
-                doc.text('Total Quantity: ' + totalQty.toLocaleString('id-ID') + ' unit', 20, yPos);
-
-                // === SIGNATURE SECTION ===
-                yPos += 15;
-
-                // Check if there's enough space, otherwise add new page
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(9);
-
-                // Pengirim
-                doc.text('Pengirim,', 30, yPos);
-                // Penerima
-                doc.text('Penerima,', pageWidth - 60, yPos);
-
-                yPos += 20;
-
-                // Signature lines
-                doc.line(25, yPos, 75, yPos);
-                doc.line(pageWidth - 65, yPos, pageWidth - 15, yPos);
-
-                yPos += 5;
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
-                doc.text('Nama & Tanda Tangan', 30, yPos);
-                doc.text('Nama & Tanda Tangan', pageWidth - 60, yPos);
-
-                // === FOOTER ===
-                const pageCount = doc.internal.getNumberOfPages();
-                for (let i = 1; i <= pageCount; i++) {
-                    doc.setPage(i);
-                    doc.setFontSize(8);
-                    doc.setTextColor(150);
-                    doc.setFont('helvetica', 'italic');
-                    doc.text(
-                        'Dicetak pada: ' + new Date().toLocaleDateString('id-ID', {
-                            day: '2-digit',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }),
-                        pageWidth / 2,
-                        doc.internal.pageSize.getHeight() - 10, {
-                            align: 'center'
-                        }
-                    );
-                }
-
-                // Save PDF
-                doc.save(`Surat_Pengiriman_${shipment.code}.pdf`);
-            }
-        </script>
-    @endpush
-
     <!-- Delete Modal -->
-    @if ($showDeleteModal)
+@if ($showDeleteModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex items-center justify-center min-h-screen px-4">
                 <div class="fixed inset-0 transition-opacity bg-gray-900/70 backdrop-blur-sm" wire:click="closeModal">
@@ -558,4 +327,123 @@
             </div>
         </div>
     @endif
+
+    <!-- Detail Modal -->
+    @if ($showDetailModal && $selectedShipment)
+        <div class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 py-8 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity bg-gray-900/80 backdrop-blur-md" wire:click="closeDetailModal"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="relative inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full border border-gray-100">
+                    <!-- Modal Header -->
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-2xl font-bold text-white leading-6" id="modal-title">
+                                    Detail Pengiriman: {{ $selectedShipment->code }}
+                                </h3>
+                                <p class="mt-2 text-blue-100 text-sm">
+                                    {{ \Carbon\Carbon::parse($selectedShipment->shipment_date)->format('d F Y') }}
+                                </p>
+                            </div>
+                            <button wire:click="closeDetailModal" class="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="bg-white px-8 py-8">
+                        <!-- Header Info Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block mb-1">Pengirim</span>
+                                <p class="text-gray-900 font-bold">{{ $selectedShipment->senderRegionalPolice->name ?? '-' }}</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-purple-50 border border-purple-100">
+                                <span class="text-xs font-bold text-purple-600 uppercase tracking-wider block mb-1">Penerima</span>
+                                <p class="text-gray-900 font-bold">{{ $selectedShipment->receiverPoliceStation->name ?? '-' }}</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
+                                <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block mb-1">Status</span>
+                                @if($selectedShipment->status === 'draft')
+                                    <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">🟡 Draft</span>
+                                @elseif($selectedShipment->status === 'shipped')
+                                    <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-bold bg-blue-100 text-blue-700">🔵 Terkirim</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-bold bg-green-100 text-green-700">🟢 Diterima</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if($selectedShipment->notes)
+                            <div class="mb-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Catatan Pengiriman:</span>
+                                <p class="text-gray-700 italic">"{{ $selectedShipment->notes }}"</p>
+                            </div>
+                        @endif
+
+                        <!-- Items Table -->
+                        <div class="overflow-hidden rounded-2xl border border-gray-200">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50 font-bold">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs text-gray-500 uppercase">Material</th>
+                                        <th class="px-6 py-4 text-left text-xs text-gray-500 uppercase">Service Detail</th>
+                                        <th class="px-6 py-4 text-left text-xs text-gray-500 uppercase">Identitas (S/N)</th>
+                                        <th class="px-6 py-4 text-center text-xs text-gray-500 uppercase">Qty</th>
+                                        <th class="px-6 py-4 text-left text-xs text-gray-500 uppercase">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    @foreach($selectedShipment->materialShipmentDetails as $item)
+                                        <tr class="hover:bg-gray-50/50 transition-colors">
+                                            <td class="px-6 py-4">
+                                                <div class="flex flex-col">
+                                                    <span class="font-bold text-gray-900">{{ $item->type->name ?? '-' }}</span>
+                                                    <span class="text-xs text-gray-500">{{ $item->typeDetail->name ?? '-' }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex flex-col">
+                                                    <span class="text-sm text-gray-700">{{ $item->stockDetail->service->name ?? '-' }}</span>
+                                                    <span class="text-xs text-gray-500 italic">{{ $item->stockDetail->serviceDetail->name ?? '-' }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex flex-col">
+                                                    <span class="text-sm font-mono text-blue-600 font-bold">{{ $item->code ?: '-' }}</span>
+                                                    <span class="text-[10px] text-gray-500">{{ $item->number_serial_first ?: '-' }} / {{ $item->number_serial_second ?: '-' }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="inline-flex items-center justify-center min-w-[40px] px-2.5 py-1 rounded-lg text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                                    {{ number_format($item->quantity, 0) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-600">{{ $item->notes ?: '-' }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="bg-gray-50 px-8 py-6 border-t border-gray-100 flex justify-end">
+                        <button wire:click="closeDetailModal" class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-sm">
+                            Tutup Detail
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
+

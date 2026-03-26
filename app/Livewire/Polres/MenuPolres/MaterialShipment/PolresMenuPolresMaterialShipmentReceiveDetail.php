@@ -21,7 +21,9 @@ class PolresMenuPolresMaterialShipmentReceiveDetail extends Component
             'receiverPoliceStation',
             'materialShipmentDetails.type',
             'materialShipmentDetails.typeDetail',
-            'materialShipmentDetails.rack',  // Load rack info
+            'materialShipmentDetails.rack',
+            'materialShipmentDetails.stockDetail.service',
+            'materialShipmentDetails.stockDetail.serviceDetail',
         ])
             ->where('id', $id)
             ->where('receiver_police_station_id', $user->police_station_id)

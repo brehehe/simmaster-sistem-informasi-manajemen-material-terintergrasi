@@ -76,7 +76,6 @@
                     @enderror
                 </div>
 
-
                 <!-- Date -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -147,6 +146,42 @@
                     </div>
                 @endif
 
+                <div class="md:col-span-1 border border-blue-100 bg-blue-50/50 p-4 rounded-xl">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-blue-900 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                        </svg>
+                        Material <span class="text-red-500">*</span>
+                    </label>
+                    <div wire:ignore wire:key="select-type-global-{{ rand() }}">
+                        <select id="select-type-global" @disabled($receptionId) x-data x-ref="input" x-init="
+                            const selectize = $($refs.input).selectize({
+                                dropdownParent: 'body',
+                                allowClear: true,
+                                plugins: {{ $receptionId ? '[]' : "['clear_button']" }},
+                                onChange: function(e) {
+                                    @this.set('typeId', e ? e : '');
+                                }
+                            })[0].selectize;
+                            if ($refs.input.disabled) {
+                                selectize.disable();
+                            }
+                        " wire:model="typeId">
+                            <option value="">-- Pilih Material --</option>
+                            @foreach ($types as $typeOpt)
+                                <option value="{{ $typeOpt->id }}"
+                                    {{ $typeId == $typeOpt->id ? 'selected' : '' }}>
+                                    {{ $typeOpt->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('typeId')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>  
+
                 <!-- Description -->
                 <!-- <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -187,157 +222,108 @@
             </div>
 
             @if (count($details) > 0)
-                <div class="space-y-4">
-                    @foreach ($details as $index => $detail)
-                        <div wire:key="detail-{{ $index }}"
-                            class="relative bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border border-gray-200/80 shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 overflow-visible">
-                            <!-- Item Number Badge -->
-                            <div
-                                class="absolute top-0 left-0 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-br-2xl font-bold text-sm shadow-lg z-10">
-                                Item #{{ $index + 1 }}
-                            </div>
-
-                            <div class="p-6 pt-14">
-                                <!-- Remove Button -->
-                                @if (!$receptionId && count($details) > 1)
-                                    <button type="button" wire:click="removeDetail({{ $index }})"
-                                        class="absolute top-4 right-4 p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition-all duration-200"
-                                        title="Hapus Item">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
+                <div class="overflow-x-auto overflow-y-visible pb-12">
+                    <table class="w-full text-sm text-left align-top border-collapse min-w-[800px]">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
+                            <tr>
+                                <th class="px-3 py-3 font-semibold w-12 text-center text-xs">No</th>
+                                @if($is_type_detail)
+                                    <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Detail Material</th>
                                 @endif
+                                <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Service</th>
+                                <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Service Detail</th>
+                                @if($is_with_serial_number)
+                                    <th class="px-3 py-3 font-semibold text-xs min-w-[120px]">Kode Barang</th>
+                                    <th class="px-3 py-3 font-semibold text-xs min-w-[120px]">SN 1</th>
+                                    <th class="px-3 py-3 font-semibold text-xs min-w-[120px]">SN 2</th>
+                                @endif
+                                <th class="px-3 py-3 font-semibold text-xs w-24">Qty <span class="text-red-500">*</span></th>
+                                @if (!$receptionId)
+                                    <th class="px-3 py-3 font-semibold w-16 text-center text-xs">Aksi</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($details as $index => $detail)
+                                @php
+                                    $rowTypeDetailId = $detail['type_detail_id'] ?? null;
+                                    $rowServiceId = $detail['service_id'] ?? null;
+                                    $filteredServices = collect($this->services)->where(
+                                        $rowTypeDetailId ? 'type_detail_id' : 'type_id',
+                                        $rowTypeDetailId ? $rowTypeDetailId : $typeId
+                                    );
+                                    $selectedSvc = collect($this->services)->firstWhere('id', $rowServiceId);
+                                    $filteredServiceDetails = data_get($selectedSvc, 'details', []);
+                                @endphp
+                                <tr wire:key="detail-{{ $index }}" class="hover:bg-gray-50/20 transition-colors">
+                                    <td class="px-3 py-3 text-center font-medium text-gray-500 align-top text-xs pt-5">
+                                        {{ $index + 1 }}
+                                    </td>
 
-                                <!-- Form Fields Grid -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- Material Type Selection -->
-                                    <div class="md:col-span-2">
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                            </svg>
-                                            Material <span class="text-red-500">*</span>
-                                        </label>
-                                        <div wire:ignore wire:key="select-type-{{ rand() }}">
-                                            <select id="select-type" @disabled($receptionId) x-data x-ref="input" x-init="
-                                                const selectize = $($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    plugins: {{ $receptionId ? '[]' : "['clear_button']" }},
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.type_id', e ? e : '');
-                                                    }
-                                                })[0].selectize;
-                                                if ($refs.input.disabled) {
-                                                    selectize.disable();
-                                                }
-                                            "
-                                                wire:model="details.{{ $index }}.type_id">
-                                                <option value="">-- Pilih Material --</option>
-                                                @foreach ($types as $type)
-                                                    <option value="{{ $type->id }}"
-                                                        {{ $detail['type_id'] == $type->id ? 'selected' : '' }}>
-                                                        {{ $type->name }}
-                                                    </option>
+                                    @if($is_type_detail)
+                                        <td class="px-3 py-3 align-top">
+                                            <select wire:model.live="details.{{ $index }}.type_detail_id" @disabled($receptionId)
+                                                class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                                <option value="">-- Opsional --</option>
+                                                @foreach($this->typeDetails as $td)
+                                                    <option value="{{ data_get($td, 'id') }}">{{ data_get($td, 'name') }}</option>
                                                 @endforeach
                                             </select>
-                                        </div>
-                                    </div>
+                                        </td>
+                                    @endif
+                                    
+                                    <td class="px-3 py-3 align-top">
+                                        <select wire:model.live="details.{{ $index }}.service_id" @disabled($receptionId)
+                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                            <option value="">-- Pilih Service --</option>
+                                            @foreach($filteredServices as $svc)
+                                                <option value="{{ data_get($svc, 'id') }}">{{ data_get($svc, 'name') }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
 
-                                    <!-- Type Detail (Conditional) -->
-                                    @if ($detail['is_type_detail'])
-                                        <div class="md:col-span-2">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Detail Material <span class="text-red-500">*</span>
-                                            </label>
-                                            <div wire:ignore
-                                                wire:key="select-type-detail-{{ $index }}-{{ $detail['type_id'] ?? 'empty' }}-{{ rand() }}">
-                                                <select id="select-type-detail-{{ $index }}" @disabled($receptionId) x-data
-                                                    x-ref="input" x-init="
-                                                    const selectize = $($refs.input).selectize({
-                                                        dropdownParent: 'body',
-                                                        allowClear: true,
-                                                        plugins: {{ $receptionId ? '[]' : "['clear_button']" }},
-                                                        onChange: function(e) {
-                                                            @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
-                                                        }
-                                                    })[0].selectize;
-                                                    if ($refs.input.disabled) {
-                                                        selectize.disable();
-                                                    }
-                                                "
-                                                    wire:model="details.{{ $index }}.type_detail_id">
-                                                    <option value="">-- Pilih Detail --</option>
-                                                    @if (!empty($detail['type_id']))
-                                                        @foreach (\App\Models\Type\TypeDetail::where('type_id', $detail['type_id'])->where('is_active', true)->orderBy('name')->get() as $td)
-                                                            <option value="{{ $td->id }}"
-                                                                {{ $detail['type_detail_id'] == $td->id ? 'selected' : '' }}>
-                                                                {{ $td->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    @endif
-                                                </select>
-                                            </div>
-                                        </div>
+                                    <td class="px-3 py-3 align-top">
+                                        <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($receptionId)
+                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                            <option value="">-- Pilih Detail --</option>
+                                            @foreach($filteredServiceDetails as $sdt)
+                                                <option value="{{ data_get($sdt, 'id') }}">{{ data_get($sdt, 'name') }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+
+                                    @if($is_with_serial_number)
+                                        <td class="px-3 py-3 align-top">
+                                            <input type="text" wire:model.blur="details.{{ $index }}.code" placeholder="Kode Barang" @disabled($receptionId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
+                                        </td>
+                                        <td class="px-3 py-3 align-top">
+                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_first" placeholder="SN 1" @disabled($receptionId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
+                                        </td>
+                                        <td class="px-3 py-3 align-top">
+                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_second" placeholder="SN 2" @disabled($receptionId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
+                                        </td>
                                     @endif
 
-                                    <!-- Serial Number Fields -->
-                                    @if ($detail['is_with_serial_number'])
-                                        <div wire:key="code-{{ $index }}">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Kode Barang
-                                            </label>
-                                            <input type="text" wire:model="details.{{ $index }}.code"
-                                                @disabled($receptionId) placeholder="Kode barang"
-                                                class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        </div>
-                                        <div wire:key="serial-1-{{ $index }}">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Serial Number 1
-                                            </label>
-                                            <input type="text"
-                                                wire:model="details.{{ $index }}.number_serial_first"
-                                                @disabled($receptionId) placeholder="Serial pertama"
-                                                class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        </div>
-                                        <div wire:key="serial-2-{{ $index }}">
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                                Serial Number 2
-                                            </label>
-                                            <input type="text"
-                                                wire:model="details.{{ $index }}.number_serial_second"
-                                                @disabled($receptionId) placeholder="Serial kedua"
-                                                class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        </div>
-                                    @endif
+                                    <td class="px-3 py-3 align-top relative">
+                                        <input type="number" min="0" step="0.01" wire:model.live="details.{{ $index }}.quantity" placeholder="Qty" @disabled($receptionId) class="w-full px-2 py-2 text-xs font-bold text-center rounded border border-purple-300 focus:border-purple-500 bg-purple-50 disabled:bg-gray-100 disabled:text-gray-400">
+                                    </td>
 
-                                    <!-- Quantity -->
-                                    <div class="{{ $detail['is_with_serial_number'] ? '' : 'md:col-span-2' }}">
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" />
-                                            </svg>
-                                            Quantity <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="number" wire:model="details.{{ $index }}.quantity"
-                                            @disabled($receptionId) min="0" step="0.01" placeholder="Qty"
-                                            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
-                                        @error('details.' . $index . '.quantity')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                                    @if (!$receptionId)
+                                        <td class="px-3 py-3 text-center align-top pt-4">
+                                            @if (count($details) > 1)
+                                                <button type="button" wire:click="removeDetail({{ $index }})"
+                                                    class="p-1.5 inline-flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             @else
                 <div class="py-10 text-center">

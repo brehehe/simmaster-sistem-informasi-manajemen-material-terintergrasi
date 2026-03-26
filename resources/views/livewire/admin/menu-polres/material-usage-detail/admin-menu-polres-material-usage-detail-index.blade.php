@@ -219,7 +219,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 border-r border-gray-100">
-                                    {{ $detail->materialUsage->policeStation->name }}
+                                    {{ $detail?->materialUsage?->policeStation?->name }}
                                 </td>
                             </tr>
                         @endforeach

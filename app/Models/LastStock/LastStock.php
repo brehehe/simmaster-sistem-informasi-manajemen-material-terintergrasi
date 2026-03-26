@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Police\RegionalPolice;
 use App\Models\Police\PoliceStation;
 
+use App\Models\Type\Type;
+
 class LastStock extends Model
 {
     use HasUuids, SoftDeletes;
@@ -27,6 +29,11 @@ class LastStock extends Model
     public function policeStation()
     {
         return $this->belongsTo(PoliceStation::class);
+    }
+
+    public function type()
+    {
+        return $this->belongsTo(Type::class);
     }
 
     public function lastStockDetails()

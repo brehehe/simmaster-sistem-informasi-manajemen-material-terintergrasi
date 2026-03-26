@@ -3,12 +3,14 @@
 namespace App\Livewire\Admin\MenuPolda\MaterialDamage;
 
 use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
+use App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Models\Police\RegionalPolice;
+use Illuminate\Support\Facades\DB;
 
 class AdminMenuPoldaMaterialDamageIndex extends Component
 {
@@ -18,8 +20,14 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
     public ?string $startDate = null;
     public ?string $endDate = null;
     public int $perPage = 10;
+    
+    // Delete Modal
     public bool $showDeleteModal = false;
     public ?string $materialDamageId = null;
+
+    // Detail Modal
+    public bool $showDetailModal = false;
+    public ?string $selectedId = null;
 
     #[Url]
     public ?string $regionalPoliceId = null;
@@ -70,86 +78,6 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         $this->resetPage();
     }
 
-    public function render()
-    {
-        $user = auth()->user();
-        $regionalPolices = RegionalPolice::select('id', 'name')->get();
-
-        $allTypes = Type::query()->orderBy('name')->get();
-
-        $typeDetails = [];
-        if ($this->typeId) {
-            $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
-        } else {
-             $typeDetails = TypeDetail::query()->orderBy('name')->get();
-        }
-
-        $query = \App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail::query()
-            ->select('material_damage_details.*')
-            ->join('material_damages', 'material_damage_details.material_damage_id', '=', 'material_damages.id')
-            ->join('types', 'material_damage_details.type_id', '=', 'types.id')
-            ->leftJoin('type_details', 'material_damage_details.type_detail_id', '=', 'type_details.id')
-            ->with(['materialDamage', 'materialDamage.regionalPolice', 'type', 'typeDetail'])
-            ->where('material_damages.is_active', true);
-
-        // Role-based filtering
-        if ($user->hasRole('Polda')) {
-            $query->where('material_damages.regional_police_id', $user->regional_police_id);
-        }
-
-        // Apply filters
-        if ($this->regionalPoliceId) {
-            $query->where('material_damages.regional_police_id', $this->regionalPoliceId);
-        }
-
-        if ($this->typeId) {
-            $query->where('material_damage_details.type_id', $this->typeId);
-        }
-
-        if ($this->typeDetailId) {
-            $query->where('material_damage_details.type_detail_id', $this->typeDetailId);
-        }
-
-        // Search
-        if ($this->search) {
-            $keywords = preg_split('/\s+/', trim($this->search));
-            $query->where(function ($q) use ($keywords) {
-                foreach ($keywords as $word) {
-                    $q->where(function ($sub) use ($word) {
-                        $sub->where('material_damages.code', 'ilike', "%{$word}%")
-                            ->orWhere('types.name', 'ilike', "%{$word}%")
-                            ->orWhere('type_details.name', 'ilike', "%{$word}%")
-                            ->orWhere('material_damage_details.damage_type', 'ilike', "%{$word}%")
-                            ->orWhere('material_damage_details.reason', 'ilike', "%{$word}%")
-                            ->orWhere('material_damage_details.item_code', 'ilike', "%{$word}%")
-                            ->orWhere('material_damage_details.number_serial_first', 'ilike', "%{$word}%")
-                            ->orWhere('material_damage_details.number_serial_second', 'ilike', "%{$word}%")
-                            ->orWhere('material_damage_details.description', 'ilike', "%{$word}%");
-                    });
-                }
-            });
-        }
-
-        // Date filtering
-        if ($this->startDate) {
-            $query->whereDate('material_damages.date', '>=', $this->startDate);
-        }
-        if ($this->endDate) {
-            $query->whereDate('material_damages.date', '<=', $this->endDate);
-        }
-
-        $materialDamages = $query->orderBy('material_damages.date', 'desc')
-            ->orderBy('material_damages.created_at', 'desc')
-            ->paginate($this->perPage);
-
-        return view('livewire.admin.menu-polda.material-damage.admin-menu-polda-material-damage-index', [
-            'materialDamages' => $materialDamages,
-            'regionalPolices' => $regionalPolices,
-            'allTypes' => $allTypes,
-            'typeDetails' => $typeDetails,
-        ])->layout('components.layouts.main.app');
-    }
-
     public function openDeleteModal($id)
     {
         $this->materialDamageId = $id;
@@ -159,7 +87,15 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
     public function closeModal()
     {
         $this->showDeleteModal = false;
+        $this->showDetailModal = false;
         $this->materialDamageId = null;
+        $this->selectedId = null;
+    }
+
+    public function viewDetail($id)
+    {
+        $this->selectedId = $id;
+        $this->showDetailModal = true;
     }
 
     public function delete()
@@ -167,10 +103,109 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         if ($this->materialDamageId) {
             $materialDamage = MaterialDamage::find($this->materialDamageId);
             if ($materialDamage) {
+                // To be exact, we should revert stock deductions if deleting damage? 
+                // Usually deletion is just soft delete. In SIMMASTER, most transactions are soft deleted.
                 $materialDamage->delete();
                 session()->flash('success', 'Data material damage berhasil dihapus.');
             }
         }
         $this->closeModal();
     }
+
+    public function render()
+    {
+        $user = auth()->user();
+        $regionalPolices = RegionalPolice::select('id', 'name')->get();
+        $allTypes = Type::query()->orderBy('name')->get();
+
+        $typeDetails = [];
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
+        } else {
+             $typeDetails = TypeDetail::query()->orderBy('name')->get();
+        }
+
+        $query = MaterialDamage::query()
+            ->with(['regionalPolice', 'policeStation', 'materialDamageDetails.type'])
+            ->where('is_active', true);
+
+        // Role-based filtering
+        if ($user->hasRole('Polda')) {
+            $query->where('regional_police_id', $user->regional_police_id);
+        }
+
+        // Apply filters
+        if ($this->regionalPoliceId) {
+            $query->where('regional_police_id', $this->regionalPoliceId);
+        }
+
+        if ($this->typeId) {
+            $query->whereHas('materialDamageDetails', function($q) {
+                $q->where('type_id', $this->typeId);
+            });
+        }
+
+        if ($this->typeDetailId) {
+            $query->whereHas('materialDamageDetails', function($q) {
+                $q->where('type_detail_id', $this->typeDetailId);
+            });
+        }
+
+        // Search
+        if ($this->search) {
+            $keywords = preg_split('/\s+/', trim($this->search));
+            $query->where(function ($q) use ($keywords) {
+                foreach ($keywords as $word) {
+                    $q->where(function ($sub) use ($word) {
+                        $sub->where('code', 'ilike', "%{$word}%")
+                            ->orWhere('description', 'ilike', "%{$word}%")
+                            ->orWhereHas('materialDamageDetails', function($d) use ($word) {
+                                $d->where('item_code', 'ilike', "%{$word}%")
+                                  ->orWhere('number_serial_first', 'ilike', "%{$word}%")
+                                  ->orWhere('number_serial_second', 'ilike', "%{$word}%")
+                                  ->orWhereHas('type', function($t) use ($word) {
+                                      $t->where('name', 'ilike', "%{$word}%");
+                                  })
+                                  ->orWhereHas('typeDetail', function($td) use ($word) {
+                                      $td->where('name', 'ilike', "%{$word}%");
+                                  });
+                            });
+                    });
+                }
+            });
+        }
+
+        // Date filtering
+        if ($this->startDate) {
+            $query->whereDate('date', '>=', $this->startDate);
+        }
+        if ($this->endDate) {
+            $query->whereDate('date', '<=', $this->endDate);
+        }
+
+        $materialDamages = $query->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate($this->perPage);
+
+        $selectedMaterialDamage = null;
+        if ($this->selectedId) {
+            $selectedMaterialDamage = MaterialDamage::with([
+                'regionalPolice', 
+                'policeStation', 
+                'materialDamageDetails.type',
+                'materialDamageDetails.typeDetail',
+                'materialDamageDetails.stockDetail.service',
+                'materialDamageDetails.stockDetail.serviceDetail'
+            ])->find($this->selectedId);
+        }
+
+        return view('livewire.admin.menu-polda.material-damage.admin-menu-polda-material-damage-index', [
+            'materialDamages' => $materialDamages,
+            'regionalPolices' => $regionalPolices,
+            'allTypes' => $allTypes,
+            'typeDetails' => $typeDetails,
+            'selectedMaterialDamage' => $selectedMaterialDamage,
+        ])->layout('components.layouts.main.app');
+    }
 }
+

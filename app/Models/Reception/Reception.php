@@ -34,6 +34,11 @@ class Reception extends Model
         return $this->hasMany(ReceptionDetail::class);
     }
 
+    public function typeMaterial()
+    {
+        return $this->belongsTo(\App\Models\Type\Type::class,'type_id','id');
+    }
+
     /**
      * Generate unique code for Reception
      */

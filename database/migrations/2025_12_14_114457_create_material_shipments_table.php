@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('material_shipments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->char('code', 50)->unique();
+            $table->string('code', 50)->unique();
             $table->date('shipment_date');
             $table->enum('status', ['draft', 'shipped', 'received'])->default('draft');
             $table->foreignUuid('sender_regional_police_id')->constrained('regional_police')->cascadeOnDelete();

@@ -2,28 +2,31 @@
 
 namespace App\Livewire\Admin\Report\ReceptionRegionalPolice;
 
+use App\Exports\ReceptionRegionalPoliceExport;
 use App\Models\Police\RegionalPolice;
 use App\Models\Reception\Reception;
 use App\Models\Reception\ReceptionDetail;
-use App\Services\StockService;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Livewire\Component;
-use Illuminate\Support\Facades\Schema;
-use Livewire\WithPagination;
- use Livewire\Attributes\Url;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
+use App\Services\StockService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminReportReceptionRegionalPoliceIndex extends Component
 {
     use WithPagination;
 
-
-
     // Search & Filter
     public string $search = '';
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
 
     #[Url]
@@ -42,6 +45,7 @@ class AdminReportReceptionRegionalPoliceIndex extends Component
 
     // Delete Modal
     public bool $showDeleteModal = false;
+
     public ?string $receptionId = null;
 
     protected $queryString = [
@@ -131,7 +135,7 @@ class AdminReportReceptionRegionalPoliceIndex extends Component
             session()->flash('success', 'Data penerimaan barang berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -150,7 +154,7 @@ class AdminReportReceptionRegionalPoliceIndex extends Component
                 $query->where('receptions.regional_police_id', $user->regional_police_id);
             })
             // User Type filtering (Requested)
-            ->when($user->userType && !empty($user->userType->types), function ($query) use ($user) {
+            ->when($user->userType && ! empty($user->userType->types), function ($query) use ($user) {
                 $query->whereIn('reception_details.type_id', $user->userType->types);
             })
             // Search
@@ -232,6 +236,41 @@ class AdminReportReceptionRegionalPoliceIndex extends Component
         return (clone $this->baseQuery)
             ->whereDate('receptions.date', today())
             ->count();
+    }
+
+    public function exportExcel()
+    {
+        $query = clone $this->baseQuery;
+        $fileName = 'laporan-penerimaan-barang-'.now()->format('Y-m-d-His').'.xlsx';
+
+        return Excel::download(new ReceptionRegionalPoliceExport($query), $fileName);
+    }
+
+    public function exportPdf()
+    {
+        $data = (clone $this->baseQuery)
+            ->orderBy('receptions.date', 'desc')
+            ->orderBy('receptions.created_at', 'desc')
+            ->get();
+
+        $filters = [
+            'search' => $this->search,
+            'regionalPolice' => $this->regionalPoliceId ? RegionalPolice::find($this->regionalPoliceId)?->name : null,
+            'type' => $this->type,
+            'material' => $this->typeId ? Type::find($this->typeId)?->name : null,
+            'materialDetail' => $this->typeDetailId ? TypeDetail::find($this->typeDetailId)?->name : null,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+        ];
+
+        $pdf = Pdf::loadView('exports.pdf.reception-regional-police', [
+            'data' => $data,
+            'filters' => $filters,
+        ])->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'laporan-penerimaan-barang-'.now()->format('Y-m-d-His').'.pdf');
     }
 
     public function render()

@@ -26,6 +26,8 @@ class StockService
             $stock = $this->updateOrCreateStock(
                 $lastStockDetail->type_id,
                 $lastStockDetail->type_detail_id,
+                $lastStockDetail->service_id,
+                $lastStockDetail->service_detail_id,
                 $lastStock->regional_police_id,
                 $lastStock->police_station_id,
                 $lastStockDetail->quantity
@@ -45,12 +47,20 @@ class StockService
     protected function updateOrCreateStock(
         ?string $typeId,
         ?string $typeDetailId,
+        ?string $serviceId,
+        ?string $serviceDetailId,
         ?string $regionalPoliceId,
         ?string $policeStationId,
         float $quantity
     ): Stock {
+        if ($policeStationId) {
+            $regionalPoliceId = null;
+        }
+
         $stock = Stock::where('type_id', $typeId)
             ->where('type_detail_id', $typeDetailId)
+            ->where('service_id', $serviceId)
+            ->where('service_detail_id', $serviceDetailId)
             ->where('regional_police_id', $regionalPoliceId)
             ->where('police_station_id', $policeStationId)
             ->first();
@@ -64,6 +74,8 @@ class StockService
             $stock = Stock::create([
                 'type_id' => $typeId,
                 'type_detail_id' => $typeDetailId,
+                'service_id' => $serviceId,
+                'service_detail_id' => $serviceDetailId,
                 'regional_police_id' => $regionalPoliceId,
                 'police_station_id' => $policeStationId,
                 'quantity' => $quantity,
@@ -83,6 +95,8 @@ class StockService
             'stock_id' => $stock->id,
             'type_id' => $lastStockDetail->type_id,
             'type_detail_id' => $lastStockDetail->type_detail_id,
+            'service_id' => $lastStockDetail->service_id,
+            'service_detail_id' => $lastStockDetail->service_detail_id,
             'regional_police_id' => $stock->regional_police_id,
             'police_station_id' => $stock->police_station_id,
             'rack_id' => $lastStockDetail->rack_id,
@@ -109,9 +123,11 @@ class StockService
             'last_stock_detail_id' => $lastStockDetail->id,
             'type_id' => $lastStockDetail->type_id,
             'type_detail_id' => $lastStockDetail->type_detail_id,
-            'regional_police_id' => $lastStock->regional_police_id,
+            'service_id' => $lastStockDetail->service_id,
+            'service_detail_id' => $lastStockDetail->service_detail_id,
+            'regional_police_id' => $stock->regional_police_id,
             'serial_number' => $lastStockDetail?->code ? Str::ucfirst($lastStockDetail->code) . ' ' . $lastStockDetail->number_serial_first . ' ' . $lastStockDetail->number_serial_second : null,
-            'police_station_id' => $lastStock->police_station_id,
+            'police_station_id' => $stock->police_station_id,
             'rack_id' => $lastStockDetail->rack_id,
             'date' => $lastStock->date,
             'type' => 'last',
@@ -126,41 +142,82 @@ class StockService
      */
     public function processReception(Reception $reception): void
     {
+        // Must load relation if not already loaded
+        $reception->loadMissing('receptionDetails.receptionDetailItems');
+        
         foreach ($reception->receptionDetails as $receptionDetail) {
-            // Find or create stock record
-            $stock = $this->updateOrCreateStock(
-                $receptionDetail->type_id,
-                $receptionDetail->type_detail_id,
-                $reception->regional_police_id,
-                $reception->police_station_id,
-                $receptionDetail->quantity
-            );
+            foreach ($receptionDetail->receptionDetailItems as $item) {
+                // Find or create stock record
+                $stock = $this->updateOrCreateStock(
+                    $item->type_id,
+                    $item->type_detail_id,
+                    $item->service_id,
+                    $item->service_detail_id,
+                    $reception->regional_police_id,
+                    $reception->police_station_id,
+                    $item->quantity
+                );
 
-            // Create stock detail record from reception
-            $this->createStockDetailFromReception($stock, $receptionDetail);
+                // Update or create stock detail record from reception item
+                $this->updateOrCreateStockDetailFromReceptionItem($stock, $reception, $receptionDetail, $item);
 
-            // Create history stock record for reception
-            $this->createHistoryStockFromReception($reception, $receptionDetail, $stock);
+                // Create history stock record for reception item
+                $this->createHistoryStockFromReceptionItem($reception, $receptionDetail, $item, $stock);
+            }
         }
     }
 
     /**
      * Create stock detail record from reception detail
      */
-    protected function createStockDetailFromReception(Stock $stock, ReceptionDetail $receptionDetail): StockDetail
+    protected function updateOrCreateStockDetailFromReceptionItem(Stock $stock, Reception $reception, ReceptionDetail $receptionDetail, \App\Models\Reception\ReceptionDetailItem $item): StockDetail
     {
+        $query = StockDetail::where('stock_id', $stock->id)
+            ->where('type_id', $item->type_id)
+            ->where('regional_police_id', $stock->regional_police_id)
+            ->where('police_station_id', $stock->police_station_id)
+            ->where('rack_id', $receptionDetail->rack_id ?? null);
+
+        // Handle flexible matching for strings
+        foreach (['type_detail_id', 'service_id', 'service_detail_id'] as $field) {
+            if ($item->$field === null) {
+                $query->whereNull($field);
+            } else {
+                $query->where($field, $item->$field);
+            }
+        }
+
+        foreach (['code' => 'item_code', 'number_serial_first' => 'number_serial_first', 'number_serial_second' => 'number_serial_second'] as $dbCol => $modelProperty) {
+            $val = $item->$modelProperty;
+            if ($val === null || $val === '') {
+                $query->where(function($q) use ($dbCol) { $q->whereNull($dbCol)->orWhere($dbCol, ''); });
+            } else {
+                $query->where($dbCol, $val);
+            }
+        }
+
+        $stockDetail = $query->first();
+
+        if ($stockDetail) {
+            $stockDetail->quantity += $item->quantity;
+            $stockDetail->save();
+            return $stockDetail;
+        }
+
         return StockDetail::create([
             'stock_id' => $stock->id,
-            'type_id' => $receptionDetail->type_id,
-            'type_detail_id' => $receptionDetail->type_detail_id,
+            'type_id' => $item->type_id,
+            'type_detail_id' => $item->type_detail_id,
+            'service_id' => $item->service_id,
+            'service_detail_id' => $item->service_detail_id,
             'regional_police_id' => $stock->regional_police_id,
             'police_station_id' => $stock->police_station_id,
-            'rack_id' => $receptionDetail->rack_id,
-            'code' => $receptionDetail->code,
-            'number_serial_first' => $receptionDetail->number_serial_first,
-            'number_serial_second' => $receptionDetail->number_serial_second,
-            'quantity' => $receptionDetail->quantity,
-            'description' => $receptionDetail->description,
+            'rack_id' => $receptionDetail->rack_id ?? null,
+            'code' => $item->item_code,
+            'number_serial_first' => $item->number_serial_first,
+            'number_serial_second' => $item->number_serial_second,
+            'quantity' => $item->quantity,
+            'description' => $item->description,
             'is_active' => true,
         ]);
     }
@@ -168,25 +225,28 @@ class StockService
     /**
      * Create history stock record from reception
      */
-    protected function createHistoryStockFromReception(
+    protected function createHistoryStockFromReceptionItem(
         Reception $reception,
         ReceptionDetail $receptionDetail,
+        \App\Models\Reception\ReceptionDetailItem $item,
         Stock $stock
     ): HistoryStock {
         return HistoryStock::create([
             'code' => HistoryStock::generateCode(),
             'reception_id' => $reception->id,
             'reception_detail_id' => $receptionDetail->id,
-            'type_id' => $receptionDetail->type_id,
-            'type_detail_id' => $receptionDetail->type_detail_id,
+            'type_id' => $item->type_id,
+            'type_detail_id' => $item->type_detail_id,
+            'service_id' => $item->service_id,
+            'service_detail_id' => $item->service_detail_id,
             'regional_police_id' => $reception->regional_police_id,
-            'serial_number' => $receptionDetail?->code ? Str::ucfirst($receptionDetail->code) . ' ' . $receptionDetail->number_serial_first . ' ' . $receptionDetail->number_serial_second : null,
+            'serial_number' => $item->item_code ? Str::ucfirst($item->item_code) . ' ' . $item->number_serial_first . ' ' . $item->number_serial_second : null,
             'police_station_id' => $reception->police_station_id,
-            'rack_id' => $receptionDetail->rack_id,
+            'rack_id' => $receptionDetail->rack_id ?? null,
             'date' => $reception->date,
             'type' => 'in',
-            'quantity' => $receptionDetail->quantity,
-            'description' => $receptionDetail->description ?? 'Stock from reception: ' . $reception->name,
+            'quantity' => $item->quantity,
+            'description' => $item->description ?? 'Stock from reception: ' . $reception->name,
             'is_active' => true,
         ]);
     }
@@ -202,6 +262,10 @@ class StockService
         float $quantity,
         string $description = null
     ): Stock {
+        if ($policeStationId) {
+            $regionalPoliceId = null;
+        }
+
         $stock = Stock::where('type_id', $typeId)
             ->where('type_detail_id', $typeDetailId)
             ->where('regional_police_id', $regionalPoliceId)
@@ -323,14 +387,18 @@ class StockService
                 $fromRackName = $detail->from_rack_id ? ($detail->fromRack->name ?? 'Unknown') : 'Tanpa Rak';
                 $toRackName = $detail->to_rack_id ? ($detail->toRack->name ?? 'Unknown') : 'Tanpa Rak';
 
+                $regId = $rackAssignment->regional_police_id;
+                $polId = $rackAssignment->police_station_id;
+                if ($polId) $regId = null;
+
                 HistoryStock::create([
                     'code' => HistoryStock::generateCode(),
                     'rack_assignment_id' => $rackAssignment->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $rackAssignment->regional_police_id,
+                    'regional_police_id' => $regId,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
-                    'police_station_id' => $rackAssignment->police_station_id,
+                    'police_station_id' => $polId,
                     'rack_id' => $detail->from_rack_id, // Source Rack
                     'date' => $rackAssignment->date,
                     'type' => 'rack_move',
@@ -345,9 +413,9 @@ class StockService
                     'rack_assignment_id' => $rackAssignment->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $rackAssignment->regional_police_id,
+                    'regional_police_id' => $regId,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
-                    'police_station_id' => $rackAssignment->police_station_id,
+                    'police_station_id' => $polId,
                     'rack_id' => $detail->to_rack_id, // Destination Rack
                     'date' => $rackAssignment->date,
                     'type' => 'rack_move',
@@ -372,12 +440,7 @@ class StockService
                 $stockDetail->quantity -= $detail->quantity;
                 $stockDetail->save();
 
-                // Also reduce from main stock table
-                $stock = Stock::where('type_id', $detail->type_id)
-                    ->where('type_detail_id', $detail->type_detail_id)
-                    ->where('regional_police_id', $materialUsage->regional_police_id)
-                    ->first();
-
+                $stock = $stockDetail->stock;
                 if ($stock) {
                     $stock->quantity -= $detail->quantity;
                     $stock->save();
@@ -389,9 +452,9 @@ class StockService
                     'material_usage_id' => $materialUsage->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $materialUsage->regional_police_id,
+                    'regional_police_id' => $stock->regional_police_id,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
-                    'police_station_id' => $materialUsage->police_station_id,
+                    'police_station_id' => $stock->police_station_id,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialUsage->date,
                     'type' => 'usage',
@@ -416,12 +479,7 @@ class StockService
                 $stockDetail->quantity -= $detail->quantity;
                 $stockDetail->save();
 
-                // Also reduce from main stock table
-                $stock = Stock::where('type_id', $detail->type_id)
-                    ->where('type_detail_id', $detail->type_detail_id)
-                    ->where('regional_police_id', $materialDamage->regional_police_id)
-                    ->first();
-
+                $stock = $stockDetail->stock;
                 if ($stock) {
                     $stock->quantity -= $detail->quantity;
                     $stock->save();
@@ -434,9 +492,9 @@ class StockService
                     'material_damage_id' => $materialDamage->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $materialDamage->regional_police_id,
+                    'regional_police_id' => $stock->regional_police_id,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
-                    'police_station_id' => $materialDamage->police_station_id,
+                    'police_station_id' => $stock->police_station_id,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialDamage->date,
                     'status_type'=>'out',
@@ -456,42 +514,58 @@ class StockService
         // 1. Delete stock history associated with this reception
         HistoryStock::where('reception_id', $reception->id)->delete();
 
+        // Must load relation if not already loaded
+        $reception->loadMissing('receptionDetails.receptionDetailItems');
+
         // 2. Reduce stock quantity and delete/update stock details
         foreach ($reception->receptionDetails as $detail) {
-            // Find stock detail to remove
-            // Eloquent where matches null correctly as IS NULL
-            $stockDetail = StockDetail::where('type_id', $detail->type_id)
-                ->where('type_detail_id', $detail->type_detail_id)
-                ->where('regional_police_id', $reception->regional_police_id)
-                ->where('police_station_id', $reception->police_station_id)
-                ->where('rack_id', $detail->rack_id)
-                ->where('code', $detail->code)
-                ->where('number_serial_first', $detail->number_serial_first)
-                ->where('number_serial_second', $detail->number_serial_second)
-                ->first();
+            foreach ($detail->receptionDetailItems as $item) {
+                // Find stock detail to remove
+                $stockDetail = StockDetail::where('type_id', $item->type_id)
+                    ->where('type_detail_id', $item->type_detail_id)
+                    ->where('service_id', $item->service_id)
+                    ->where('service_detail_id', $item->service_detail_id)
+                    ->where('regional_police_id', $reception->regional_police_id)
+                    ->where('police_station_id', $reception->police_station_id)
+                    // ->where('rack_id', $detail->rack_id)
+                    ->where('code', $item->item_code)
+                    ->where('number_serial_first', $item->number_serial_first)
+                    ->where('number_serial_second', $item->number_serial_second)
+                    ->first();
 
-            if ($stockDetail) {
-                if ($stockDetail->quantity <= $detail->quantity) {
-                    $stockDetail->delete();
-                } else {
-                    $stockDetail->quantity -= $detail->quantity;
-                    $stockDetail->save();
+                if ($stockDetail) {
+                    if ($stockDetail->quantity <= $item->quantity) {
+                        $stockDetail->delete();
+                    } else {
+                        $stockDetail->quantity -= $item->quantity;
+                        $stockDetail->save();
+                    }
                 }
-            }
 
-            // 3. Reduce aggregated stock
-            $stock = Stock::where('type_id', $detail->type_id)
-                ->where('type_detail_id', $detail->type_detail_id)
-                ->where('regional_police_id', $reception->regional_police_id)
-                ->where('police_station_id', $reception->police_station_id)
-                ->first();
+                // 3. Reduce aggregated stock
+                $stock = Stock::find($item->stock_id ?? $stockDetail->stock_id ?? null);
+                if (!$stock) {
+                    // Fallback to query
+                    $regId = $reception->regional_police_id;
+                    $polId = $reception->police_station_id;
+                    if ($polId) $regId = null;
 
-            if ($stock) {
-                $stock->quantity -= $detail->quantity;
-                if ($stock->quantity < 0) {
-                    $stock->quantity = 0;
+                    $stock = Stock::where('type_id', $item->type_id)
+                        ->where('type_detail_id', $item->type_detail_id)
+                        ->where('service_id', $item->service_id)
+                        ->where('service_detail_id', $item->service_detail_id)
+                        ->where('regional_police_id', $regId)
+                        ->where('police_station_id', $polId)
+                        ->first();
                 }
-                $stock->save();
+
+                if ($stock) {
+                    $stock->quantity -= $item->quantity;
+                    if ($stock->quantity < 0) {
+                        $stock->quantity = 0;
+                    }
+                    $stock->save();
+                }
             }
         }
     }
