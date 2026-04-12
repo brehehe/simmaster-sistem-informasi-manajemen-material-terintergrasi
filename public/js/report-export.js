@@ -1,5 +1,5 @@
 /**
- * SIMMASTER Report Export Utilities
+ * ARMASTER Report Export Utilities
  * Client-side Excel and PDF export for reports
  */
 

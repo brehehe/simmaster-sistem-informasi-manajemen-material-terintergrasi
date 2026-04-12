@@ -20,7 +20,7 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
     public ?string $startDate = null;
     public ?string $endDate = null;
     public int $perPage = 10;
-    
+
     // Delete Modal
     public bool $showDeleteModal = false;
     public ?string $materialDamageId = null;
@@ -104,7 +104,7 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
             $materialDamage = MaterialDamage::find($this->materialDamageId);
             if ($materialDamage) {
                 // To be exact, we should revert stock deductions if deleting damage? 
-                // Usually deletion is just soft delete. In SIMMASTER, most transactions are soft deleted.
+                // Usually deletion is just soft delete. In ARMASTER, most transactions are soft deleted.
                 $materialDamage->delete();
                 session()->flash('success', 'Data material damage berhasil dihapus.');
             }
@@ -122,7 +122,7 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         if ($this->typeId) {
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
-             $typeDetails = TypeDetail::query()->orderBy('name')->get();
+            $typeDetails = TypeDetail::query()->orderBy('name')->get();
         }
 
         $query = MaterialDamage::query()
@@ -140,13 +140,13 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         }
 
         if ($this->typeId) {
-            $query->whereHas('materialDamageDetails', function($q) {
+            $query->whereHas('materialDamageDetails', function ($q) {
                 $q->where('type_id', $this->typeId);
             });
         }
 
         if ($this->typeDetailId) {
-            $query->whereHas('materialDamageDetails', function($q) {
+            $query->whereHas('materialDamageDetails', function ($q) {
                 $q->where('type_detail_id', $this->typeDetailId);
             });
         }
@@ -159,16 +159,16 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
                     $q->where(function ($sub) use ($word) {
                         $sub->where('code', 'ilike', "%{$word}%")
                             ->orWhere('description', 'ilike', "%{$word}%")
-                            ->orWhereHas('materialDamageDetails', function($d) use ($word) {
+                            ->orWhereHas('materialDamageDetails', function ($d) use ($word) {
                                 $d->where('item_code', 'ilike', "%{$word}%")
-                                  ->orWhere('number_serial_first', 'ilike', "%{$word}%")
-                                  ->orWhere('number_serial_second', 'ilike', "%{$word}%")
-                                  ->orWhereHas('type', function($t) use ($word) {
-                                      $t->where('name', 'ilike', "%{$word}%");
-                                  })
-                                  ->orWhereHas('typeDetail', function($td) use ($word) {
-                                      $td->where('name', 'ilike', "%{$word}%");
-                                  });
+                                    ->orWhere('number_serial_first', 'ilike', "%{$word}%")
+                                    ->orWhere('number_serial_second', 'ilike', "%{$word}%")
+                                    ->orWhereHas('type', function ($t) use ($word) {
+                                        $t->where('name', 'ilike', "%{$word}%");
+                                    })
+                                    ->orWhereHas('typeDetail', function ($td) use ($word) {
+                                        $td->where('name', 'ilike', "%{$word}%");
+                                    });
                             });
                     });
                 }
@@ -190,8 +190,8 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         $selectedMaterialDamage = null;
         if ($this->selectedId) {
             $selectedMaterialDamage = MaterialDamage::with([
-                'regionalPolice', 
-                'policeStation', 
+                'regionalPolice',
+                'policeStation',
                 'materialDamageDetails.type',
                 'materialDamageDetails.typeDetail',
                 'materialDamageDetails.stockDetail.service',

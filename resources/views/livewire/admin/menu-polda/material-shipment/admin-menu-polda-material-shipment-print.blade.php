@@ -105,11 +105,13 @@
         <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 5px; cursor: pointer;">Print Dokumen</button>
     </div>
 
-    <!-- Kop Surat -->
-    <div class="header-kop">
-        <p>KEPOLISIAN NEGARA REPUBLIK INDONESIA</p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DAERAH JAWA TIMUR</p>
-        <p class="underline-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DIREKTORAT LALU LINTAS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+    <!-- Kop Surat & QR Code -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <div class="header-kop" style="margin-bottom: 0;">
+            <p>KEPOLISIAN NEGARA REPUBLIK INDONESIA</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DAERAH JAWA TIMUR</p>
+            <p class="underline-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DIREKTORAT LALU LINTAS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        </div>
     </div>
 
     <!-- Title -->
@@ -237,5 +239,10 @@
             </tr>
         </table>
     </div>
-
+    <div style="margin-top:10px; text-align: right;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data={{ $shipment->code }}" 
+                alt="QR Code" 
+                style="width: 80px; height: 80px; border: 1px solid #eee;">
+        <p style="font-size: 8px; margin: 2px 0 0 0; font-family: monospace;">{{ $shipment->code }}</p>
+    </div>  
 </div>

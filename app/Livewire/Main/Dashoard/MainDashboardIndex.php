@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Dashboard;
+namespace App\Livewire\Main\Dashoard;
 
 use App\Models\LastStock\LastStock;
 use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
@@ -17,7 +17,7 @@ use App\Models\Type\Type;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
-class AdminDashboardIndex extends Component
+class MainDashboardIndex extends Component
 {
     public $showDataKendaraan = false;
     public $searchNopol = '';
@@ -158,7 +158,7 @@ class AdminDashboardIndex extends Component
             'percentage' => $targetRenbut > 0 ? round(($realizedGunmat / $targetRenbut) * 100, 1) : 0,
         ];
 
-        return view('livewire.admin.dashboard.admin-dashboard-index', [
+        return view('livewire.main.dashoard.main-dashboard-index', [
             'totalReceptions' => $totalReceptions,
             'totalStockPolda' => $totalStockPolda,
             'totalStockPolres' => $totalStockPolres,
@@ -180,7 +180,7 @@ class AdminDashboardIndex extends Component
             'pnbpStats' => $pnbpStats,
             'renbutStats' => $renbutStats,
             'activeTargetYear' => $activeTarget ? $activeTarget->year : now()->year,
-        ])->layout('components.layouts.main.app');
+        ])->extends('layouts.main.app')->section('content');
     }
 
     private function getHistoryStockTrend()

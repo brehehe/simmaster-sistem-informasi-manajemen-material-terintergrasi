@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $user = User::factory()->create([
-            'name' => 'Admin SIMMASTER',
+            'name' => 'Admin ARMASTER',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
             'level_menu' => 1,
@@ -41,21 +41,21 @@ class DatabaseSeeder extends Seeder
             TargetSeeder::class,
             UserTypeSeeder::class,
             UserSeeder::class,
-            // Rack seeder - must run before stock seeders
-            // RackSeeder::class,
-            // Stock seeders - core tables first
-            // StockSeeder::class,
-            // StockDetailSeeder::class,
-            // Last stock tables
-            // LastStockSeeder::class,
-            // LastStockDetailSeeder::class,
-            // History stock
-            // HistoryStockSeeder::class,
-            // Transaction tables
-            // ReceptionSeeder::class,
-            // ReceptionDetailSeeder::class,
-            // RackAssignmentSeeder::class,
-            // RackAssignmentDetailSeeder::class,
+                // Rack seeder - must run before stock seeders
+                // RackSeeder::class,
+                // Stock seeders - core tables first
+                // StockSeeder::class,
+                // StockDetailSeeder::class,
+                // Last stock tables
+                // LastStockSeeder::class,
+                // LastStockDetailSeeder::class,
+                // History stock
+                // HistoryStockSeeder::class,
+                // Transaction tables
+                // ReceptionSeeder::class,
+                // ReceptionDetailSeeder::class,
+                // RackAssignmentSeeder::class,
+                // RackAssignmentDetailSeeder::class,
             MaterialUsageSeeder::class,
             MaterialUsageDetailSeeder::class,
             // MaterialDamageSeeder::class,

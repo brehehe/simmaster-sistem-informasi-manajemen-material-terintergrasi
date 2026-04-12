@@ -6,6 +6,10 @@
             <p class="mt-1 text-gray-500">Visualisasi data dan statistik sistem manajemen material.</p>
         </div>
         <div class="flex gap-2">
+            <button wire:click="toggleDataKendaraan"
+                class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
+                Data Kendaraan
+            </button>
             <button wire:click="$refresh"
                 class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,112 +21,271 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <!-- Total Penerimaan -->
-        <div
-            class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 shadow-xl shadow-blue-500/20 transition-transform hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10"></div>
-            <div class="absolute -right-2 -top-2 h-16 w-16 rounded-full bg-white/10"></div>
-            <div class="relative">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-blue-100">Total Penerimaan</p>
-                        <p class="mt-2 text-4xl font-bold text-white">{{ number_format($totalReceptions) }}</p>
+
+    @if($showDataKendaraan)
+        <!-- Data Kendaraan Section -->
+        <div x-transition class="mb-8 rounded-2xl border border-blue-100 bg-white p-6 shadow-lg">
+            <!-- Jenis Dokumen -->
+            <div class="mb-6 p-4 rounded-xl bg-green-50/50 border border-green-100">
+                <p class="text-sm font-semibold text-green-800 mb-3">Jenis Dokumen <span class="text-red-500">*</span> <span
+                        class="text-xs font-normal text-green-600">(berlaku untuk semua nopol)</span></p>
+                <div class="flex gap-4">
+                    @foreach(['STNK', 'TNKB', 'BPKB'] as $doc)
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="{{ $doc }}" wire:model.live="selectedDocTypes"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm font-bold text-blue-900">{{ $doc }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Daftar Kendaraan -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-blue-900">Daftar Kendaraan</h3>
+                        <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">1
+                            kendaraan</span>
                     </div>
-                    <div class="rounded-2xl bg-white/20 p-3">
-                        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
+                    <div class="flex gap-2">
+                        <button
+                            class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-700">Nomor
+                            Material</button>
+                        <button
+                            class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-700">Tambah
+                            Nopol</button>
                     </div>
                 </div>
-                <div class="mt-4 flex items-center gap-2">
-                    <span
-                        class="inline-flex items-center gap-1 rounded-full bg-green-400/20 px-2 py-0.5 text-xs font-medium text-green-100">
-                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                        </svg>
-                        {{ abs($percentageChange) }}%
-                    </span>
-                    <span class="text-sm text-blue-200">dari bulan lalu</span>
+
+                <!-- Search Area -->
+                <div class="p-4 rounded-xl border border-gray-200 bg-gray-50/50 mb-4">
+                    <div class="flex gap-3">
+                        <div class="relative flex-grow">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">1</span>
+                            <input type="text" wire:model.lazy="searchNopol" placeholder="L1111AAA"
+                                class="w-full rounded-lg border-green-300 bg-white pl-8 pr-4 py-2.5 text-center font-bold text-gray-900 focus:border-green-500 focus:ring-green-500 uppercase">
+                        </div>
+                        <button wire:click="cekKendaraan" wire:loading.attr="disabled"
+                            class="rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-bold text-white hover:bg-blue-700 shadow-sm transition-all focus:ring-4 focus:ring-blue-500/20">
+                            Cek
+                        </button>
+                    </div>
+
+                    @if($vehicleData)
+                        <!-- Vehicle Data Display -->
+                        <div class="mt-4 p-3 rounded-lg bg-green-50 border border-green-200">
+                            <p class="text-xs font-bold text-green-700">Data ditemukan - <span
+                                    class="uppercase">{{ $vehicleData['owner'] }}</span></p>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Nama
+                                    Pemilik *</label>
+                                <input type="text" value="{{ $vehicleData['owner'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">NIK</label>
+                                <input type="text" value="{{ $vehicleData['nik'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No
+                                    HP</label>
+                                <input type="text" value="{{ $vehicleData['hp'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No
+                                    Rangka</label>
+                                <input type="text" value="{{ $vehicleData['chassis'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No
+                                    Mesin</label>
+                                <input type="text" value="{{ $vehicleData['engine'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Merk</label>
+                                <input type="text" value="{{ $vehicleData['brand'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tipe</label>
+                                <input type="text" value="{{ $vehicleData['type'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Warna</label>
+                                <input type="text" value="{{ $vehicleData['color'] }}" readonly
+                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                            </div>
+                        </div>
+
+                        <!-- Serials Banner -->
+                        <div class="mt-6 flex flex-wrap gap-4 rounded-lg bg-blue-900 p-4 text-sm font-bold text-white">
+                            <div class="flex items-center gap-2">
+                                <span class="text-blue-300">No. Seri BPKB :</span>
+                                <span>{{ $vehicleData['bpkb_serial'] }}</span>
+                            </div>
+                            <div class="border-l border-blue-700 h-5 hidden md:block"></div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-blue-300">No. Seri STNK :</span>
+                                <span>{{ $vehicleData['stnk_serial'] }}</span>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Data Pengurus -->
+            <div class="p-6 rounded-xl border border-gray-100 bg-gray-50/30">
+                <p class="text-sm font-bold text-purple-900 mb-4">Data Pengurus <span
+                        class="text-xs font-normal text-purple-600 tracking-normal">(berlaku untuk semua kendaraan)</span>
+                </p>
+
+                <div class="flex gap-6 mb-6">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" value="WP" wire:model.live="pengurusType"
+                            class="border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm font-bold text-blue-900 uppercase">WP (Wajib Pajak)</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" value="Kuasa" wire:model.live="pengurusType"
+                            class="border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm font-bold text-blue-900 uppercase tracking-wider font-sans">Kuasa</span>
+                    </label>
+                </div>
+
+                <div class="p-4 rounded-xl bg-blue-50/50 border border-blue-100 mb-6">
+                    <p class="text-xs font-medium text-blue-700 italic">Data WP diambil dari hasil cek SAMSAT (bisa diedit
+                        jika perlu)</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Nama WP
+                            *</label>
+                        <input type="text" value="{{ $vehicleData['owner'] ?? '' }}"
+                            class="w-full rounded-lg border-green-100 bg-green-50/50 p-2.5 text-sm font-bold text-gray-900 focus:border-green-500 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">NIK
+                            WP</label>
+                        <input type="text" value="{{ $vehicleData['nik'] ?? '' }}"
+                            class="w-full rounded-lg border-green-100 bg-green-50/50 p-2.5 text-sm font-bold text-gray-900 focus:border-green-500 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No HP WP
+                            <span class="text-gray-400 font-normal leading-normal italic">(Opsional)</span></label>
+                        <input type="text" placeholder="08xxxxxxxxxx"
+                            class="w-full rounded-lg border-gray-200 bg-white p-2.5 text-sm font-bold text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Email WP
+                            <span class="text-gray-400 font-normal leading-normal italic">(Opsional)</span></label>
+                        <input type="email" placeholder="email@example.com"
+                            class="w-full rounded-lg border-gray-200 bg-white p-2.5 text-sm font-bold text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <!-- Target PNBP {{ $activeTargetYear }} -->
+        <div
+            class="relative overflow-hidden rounded-2xl bg-blue-700 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-blue-100 italic">Target PNBP {{ $activeTargetYear }}</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($pnbpStats['target']) }}</p>
+            </div>
+        </div>
+
+        <!-- Realisasi PNBP {{ $activeTargetYear }} -->
+        <div
+            class="relative overflow-hidden rounded-2xl bg-purple-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-purple-100 italic">Realisasi PNBP {{ $activeTargetYear }}</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($pnbpStats['realization']) }}</p>
+                <div class="mt-2 flex items-center justify-between">
+                    <span class="text-xs font-medium text-purple-100">Prosentase</span>
+                    <span class="text-xl font-bold text-white">{{ number_format($pnbpStats['percentage'], 0) }} %</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Renbut Matreg {{ $activeTargetYear }} -->
+        <div
+            class="relative overflow-hidden rounded-2xl bg-cyan-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-cyan-100 italic">Renbut Matreg {{ $activeTargetYear }}</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($renbutStats['target']) }}</p>
+            </div>
+        </div>
+
+        <!-- Realisasi Gunmat {{ $activeTargetYear }} -->
+        <div
+            class="relative overflow-hidden rounded-2xl bg-green-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-green-100 italic">Realisasi Gunmat {{ $activeTargetYear }}</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($renbutStats['realization']) }}</p>
+                <div class="mt-2 flex items-center justify-between">
+                    <span class="text-xs font-medium text-green-100">Prosentase</span>
+                    <span class="text-xl font-bold text-white">{{ number_format($renbutStats['percentage'], 0) }}
+                        %</span>
                 </div>
             </div>
         </div>
 
         <!-- Stock Polda -->
         <div
-            class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-6 shadow-xl shadow-indigo-500/20 transition-transform hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10"></div>
-            <div class="absolute -right-2 -top-2 h-16 w-16 rounded-full bg-white/10"></div>
-            <div class="relative">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-indigo-100">Stock Polda</p>
-                        <p class="mt-2 text-4xl font-bold text-white">{{ number_format($totalStockPolda) }}</p>
-                    </div>
-                    <div class="rounded-2xl bg-white/20 p-3">
-                        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <span class="text-sm text-indigo-200">Total unit di Polda</span>
+            class="relative overflow-hidden rounded-2xl bg-amber-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-amber-100 italic">Stock Polda</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($totalStockPolda) }}</p>
+                <div class="mt-2">
+                    <span class="text-xs text-amber-100">Total Unit di Polda</span>
                 </div>
             </div>
         </div>
 
         <!-- Stock Polres -->
         <div
-            class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 p-6 shadow-xl shadow-cyan-500/20 transition-transform hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10"></div>
-            <div class="absolute -right-2 -top-2 h-16 w-16 rounded-full bg-white/10"></div>
-            <div class="relative">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-cyan-100">Stock Polres</p>
-                        <p class="mt-2 text-4xl font-bold text-white">{{ number_format($totalStockPolres) }}</p>
-                    </div>
-                    <div class="rounded-2xl bg-white/20 p-3">
-                        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
+            class="relative overflow-hidden rounded-2xl bg-sky-400 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-sky-100 italic">Stock Polres</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($totalStockPolres) }}</p>
+                <div class="mt-2">
+                    <span class="text-xs text-sky-100">Total Unit di Polres</span>
                 </div>
-                <div class="mt-4">
-                    <span class="text-sm text-cyan-200">Total unit di Polres</span>
-                </div>
+            </div>
+        </div>
+
+        <!-- Total Penerimaan -->
+        <div
+            class="relative overflow-hidden rounded-2xl bg-violet-600 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-violet-100 italic">Total Penerimaan</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ number_format($totalReceptions) }}</p>
             </div>
         </div>
 
         <!-- Penerimaan Hari Ini -->
         <div
-            class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 shadow-xl shadow-emerald-500/20 transition-transform hover:scale-[1.02]">
-            <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10"></div>
-            <div class="absolute -right-2 -top-2 h-16 w-16 rounded-full bg-white/10"></div>
-            <div class="relative">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-emerald-100">Penerimaan Hari Ini</p>
-                        <p class="mt-2 text-4xl font-bold text-white">{{ $receptionsToday }}</p>
-                    </div>
-                    <div class="rounded-2xl bg-white/20 p-3">
-                        <svg class="h-8 w-8 text-white"  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center gap-2">
-                    <svg class="h-4 w-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="text-sm text-emerald-100">Material terdaftar</span>
-                </div>
+            class="relative overflow-hidden rounded-2xl bg-rose-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+            <div class="relative z-10">
+                <p class="text-sm font-medium text-rose-100 italic">Penerimaan Hari ini</p>
+                <p class="mt-2 text-2xl font-bold text-white">{{ $receptionsToday }}</p>
             </div>
         </div>
     </div>
@@ -173,7 +336,8 @@
                     </div>
                     <div class="text-right">
                         <div class="text-sm font-bold text-gray-900">
-                            {{ number_format($stockDistribution['polda_count']) }}</div>
+                            {{ number_format($stockDistribution['polda_count']) }}
+                        </div>
                         <div class="text-xs text-gray-500">{{ $stockDistribution['polda'] }}%</div>
                     </div>
                 </div>
@@ -184,7 +348,8 @@
                     </div>
                     <div class="text-right">
                         <div class="text-sm font-bold text-gray-900">
-                            {{ number_format($stockDistribution['polres_count']) }}</div>
+                            {{ number_format($stockDistribution['polres_count']) }}
+                        </div>
                         <div class="text-xs text-gray-500">{{ $stockDistribution['polres'] }}%</div>
                     </div>
                 </div>
@@ -239,12 +404,12 @@
                                     {{ $reception->policeStation?->name ?? 'N/A' }}
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                    {{ $reception->date?->locale('id')->format('d M Y') ?? 'N/A' }}</td>
+                                    {{ $reception->date?->locale('id')->format('d M Y') ?? 'N/A' }}
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4">
                                     <span
                                         class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                                        <svg class="h-3 w-3" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                         </svg>
@@ -345,7 +510,7 @@
                                 </td>
                             </tr>
                         @endforelse
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -423,334 +588,334 @@
 </div>
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const targetAchievementData = @json($targetAchievementChart);
-        const targetAchievementPalette = [
-            '#2563eb',
-            '#f97316',
-            '#10b981',
-            '#eab308',
-            '#8b5cf6',
-            '#ef4444',
-            '#14b8a6',
-            '#0ea5e9',
-            '#a855f7',
-            '#22c55e',
-        ];
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const targetAchievementData = @json($targetAchievementChart);
+            const targetAchievementPalette = [
+                '#2563eb',
+                '#f97316',
+                '#10b981',
+                '#eab308',
+                '#8b5cf6',
+                '#ef4444',
+                '#14b8a6',
+                '#0ea5e9',
+                '#a855f7',
+                '#22c55e',
+            ];
 
-        const hexToRgba = (hex, alpha) => {
-            const normalized = hex.replace('#', '');
-            const bigint = parseInt(normalized, 16);
-            const r = (bigint >> 16) & 255;
-            const g = (bigint >> 8) & 255;
-            const b = bigint & 255;
+            const hexToRgba = (hex, alpha) => {
+                const normalized = hex.replace('#', '');
+                const bigint = parseInt(normalized, 16);
+                const r = (bigint >> 16) & 255;
+                const g = (bigint >> 8) & 255;
+                const b = bigint & 255;
 
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        };
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
 
-        const targetAchievementCtx = document.getElementById('targetAchievementChart');
-        const targetAchievementLocation = document.getElementById('targetAchievementLocation');
-        let targetAchievementChart = null;
-        let targetAchievementIndex = 0;
+            const targetAchievementCtx = document.getElementById('targetAchievementChart');
+            const targetAchievementLocation = document.getElementById('targetAchievementLocation');
+            let targetAchievementChart = null;
+            let targetAchievementIndex = 0;
 
-        if (targetAchievementCtx && targetAchievementData.locations.length > 0) {
-            const initialLocation = targetAchievementData.locations[0];
+            if (targetAchievementCtx && targetAchievementData.locations.length > 0) {
+                const initialLocation = targetAchievementData.locations[0];
 
-            targetAchievementLocation.textContent = initialLocation.label;
+                targetAchievementLocation.textContent = initialLocation.label;
 
-            const targetColors = targetAchievementData.types.map((_, index) =>
-                targetAchievementPalette[index % targetAchievementPalette.length]
-            );
-            const achievementColors = targetColors.map((color) => hexToRgba(color, 0.35));
-            const targetBackgroundColors = targetColors.map((color) => hexToRgba(color, 0.55));
+                const targetColors = targetAchievementData.types.map((_, index) =>
+                    targetAchievementPalette[index % targetAchievementPalette.length]
+                );
+                const achievementColors = targetColors.map((color) => hexToRgba(color, 0.35));
+                const targetBackgroundColors = targetColors.map((color) => hexToRgba(color, 0.55));
 
-            targetAchievementChart = new Chart(targetAchievementCtx, {
-                type: 'bar',
-                data: {
-                    labels: targetAchievementData.types,
-                    datasets: [
-                        {
-                            label: 'Target',
-                            data: initialLocation.target,
-                            backgroundColor: targetBackgroundColors,
-                            borderColor: targetColors,
-                            borderWidth: 1,
-                            borderRadius: 6,
-                        },
-                        {
-                            label: 'Pencapaian',
-                            data: initialLocation.actual,
-                            backgroundColor: achievementColors,
-                            borderColor: targetColors,
-                            borderWidth: 1,
-                            borderRadius: 6,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
-                                }
+                targetAchievementChart = new Chart(targetAchievementCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: targetAchievementData.types,
+                        datasets: [
+                            {
+                                label: 'Target',
+                                data: initialLocation.target,
+                                backgroundColor: targetBackgroundColors,
+                                borderColor: targetColors,
+                                borderWidth: 1,
+                                borderRadius: 6,
+                            },
+                            {
+                                label: 'Pencapaian',
+                                data: initialLocation.actual,
+                                backgroundColor: achievementColors,
+                                borderColor: targetColors,
+                                borderWidth: 1,
+                                borderRadius: 6,
                             }
-                        }
+                        ]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f1f5f9'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
                             },
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-
-            setInterval(() => {
-                targetAchievementIndex = (targetAchievementIndex + 1) % targetAchievementData.locations.length;
-                const location = targetAchievementData.locations[targetAchievementIndex];
-
-                targetAchievementLocation.textContent = location.label;
-                targetAchievementChart.data.datasets[0].data = location.target;
-                targetAchievementChart.data.datasets[1].data = location.actual;
-                targetAchievementChart.update();
-            }, 10000);
-        }
-
-        // Line Chart - History Stock Trend
-        const lineCtx = document.getElementById('lineChart');
-        if (lineCtx) {
-            new Chart(lineCtx, {
-                type: 'line',
-                data: {
-                    labels: @json($historyStockTrend['labels']),
-                    datasets: [{
-                        label: 'Quantity',
-                        data: @json($historyStockTrend['data']),
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#2563eb',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            titleFont: {
-                                size: 14
-                            },
-                            bodyFont: {
-                                size: 13
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f1f5f9'
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Doughnut Chart - Stock Distribution
-        const doughnutCtx = document.getElementById('doughnutChart');
-        if (doughnutCtx) {
-            new Chart(doughnutCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Stock Polda', 'Stock Polres'],
-                    datasets: [{
-                        data: [@json($stockDistribution['polda_count']), @json($stockDistribution['polres_count'])],
-                        backgroundColor: ['#2563eb', '#06b6d4'],
-                        borderWidth: 0,
-                        spacing: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '65%',
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                padding: 15,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12
-                        }
-                    }
-                }
-            });
-        }
-
-        // Bar Chart - Stock per Location
-        const barCtx = document.getElementById('barChart');
-        if (barCtx) {
-            new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: @json($stockPerLocation->map(fn($item) => $item->policeStation?->name ?? 'N/A')->toArray()),
-                    datasets: [{
-                        label: 'Total Stock',
-                        data: @json($stockPerLocation->pluck('total_stock')->toArray()),
-                        backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
-                        borderRadius: 8,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 12,
-                            titleFont: {
-                                size: 14
-                            },
-                            bodyFont: {
-                                size: 13
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Stock: ' + context.parsed.y.toLocaleString() + ' unit';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f1f5f9'
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12
-                                },
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Pie Chart - Type Distribution
-        const pieCtx = document.getElementById('pieChart');
-        if (pieCtx) {
-            new Chart(pieCtx, {
-                type: 'pie',
-                data: {
-                    labels: @json($typeDistribution['labels']),
-                    datasets: [{
-                        data: @json($typeDistribution['data']),
-                        backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
                                 padding: 12,
-                                font: {
-                                    size: 11
+                                callbacks: {
+                                    label: function (context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f1f5f9'
+                                },
+                                ticks: {
+                                    callback: function (value) {
+                                        return value.toLocaleString();
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
                                 }
                             }
                         }
                     }
-                }
-            });
-        }
+                });
 
-        // Area Chart - Material Movement
-        const areaCtx = document.getElementById('areaChart');
-        if (areaCtx) {
-            new Chart(areaCtx, {
-                type: 'line',
-                data: {
-                    labels: @json($materialMovement['labels']),
-                    datasets: [{
+                setInterval(() => {
+                    targetAchievementIndex = (targetAchievementIndex + 1) % targetAchievementData.locations.length;
+                    const location = targetAchievementData.locations[targetAchievementIndex];
+
+                    targetAchievementLocation.textContent = location.label;
+                    targetAchievementChart.data.datasets[0].data = location.target;
+                    targetAchievementChart.data.datasets[1].data = location.actual;
+                    targetAchievementChart.update();
+                }, 10000);
+            }
+
+            // Line Chart - History Stock Trend
+            const lineCtx = document.getElementById('lineChart');
+            if (lineCtx) {
+                new Chart(lineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: @json($historyStockTrend['labels']),
+                        datasets: [{
+                            label: 'Quantity',
+                            data: @json($historyStockTrend['data']),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#2563eb',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f1f5f9'
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Doughnut Chart - Stock Distribution
+            const doughnutCtx = document.getElementById('doughnutChart');
+            if (doughnutCtx) {
+                new Chart(doughnutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Stock Polda', 'Stock Polres'],
+                        datasets: [{
+                            data: [@json($stockDistribution['polda_count']), @json($stockDistribution['polres_count'])],
+                            backgroundColor: ['#2563eb', '#06b6d4'],
+                            borderWidth: 0,
+                            spacing: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Bar Chart - Stock per Location
+            const barCtx = document.getElementById('barChart');
+            if (barCtx) {
+                new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: @json($stockPerLocation->map(fn($item) => $item->policeStation?->name ?? 'N/A')->toArray()),
+                        datasets: [{
+                            label: 'Total Stock',
+                            data: @json($stockPerLocation->pluck('total_stock')->toArray()),
+                            backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+                            borderRadius: 8,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function (context) {
+                                        return 'Stock: ' + context.parsed.y.toLocaleString() + ' unit';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f1f5f9'
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function (value) {
+                                        return value.toLocaleString();
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Pie Chart - Type Distribution
+            const pieCtx = document.getElementById('pieChart');
+            if (pieCtx) {
+                new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: @json($typeDistribution['labels']),
+                        datasets: [{
+                            data: @json($typeDistribution['data']),
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 12,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Area Chart - Material Movement
+            const areaCtx = document.getElementById('areaChart');
+            if (areaCtx) {
+                new Chart(areaCtx, {
+                    type: 'line',
+                    data: {
+                        labels: @json($materialMovement['labels']),
+                        datasets: [{
                             label: 'Masuk',
                             data: @json($materialMovement['in']),
                             borderColor: '#10b981',
@@ -766,72 +931,72 @@
                             fill: true,
                             tension: 0.4
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
+                        ]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f1f5f9'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
                             }
                         },
-                        x: {
-                            grid: {
-                                display: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f1f5f9'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
                             }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
 
-        // Bar Chart - Regional Stats
-        const regionalCtx = document.getElementById('regionalChart');
-        if (regionalCtx) {
-            new Chart(regionalCtx, {
-                type: 'bar',
-                data: {
-                    labels: @json($regionalStats['labels']),
-                    datasets: [{
-                        label: 'Total Stock',
-                        data: @json($regionalStats['data']),
-                        backgroundColor: '#6366f1',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+            // Bar Chart - Regional Stats
+            const regionalCtx = document.getElementById('regionalChart');
+            if (regionalCtx) {
+                new Chart(regionalCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: @json($regionalStats['labels']),
+                        datasets: [{
+                            label: 'Total Stock',
+                            data: @json($regionalStats['data']),
+                            backgroundColor: '#6366f1',
+                            borderRadius: 8
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f1f5f9'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         },
-                        x: {
-                            grid: {
-                                display: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f1f5f9'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
                             }
                         }
                     }
-                }
-            });
-        }
-    });
-</script>
+                });
+            }
+        });
+    </script>
 @endpush

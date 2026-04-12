@@ -1,6 +1,6 @@
 <x-layouts.auth>
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('SIMMASTER')" :description="__('Sistem Informasi Manajemen Material Terintergrasi')" :subtitle="__('SBST Polda Jatim')" />
+        <x-auth-header :title="__('ARMASTER')" :description="__('Smart Fasmat SBST Terintegrasi')" :subtitle="__('SBST Polda Jatim')" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
@@ -9,8 +9,8 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input name="email" :label="__('Email address')" :value="old('email')" type="email" required
-                autofocus autocomplete="email" placeholder="email@example.com" />
+            <flux:input name="email" :label="__('Email address')" :value="old('email')" type="email" required autofocus
+                autocomplete="email" placeholder="email@example.com" />
 
             <!-- Password -->
             <div class="relative">
@@ -37,10 +37,10 @@
         </form>
 
         {{-- @if (Route::has('register'))
-            <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
-                <span>{{ __('Don\'t have an account?') }}</span>
-                <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-            </div>
+        <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
+            <span>{{ __('Don\'t have an account?') }}</span>
+            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
+        </div>
         @endif --}}
     </div>
 </x-layouts.auth>

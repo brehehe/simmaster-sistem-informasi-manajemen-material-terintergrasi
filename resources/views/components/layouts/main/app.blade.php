@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{{ $title ?? 'SIMMASTER' }} - Sistem Informasi Manajemen Material SBST Terintegrasi</title>
+        <title>{{ $title ?? 'ARMASTER' }} - Sistem Informasi Manajemen Material SBST Terintegrasi</title>
 
         <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 

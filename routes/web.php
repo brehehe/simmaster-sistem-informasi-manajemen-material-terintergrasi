@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Main\Dashoard\MainDashboardIndex;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -8,13 +9,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
-
 // Route::view('dashboard', 'dashboard')
 //     ->middleware(['auth', 'verified'])
 //     ->name('dashboard');
+
+Route::get('/', MainDashboardIndex::class)
+    ->name('main');
 
 Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewire\\Admin'], function () {
     Route::get('dashboard', 'Dashboard\\AdminDashboardIndex')
@@ -328,7 +328,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(
             when(
                 Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
+                && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
                 ['password.confirm'],
                 [],
             ),
@@ -336,4 +336,4 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 });
 
-Route::redirect('', 'login');
+// Route::redirect('', 'login');
