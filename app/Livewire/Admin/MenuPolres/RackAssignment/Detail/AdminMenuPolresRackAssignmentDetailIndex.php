@@ -53,6 +53,11 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
         $this->stockService = $stockService;
     }
 
+    public function toJSON()
+    {
+        return [];
+    }
+
     public function mount($id = null)
     {
         $this->rackAssignmentId = $id;

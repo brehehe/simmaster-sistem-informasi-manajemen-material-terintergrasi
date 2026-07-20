@@ -29,13 +29,13 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polres</label>
                     <div wire:ignore>
-                        <select id="select-police-station" x-data x-init="
+                        <select id="select-police-station" x-data="{ toJSON() { return {}; } }" x-init="
                             const selectize = $($el).selectize({
                                 dropdownParent: 'body',
                                 allowClear: true,
                                 plugins: ['clear_button'],
                                 onChange: function(val) {
-                                    @this.set('policeStationId', val);
+                                    $wire.set('policeStationId', val);
                                 }
                             })[0].selectize;
                         "
@@ -52,13 +52,13 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material</label>
                 <div wire:ignore>
-                    <select id="select-type" x-data x-init="
+                    <select id="select-type" x-data="{ toJSON() { return {}; } }" x-init="
                         const selectize = $($el).selectize({
                             dropdownParent: 'body',
                             allowClear: true,
                             plugins: ['clear_button'],
                             onChange: function(val) {
-                                @this.set('typeId', val);
+                                $wire.set('typeId', val);
                             }
                         })[0].selectize;
                     "
@@ -74,13 +74,13 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Material Detail</label>
                 <div wire:ignore wire:key="select-type-detail-wrapper-{{ $typeId }}">
-                    <select id="select-type-detail-{{ $typeId }}" x-data x-init="
+                    <select id="select-type-detail-{{ $typeId }}" x-data="{ toJSON() { return {}; } }" x-init="
                         const selectize = $($el).selectize({
                             dropdownParent: 'body',
                             allowClear: true,
                             plugins: ['clear_button'],
                             onChange: function(val) {
-                                @this.set('typeDetailId', val);
+                                $wire.set('typeDetailId', val);
                             }
                         })[0].selectize;
                     "
@@ -163,21 +163,22 @@
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
+                                    $isSubsidy = Str::contains(strtolower($history->description ?? ''), 'subsidi');
                                     $statusTypeColors = [
                                         'in' => 'bg-green-100 text-green-700',
-                                        'out' => 'bg-red-100 text-red-700',
+                                        'out' => $isSubsidy ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700',
                                         'first' => 'bg-blue-100 text-blue-700',
                                         'last' => 'bg-purple-100 text-purple-700',
                                     ];
                                     $statusTypeLabels = [
                                         'in' => 'Masuk',
-                                        'out' => 'Keluar',
+                                        'out' => $isSubsidy ? 'Subsidi Silang' : 'Keluar',
                                         'first' => 'Awal',
                                         'last' => 'Akhir',
                                     ];
                                 @endphp
                                 <span
-                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold {{ $statusTypeColors[$history->status_type] ?? 'bg-gray-100 text-gray-700' }}">
+                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $statusTypeColors[$history->status_type] ?? 'bg-gray-100 text-gray-700' }}">
                                     {{ $statusTypeLabels[$history->status_type] ?? $history->status_type }}
                                 </span>
                             </td>

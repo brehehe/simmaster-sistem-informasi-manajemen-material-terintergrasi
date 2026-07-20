@@ -31,6 +31,11 @@ class MaterialSubsidy extends Model
         return $this->belongsTo(RegionalPolice::class, 'regional_police_id');
     }
 
+    public function policeStation()
+    {
+        return $this->belongsTo(\App\Models\Police\PoliceStation::class, 'police_station_id');
+    }
+
     public function confirmedByUser()
     {
         return $this->belongsTo(User::class, 'confirmed_by');
@@ -99,12 +104,18 @@ class MaterialSubsidy extends Model
             $this->load('materialSubsidyDetails');
 
             foreach ($this->materialSubsidyDetails as $detail) {
-                // Resolve stock_detail_id if not set yet (pick from Polda stock for this type)
+                // Resolve stock_detail_id if not set yet
                 $stockDetail = $detail->stock_detail_id
                     ? StockDetail::find($detail->stock_detail_id)
                     : StockDetail::where('type_id', $detail->type_id)
                         ->when($detail->type_detail_id, fn($q) => $q->where('type_detail_id', $detail->type_detail_id))
-                        ->whereHas('stock', fn($q) => $q->where('regional_police_id', $this->regional_police_id)->whereNull('police_station_id'))
+                        ->whereHas('stock', function ($q) {
+                            if ($this->police_station_id) {
+                                $q->where('police_station_id', $this->police_station_id);
+                            } else {
+                                $q->where('regional_police_id', $this->regional_police_id)->whereNull('police_station_id');
+                            }
+                        })
                         ->where('quantity', '>', 0)
                         ->first();
 
@@ -134,13 +145,13 @@ class MaterialSubsidy extends Model
                         'type_id'              => $detail->type_id,
                         'type_detail_id'       => $detail->type_detail_id,
                         'regional_police_id'   => $this->regional_police_id,
-                        'police_station_id'    => null,
+                        'police_station_id'    => $this->police_station_id,
                         'rack_id'              => $stockDetail->rack_id ?? null,
                         'date'                 => now(),
                         'serial_number'        => null,
                         'status_type'          => 'out',
                         'quantity'             => -abs($detail->quantity),
-                        'description'          => 'Subsidi material ke ' . $this->recipient_name . ' (Kode: ' . $this->code . ')',
+                        'description'          => 'Subsidi Silang ke ' . $this->recipient_name . ' (Kode: ' . $this->code . ')',
                         'is_active'            => true,
                     ]);
                 }

@@ -23,8 +23,15 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
     public string $code = '';
     public ?string $date = null;
     public ?string $policeStationId = null;
-    public string $status = 'approved';
+    public string $status = 'reported';
     public string $description = '';
+    public string $officerName = '';
+    public string $officerRank = '';
+
+    public function toJSON()
+    {
+        return [];
+    }
 
     // Global material selector
     public ?string $typeId = null;
@@ -60,8 +67,12 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
 
         $user = Auth::user();
-        if ($user->hasRole('Polres')) {
+        if ($user->hasRole('Polres') || !empty($user->police_station_id)) {
             $this->policeStationId = $user->police_station_id;
+        }
+        // Pre-fill officer name from user
+        if (!$this->isEditMode) {
+            $this->officerName = $user->name ?? '';
         }
 
         if ($this->isEditMode) {
@@ -120,8 +131,11 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
         $this->code = $materialDamage->code;
         $this->date = $materialDamage->date->format('Y-m-d');
         $this->policeStationId = $materialDamage->police_station_id;
-        $this->status = $materialDamage->status ?? 'approved';
+        $this->status = $materialDamage->status ?? 'reported';
         $this->description = $materialDamage->description ?? '';
+        // Parse officer info from description if stored there
+        $this->officerName = $materialDamage->officer_name ?? '';
+        $this->officerRank = $materialDamage->officer_rank ?? '';
 
         if ($materialDamage->materialDamageDetails->isNotEmpty()) {
             $firstDetail = $materialDamage->materialDamageDetails->first();
@@ -307,20 +321,18 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
     public function save()
     {
         $this->validate([
-            'code' => 'required|string|max:255',
             'date' => 'required|date',
             'policeStationId' => 'required|exists:police_stations,id',
             'typeId' => 'required|exists:types,id',
             'status' => 'required|in:reported,under_review,approved,disposed',
             'details' => 'required|array|min:1',
-            'details.*.stock_detail_id' => 'required|exists:stock_details,id',
             'details.*.quantity' => 'required|numeric|min:1',
             'details.*.damage_type' => 'required|in:damaged,lost',
             'details.*.reason' => 'required|string',
         ], [
             'typeId.required' => 'Material utama harus dipilih',
-            'details.*.stock_detail_id.required' => 'Barang harus dipilih',
             'details.*.quantity.min' => 'Jumlah minimal 1',
+            'details.*.reason.required' => 'Keterangan/alasan wajib diisi',
         ]);
 
         try {
@@ -331,6 +343,8 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                     'police_station_id' => $this->policeStationId,
                     'status' => $this->status,
                     'description' => $this->description,
+                    'officer_name' => $this->officerName,
+                    'officer_rank' => $this->officerRank,
                     'is_active' => true,
                 ];
 
@@ -366,7 +380,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
                 $this->stockService->processMaterialDamage($materialDamage);
 
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data material rusak berhasil disimpan.');
+                session()->flash('success', $this->isEditMode ? 'Data BA berhasil diperbarui.' : 'BA Material Rusak berhasil disimpan. Stok Polres telah berkurang otomatis.');
             });
 
             return $this->redirect(route('menu-polres.material-damage'), navigate: true);

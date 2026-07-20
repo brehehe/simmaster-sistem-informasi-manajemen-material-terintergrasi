@@ -40,6 +40,11 @@ class AdminMenuPolresHistoryIndex extends Component
         'perPage' => ['except' => 10],
     ];
 
+    public function toJSON()
+    {
+        return [];
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();

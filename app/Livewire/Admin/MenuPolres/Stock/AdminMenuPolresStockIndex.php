@@ -54,6 +54,11 @@ class AdminMenuPolresStockIndex extends Component
         $this->resetPage();
     }
 
+    public function toJSON()
+    {
+        return [];
+    }
+
     public function render()
     {
         $user = auth()->user();
@@ -84,19 +89,16 @@ class AdminMenuPolresStockIndex extends Component
         // ================= BASE QUERY =================
         $query = StockDetail::query()
             ->where('is_active', true)
-            ->whereNotNull('police_station_id');
+            ->whereNotNull('police_station_id')
+            ->where('quantity', '>', 0);
 
         // ================= ROLE & POLICE STATION FILTER =================
         if ($user->hasRole('Admin')) {
-             if ($this->policeStationId) {
+            if ($this->policeStationId) {
                 $query->where('police_station_id', $this->policeStationId);
             }
         } else {
             $query->where('police_station_id', $user->police_station_id);
-        }
-
-        if ($user->userType && !empty($user->userType->types)) {
-            $query->whereIn('type_id', $user->userType->types);
         }
 
         // ================= SEARCH =================
@@ -150,6 +152,11 @@ class AdminMenuPolresStockIndex extends Component
             ->orderBy('type_id')
             ->get();
 
+        // ================= SUMMARY VARS =================
+        $totalStock     = $stockDetails->sum('total_quantity');
+        $serializedCount = $stockDetails->filter(fn($d) => $d->number_serial_first || $d->number_serial_second)->count();
+        $totalDetailRows = $stockDetails->count();
+
         // ================= GROUP PER TYPE & POLICE STATION =================
         $groupedStocks = $stockDetails
             ->groupBy(function ($item) {
@@ -179,10 +186,13 @@ class AdminMenuPolresStockIndex extends Component
         );
 
         return view('livewire.admin.menu-polres.stock.admin-menu-polres-stock-index', [
-            'stocks'      => $stocks,
-            'policeStations' => $policeStations,
-            'allTypes' => $allTypes,
-            'typeDetails' => $typeDetails,
+            'stocks'          => $stocks,
+            'policeStations'  => $policeStations,
+            'allTypes'        => $allTypes,
+            'typeDetails'     => $typeDetails,
+            'totalStock'      => $totalStock,
+            'serializedCount' => $serializedCount,
+            'totalDetailRows' => $totalDetailRows,
         ])->layout('components.layouts.main.app');
     }
 

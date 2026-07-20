@@ -53,6 +53,11 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->stockService = $stockService;
     }
 
+    public function toJSON()
+    {
+        return [];
+    }
+
     public function mount($id = null)
     {
         $this->materialUsageId = $id;

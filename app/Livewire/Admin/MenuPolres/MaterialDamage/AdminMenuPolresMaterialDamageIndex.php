@@ -35,6 +35,11 @@ class AdminMenuPolresMaterialDamageIndex extends Component
     public $showDeleteModal = false;
     public $materialDamageId = null;
 
+    public function toJSON()
+    {
+        return [];
+    }
+
     public function render()
     {
         $user = auth()->user();
@@ -55,11 +60,11 @@ class AdminMenuPolresMaterialDamageIndex extends Component
         if ($this->typeId) {
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
-             $tdQuery = TypeDetail::query();
-             if ($user->userType && !empty($user->userType->types)) {
-                 $tdQuery->whereIn('type_id', $user->userType->types);
-             }
-             $typeDetails = $tdQuery->orderBy('name')->get();
+            $tdQuery = TypeDetail::query();
+            if ($user->userType && !empty($user->userType->types)) {
+                $tdQuery->whereIn('type_id', $user->userType->types);
+            }
+            $typeDetails = $tdQuery->orderBy('name')->get();
         }
 
 
@@ -81,7 +86,7 @@ class AdminMenuPolresMaterialDamageIndex extends Component
                 $query->where('material_damages.police_station_id', $this->policeStationId);
             }
         } else {
-             $query->where('material_damages.police_station_id', $user->police_station_id);
+            $query->where('material_damages.police_station_id', $user->police_station_id);
         }
 
         // Type Filter
@@ -95,7 +100,7 @@ class AdminMenuPolresMaterialDamageIndex extends Component
         }
 
         // Search
-         if ($this->search) {
+        if ($this->search) {
             $keywords = preg_split('/\s+/', trim($this->search));
             $query->where(function ($q) use ($keywords) {
                 foreach ($keywords as $word) {
@@ -123,8 +128,8 @@ class AdminMenuPolresMaterialDamageIndex extends Component
         }
 
         $materialDamages = $query->orderBy('material_damages.date', 'desc')
-             ->orderBy('material_damages.created_at', 'desc')
-             ->paginate($this->perPage);
+            ->orderBy('material_damages.created_at', 'desc')
+            ->paginate($this->perPage);
 
         return view('livewire.admin.menu-polres.material-damage.admin-menu-polres-material-damage-index', [
             'materialDamages' => $materialDamages,

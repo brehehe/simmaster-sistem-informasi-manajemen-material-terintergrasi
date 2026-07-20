@@ -262,9 +262,13 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polres/material-damage/edit/{id}', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
             ->name('menu-polres.material-damage.edit');
 
-        // Material Subsidy
-        Route::get('menu-polres/material-subsidy', '\\App\\Livewire\\Admin\\MenuPolda\\MaterialSubsidy\\AdminMenuPoldaMaterialSubsidyIndex')
+        // Material Subsidy (Subsidi Silang)
+        Route::get('menu-polres/material-subsidy', 'MaterialSubsidy\\AdminMenuPolresMaterialSubsidyIndex')
             ->name('menu-polres.material-subsidy');
+        Route::get('menu-polres/material-subsidy/create', 'MaterialSubsidy\\Detail\\AdminMenuPolresMaterialSubsidyDetailIndex')
+            ->name('menu-polres.material-subsidy.create');
+        Route::get('menu-polres/material-subsidy/edit/{id}', 'MaterialSubsidy\\Detail\\AdminMenuPolresMaterialSubsidyDetailIndex')
+            ->name('menu-polres.material-subsidy.edit');
 
         // Stock Opname
         Route::get('menu-polres/stock-opname', 'StockOpname\\AdminMenuPolresStockOpnameIndex')
