@@ -27,4 +27,9 @@ class Rack extends Model
     {
         return $this->belongsTo(PoliceStation::class);
     }
+
+    public function stockDetails()
+    {
+        return $this->hasMany(\App\Models\Stock\StockDetail::class);
+    }
 }

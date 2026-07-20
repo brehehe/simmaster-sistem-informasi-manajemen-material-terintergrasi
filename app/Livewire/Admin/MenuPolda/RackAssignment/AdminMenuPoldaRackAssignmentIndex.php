@@ -20,12 +20,14 @@ class AdminMenuPoldaRackAssignmentIndex extends Component
     public function render()
     {
         $query = RackAssignment::with(['rackAssignmentDetails', 'regionalPolice'])
-            ->where('is_active', true);
+            ->where('is_active', true)
+            ->whereNotNull('regional_police_id')
+            ->whereNull('police_station_id');
 
         // Role-based filtering
         $user = auth()->user();
         if ($user->hasRole('Polda')) {
-            $query->where('regional_police_id', $user->regional_police_id)->whereNull('police_station_id');
+            $query->where('regional_police_id', $user->regional_police_id);
         }
 
         // Search

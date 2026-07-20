@@ -210,16 +210,16 @@
             <!-- Stats -->
             <div class="grid grid-cols-3 gap-6 w-full max-w-sm">
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-white">34</div>
+                    <div class="text-2xl font-bold text-white">1</div>
                     <div class="text-xs text-blue-300">Polda</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-white">500+</div>
+                    <div class="text-2xl font-bold text-white">39</div>
                     <div class="text-xs text-blue-300">Polres</div>
                 </div>
                 <div class="text-center">
                     <div class="text-2xl font-bold text-white">24/7</div>
-                    <div class="text-xs text-blue-300">Monitoring</div>
+                    <div class="text-xs text-blue-300">monitoring</div>
                 </div>
             </div>
         </div>
@@ -239,7 +239,7 @@
                     </svg>
                 </div>
                 <h1 class="text-2xl font-bold text-blue-900">ARMASTER</h1>
-                <p class="text-sm text-blue-600">Smart Fasmat SBST Terintegrasi SBST</p>
+                <p class="text-sm text-blue-600">Smart Fasmat Terintegrasi</p>
             </div>
             <div class="hidden lg:flex justify-center mb-3">
                 <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-20">
@@ -351,7 +351,7 @@
             <!-- Footer -->
             <div class="mt-5 text-center">
                 <p class="text-sm text-gray-500">
-                    &copy; {{ date('Y') }} Smart Fasmat SBST Terintegrasi SBST
+                    &#64;{{ date('Y') }} Smart Fasmat Terintegrasi
                 </p>
                 {{-- <p class="text-xs text-gray-400 mt-1">
                     Kepolisian Republik Indonesia

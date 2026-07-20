@@ -70,7 +70,7 @@ class AdminMenuPolresRackAssignmentIndex extends Component
             ->join('rack_assignments', 'rack_assignment_details.rack_assignment_id', '=', 'rack_assignments.id')
             ->join('types', 'rack_assignment_details.type_id', '=', 'types.id')
             ->leftJoin('type_details', 'rack_assignment_details.type_detail_id', '=', 'type_details.id')
-            ->with(['rackAssignment', 'rackAssignment.policeStation', 'type', 'typeDetail'])
+            ->with(['rackAssignment', 'rackAssignment.policeStation', 'rackAssignment.regionalPolice', 'type', 'typeDetail'])
             ->where('rack_assignments.is_active', true);
 
         if ($user->userType && !empty($user->userType->types)) {

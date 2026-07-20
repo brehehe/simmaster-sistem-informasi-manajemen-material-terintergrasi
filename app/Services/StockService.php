@@ -130,7 +130,7 @@ class StockService
             'police_station_id' => $stock->police_station_id,
             'rack_id' => $lastStockDetail->rack_id,
             'date' => $lastStock->date,
-            'type' => 'last',
+            'status_type' => 'last',
             'quantity' => $lastStockDetail->quantity,
             'description' => $lastStockDetail->description ?? 'Stock from last stock: ' . $lastStock->name,
             'is_active' => true,
@@ -244,7 +244,7 @@ class StockService
             'police_station_id' => $reception->police_station_id,
             'rack_id' => $receptionDetail->rack_id ?? null,
             'date' => $reception->date,
-            'type' => 'in',
+            'status_type' => 'in',
             'quantity' => $item->quantity,
             'description' => $item->description ?? 'Stock from reception: ' . $reception->name,
             'is_active' => true,
@@ -288,7 +288,7 @@ class StockService
             'police_station_id' => $policeStationId,
             'serial_number' => $stock?->code ? Str::ucfirst($stock->code) . ' ' . $stock->number_serial_first . ' ' . $stock->number_serial_second : null,
             'date' => now(),
-            'type' => 'out',
+            'status_type' => 'out',
             'quantity' => -$quantity,
             'description' => $description ?? 'Stock reduction',
             'is_active' => true,
@@ -401,7 +401,6 @@ class StockService
                     'police_station_id' => $polId,
                     'rack_id' => $detail->from_rack_id, // Source Rack
                     'date' => $rackAssignment->date,
-                    'type' => 'rack_move',
                     'status_type' => 'out', // Out from source
                     'quantity' => $detail->quantity,
                     'description' => 'Rack move OUT: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
@@ -418,7 +417,6 @@ class StockService
                     'police_station_id' => $polId,
                     'rack_id' => $detail->to_rack_id, // Destination Rack
                     'date' => $rackAssignment->date,
-                    'type' => 'rack_move',
                     'status_type' => 'in', // In to destination
                     'quantity' => $detail->quantity,
                     'description' => 'Rack move IN: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
@@ -457,7 +455,6 @@ class StockService
                     'police_station_id' => $stock->police_station_id,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialUsage->date,
-                    'type' => 'usage',
                     'status_type' => 'out',
                     'quantity' => $detail->quantity,
                     'description' => 'Material ' . $detail->usage_type . ' - ' . ($detail->description ?? ''),
@@ -498,7 +495,6 @@ class StockService
                     'rack_id' => $detail->rack_id,
                     'date' => $materialDamage->date,
                     'status_type'=>'out',
-                    'type' => 'damage',
                     'quantity' => $detail->quantity,
                     'description' => 'Material ' . $damageTypeLabel . ': ' . $detail->reason,
                     'is_active' => true,

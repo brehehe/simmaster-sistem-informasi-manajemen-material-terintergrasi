@@ -24,9 +24,9 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     public bool $isEditMode = false;
 
     // Main Form
-    public string $code = '';
+    public string $code = ''; // Nomor SPPM
     public string $name = '';
-    public string $date = '';
+    public string $date = ''; // Tanggal BAPPM
     public string $type = '';
     public ?string $typeId = null;
     public bool $is_type_detail = false;
@@ -36,10 +36,40 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     public ?string $description = null;
     public bool $is_active = true;
 
+    // BAPPM & SPPM Fields
+    public string $sppm_date = '';
+    public string $bappm_number = '';
+    
+    // Commission members
+    public string $commission_member_1_name = '';
+    public string $commission_member_1_rank = '';
+    public string $commission_member_1_nip = '';
+    public string $commission_member_1_position = '';
+
+    public string $commission_member_2_name = '';
+    public string $commission_member_2_rank = '';
+    public string $commission_member_2_nip = '';
+    public string $commission_member_2_position = '';
+
+    public string $commission_member_3_name = '';
+    public string $commission_member_3_rank = '';
+    public string $commission_member_3_nip = '';
+    public string $commission_member_3_position = '';
+
+    // Kasi Fasmat
+    public string $kasi_fasmat_name = '';
+    public string $kasi_fasmat_rank = '';
+    public string $kasi_fasmat_nip = '';
+
+    // Ordonatur
+    public string $ordonatur_name = '';
+    public string $ordonatur_rank = '';
+
     // Detail Items
     public array $details = [];
     public int $detailCounter = 0;
     public $services = []; 
+    public array $supportingMaterials = [];
 
     // Dropdowns Data
     public $regionalPolices = [];
@@ -70,6 +100,26 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->date = $reception->date->format('Y-m-d');
             $this->type = $reception->type;
             $this->typeId = $reception->type_id;
+
+            $this->sppm_date = $reception->sppm_date ? $reception->sppm_date->format('Y-m-d') : '';
+            $this->bappm_number = $reception->bappm_number ?? '';
+            $this->commission_member_1_name = $reception->commission_member_1_name ?? '';
+            $this->commission_member_1_rank = $reception->commission_member_1_rank ?? '';
+            $this->commission_member_1_nip = $reception->commission_member_1_nip ?? '';
+            $this->commission_member_1_position = $reception->commission_member_1_position ?? '';
+            $this->commission_member_2_name = $reception->commission_member_2_name ?? '';
+            $this->commission_member_2_rank = $reception->commission_member_2_rank ?? '';
+            $this->commission_member_2_nip = $reception->commission_member_2_nip ?? '';
+            $this->commission_member_2_position = $reception->commission_member_2_position ?? '';
+            $this->commission_member_3_name = $reception->commission_member_3_name ?? '';
+            $this->commission_member_3_rank = $reception->commission_member_3_rank ?? '';
+            $this->commission_member_3_nip = $reception->commission_member_3_nip ?? '';
+            $this->commission_member_3_position = $reception->commission_member_3_position ?? '';
+            $this->kasi_fasmat_name = $reception->kasi_fasmat_name ?? '';
+            $this->kasi_fasmat_rank = $reception->kasi_fasmat_rank ?? '';
+            $this->kasi_fasmat_nip = $reception->kasi_fasmat_nip ?? '';
+            $this->ordonatur_name = $reception->ordonatur_name ?? '';
+            $this->ordonatur_rank = $reception->ordonatur_rank ?? '';
             
             if ($this->typeId) {
                 $typeRef = Type::find($this->typeId);
@@ -86,26 +136,61 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             // Load detail items as a flat list
             foreach ($reception->receptionDetails as $detail) {
                 foreach ($detail->receptionDetailItems as $item) {
-                    $this->details[] = [
-                        'id' => $item->id, // Use item's ID or leave null if just creating
-                        'type_detail_id' => $item->type_detail_id ?? '',
-                        'service_id' => $item->service_id ?? '',
-                        'service_detail_id' => $item->service_detail_id ?? '',
-                        'quantity' => (float)$item->quantity,
-                        'code' => $item->item_code ?? '',
-                        'number_serial_first' => $item->number_serial_first ?? '',
-                        'number_serial_second' => $item->number_serial_second ?? '',
-                        'is_active' => true,
-                    ];
+                    // Only load as details if the item belongs to the main type (not supporting)
+                    if ($item->type_id === $this->typeId) {
+                        $this->details[] = [
+                            'id' => $item->id, // Use item's ID or leave null if just creating
+                            'type_detail_id' => $item->type_detail_id ?? '',
+                            'service_id' => $item->service_id ?? '',
+                            'service_detail_id' => $item->service_detail_id ?? '',
+                            'quantity' => (float)$item->quantity,
+                            'code' => $item->item_code ?? '',
+                            'number_serial_first' => $item->number_serial_first ?? '',
+                            'number_serial_second' => $item->number_serial_second ?? '',
+                            'is_active' => true,
+                        ];
+                    }
                 }
             }
             if (empty($this->details)) {
                 $this->addDetail();
             }
+
+            // Load supporting materials
+            $this->loadSupportingMaterials($this->typeId);
         } else {
             // Create mode
-            $this->code = Reception::generateCode();
+            $this->code = ''; // Users input this manually (Nomor SPPM)
             $this->date = now()->format('Y-m-d');
+            $this->sppm_date = now()->format('Y-m-d');
+            
+            // Generate auto BAPPM number template
+            $year = date('Y');
+            $monthRoman = $this->getRomanMonth(date('n'));
+            $this->bappm_number = 'BAPPM /       /' . $monthRoman . '/' . $year . '/Ditlantas';
+
+            // Set default komisi & pejabat TNKB
+            $this->commission_member_1_name = 'YANTO MULYANTO P, S.H., S.I.K., M.H., M.Si.';
+            $this->commission_member_1_rank = 'AKBP';
+            $this->commission_member_1_nip = '86052014';
+            $this->commission_member_1_position = 'KASUBDIT REGIDENT';
+
+            $this->commission_member_2_name = 'MADE DAMENDRA, S.H.';
+            $this->commission_member_2_rank = 'IPTU';
+            $this->commission_member_2_nip = '84071376';
+            $this->commission_member_2_position = 'PAMIN I FASMAT SBST';
+
+            $this->commission_member_3_name = 'PUJI ISWANTO, S.H.';
+            $this->commission_member_3_rank = 'AIPTU';
+            $this->commission_member_3_nip = '76080941';
+            $this->commission_member_3_position = 'BAUR FASMAT SBST';
+
+            $this->kasi_fasmat_name = 'AYIP RIZAL, S.E., M.M.';
+            $this->kasi_fasmat_rank = 'KOMPOL';
+            $this->kasi_fasmat_nip = '84091823';
+
+            $this->ordonatur_name = 'IWAN SAKTIADI, S.I.K., M.M., M.Si';
+            $this->ordonatur_rank = 'BRIGADIR JENDERAL POLISI';
 
             // Role-based: auto-fill regional_police_id for Polda
             if ($user->hasRole('Polda')) {
@@ -119,6 +204,47 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->type = 'penerimaan';
 
             $this->addDetail();
+        }
+    }
+
+    private function getRomanMonth($month)
+    {
+        $map = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+        return $map[$month] ?? 'I';
+    }
+
+    public function loadSupportingMaterials($typeId)
+    {
+        if (!$typeId) {
+            $this->supportingMaterials = [];
+            return;
+        }
+
+        $children = Type::where('parent_id', $typeId)->where('is_active', true)->orderBy('name')->get();
+        
+        $existingItems = [];
+        if ($this->isEditMode) {
+            $reception = Reception::with(['receptionDetails.receptionDetailItems'])->find($this->receptionId);
+            if ($reception) {
+                foreach ($reception->receptionDetails as $detail) {
+                    foreach ($detail->receptionDetailItems as $item) {
+                        if ($item->type_id && $item->type_id !== $typeId) {
+                            $existingItems[$item->type_id] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->supportingMaterials = [];
+        foreach ($children as $child) {
+            $existing = $existingItems[$child->id] ?? null;
+            $this->supportingMaterials[] = [
+                'type_id' => $child->id,
+                'name' => $child->name,
+                'quantity' => $existing ? (float)$existing->quantity : 0,
+                'description' => $existing ? $existing->description : '',
+            ];
         }
     }
 
@@ -162,7 +288,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             }
         }
     }
-
+ 
     public function updatedTypeId($value)
     {
         if ($value) {
@@ -170,11 +296,13 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->is_type_detail = $typeRef ? $typeRef->typeDetails->isNotEmpty() : false;
             $this->is_with_serial_number = $typeRef ? $typeRef->is_with_serial_number : false;
             $this->loadTypeData($value);
+            $this->loadSupportingMaterials($value);
         } else {
             $this->is_type_detail = false;
             $this->is_with_serial_number = false;
             $this->typeDetails = [];
             $this->services = [];
+            $this->supportingMaterials = [];
         }
 
         // Clear existing details when type changes
@@ -286,12 +414,37 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         $user = Auth::user();
 
         $rules = [
+            'code' => 'required|string|max:255|unique:receptions,code,' . ($this->receptionId ?? 'NULL') . ',id',
             'name' => 'nullable|string|max:255',
             'date' => 'required|date',
+            'sppm_date' => 'required|date',
+            'bappm_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:stock-awal,penerimaan',
             'typeId' => 'required|exists:types,id',
             'is_active' => 'boolean',
+
+            // Commission members
+            'commission_member_1_name' => 'nullable|string|max:255',
+            'commission_member_1_rank' => 'nullable|string|max:255',
+            'commission_member_1_nip' => 'nullable|string|max:255',
+            'commission_member_1_position' => 'nullable|string|max:255',
+            'commission_member_2_name' => 'nullable|string|max:255',
+            'commission_member_2_rank' => 'nullable|string|max:255',
+            'commission_member_2_nip' => 'nullable|string|max:255',
+            'commission_member_2_position' => 'nullable|string|max:255',
+            'commission_member_3_name' => 'nullable|string|max:255',
+            'commission_member_3_rank' => 'nullable|string|max:255',
+            'commission_member_3_nip' => 'nullable|string|max:255',
+            'commission_member_3_position' => 'nullable|string|max:255',
+
+            // Pejabat
+            'kasi_fasmat_name' => 'nullable|string|max:255',
+            'kasi_fasmat_rank' => 'nullable|string|max:255',
+            'kasi_fasmat_nip' => 'nullable|string|max:255',
+            'ordonatur_name' => 'nullable|string|max:255',
+            'ordonatur_rank' => 'nullable|string|max:255',
+
             // Flat array validation structure
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
             'details.*.service_id' => 'nullable|exists:services,id',
@@ -300,6 +453,9 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
+
+            // Supporting materials validation
+            'supportingMaterials.*.quantity' => 'nullable|numeric|min:0',
         ];
 
         // Admin can select regional_police_id, Polda uses their own
@@ -317,8 +473,11 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     protected function messages()
     {
         return [
+            'code.required' => 'Nomor SPPM wajib diisi.',
+            'code.unique' => 'Nomor SPPM sudah terdaftar.',
             'name.required' => 'Nama wajib diisi.',
-            'date.required' => 'Tanggal wajib diisi.',
+            'date.required' => 'Tanggal BAPPM wajib diisi.',
+            'sppm_date.required' => 'Tanggal SPPM wajib diisi.',
             'type.required' => 'Tipe wajib dipilih.',
             'typeId.required' => 'Material wajib dipilih.',
             'regionalPoliceId.required' => 'Polda wajib dipilih.',
@@ -355,20 +514,51 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $data = [
                 'name' => $this->name,
                 'date' => $this->date,
+                'sppm_date' => $this->sppm_date ?: null,
+                'bappm_number' => $this->bappm_number ?: null,
                 'type' => $this->type,
                 'type_id' => $this->typeId,
                 'regional_police_id' => $this->regionalPoliceId,
                 'police_station_id' => $this->policeStationId,
                 'description' => $this->description,
                 'is_active' => $this->is_active,
+
+                // Commission members
+                'commission_member_1_name' => $this->commission_member_1_name ?: null,
+                'commission_member_1_rank' => $this->commission_member_1_rank ?: null,
+                'commission_member_1_nip' => $this->commission_member_1_nip ?: null,
+                'commission_member_1_position' => $this->commission_member_1_position ?: null,
+
+                'commission_member_2_name' => $this->commission_member_2_name ?: null,
+                'commission_member_2_rank' => $this->commission_member_2_rank ?: null,
+                'commission_member_2_nip' => $this->commission_member_2_nip ?: null,
+                'commission_member_2_position' => $this->commission_member_2_position ?: null,
+
+                'commission_member_3_name' => $this->commission_member_3_name ?: null,
+                'commission_member_3_rank' => $this->commission_member_3_rank ?: null,
+                'commission_member_3_nip' => $this->commission_member_3_nip ?: null,
+                'commission_member_3_position' => $this->commission_member_3_position ?: null,
+
+                // Kasi Fasmat
+                'kasi_fasmat_name' => $this->kasi_fasmat_name ?: null,
+                'kasi_fasmat_rank' => $this->kasi_fasmat_rank ?: null,
+                'kasi_fasmat_nip' => $this->kasi_fasmat_nip ?: null,
+
+                // Ordonatur
+                'ordonatur_name' => $this->ordonatur_name ?: null,
+                'ordonatur_rank' => $this->ordonatur_rank ?: null,
             ];
 
             if ($this->isEditMode) {
                 // Update existing record
                 $reception = Reception::findOrFail($this->receptionId);
+                $data['code'] = $this->code;
                 $reception->update($data);
 
-                // Delete existing details
+                // Delete existing details and let StockService revert stocks
+                $stockService = new StockService();
+                $stockService->deleteReceptionStock($reception);
+                
                 $reception->receptionDetails()->delete();
             } else {
                 // Create new record
@@ -377,6 +567,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             }
 
             // Create a single ReceptionDetail parent for this reception
+            $totalQuantity = collect($this->details)->sum('quantity') + collect($this->supportingMaterials)->sum('quantity');
             $receptionDetail = ReceptionDetail::create([
                 'reception_id' => $reception->id,
                 'type_id' => $this->typeId ?: null,
@@ -384,13 +575,21 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                 'code' => null,
                 'number_serial_first' => null,
                 'number_serial_second' => null,
-                'quantity' => collect($this->details)->sum('quantity'),
+                'quantity' => $totalQuantity,
                 'description' => $this->description ?? '',
                 'is_active' => true,
             ]);
 
-            // Create detail items
+            // Create main detail items
             foreach ($this->details as $payload) {
+                if (($payload['quantity'] ?? 0) > 0) {
+                    $payload['type_id'] = $this->typeId;
+                    $this->createDetailItemAndHistory($reception, $receptionDetail, $payload);
+                }
+            }
+
+            // Create supporting detail items
+            foreach ($this->supportingMaterials as $payload) {
                 if (($payload['quantity'] ?? 0) > 0) {
                     $this->createDetailItemAndHistory($reception, $receptionDetail, $payload);
                 }
@@ -398,7 +597,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
 
             // Process stock updates and history
             $stockService = new StockService();
-            $reception->load('receptionDetails'); // Reload to get fresh details
+            $reception->load('receptionDetails.receptionDetailItems'); // Reload to get fresh details
             $stockService->processReception($reception);
 
             DB::commit();
@@ -411,21 +610,12 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         }
     }
 
-    protected function processServiceItems($reception, $receptionDetail, $detail)
-    {
-        foreach ($detail['service_items'] as $itemData) {
-            $this->createDetailItemAndHistory(
-                $reception, $receptionDetail, $detail, 
-                $itemData
-            );
-        }
-    }
-
     protected function createDetailItemAndHistory($reception, $receptionDetail, $payload)
     {
         $quantity = $payload['quantity'] ?? 0;
         if ($quantity <= 0) return;
 
+        $typeId = !empty($payload['type_id']) ? $payload['type_id'] : $this->typeId;
         $typeDetailId = !empty($payload['type_detail_id']) ? $payload['type_detail_id'] : null;
         $serviceId = !empty($payload['service_id']) ? $payload['service_id'] : null;
         $serviceDetailId = !empty($payload['service_detail_id']) ? $payload['service_detail_id'] : null;
@@ -438,7 +628,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             'reception_detail_id' => $receptionDetail->id,
             'service_id' => $serviceId,
             'service_detail_id' => $serviceDetailId,
-            'type_id' => $this->typeId ?: null,
+            'type_id' => $typeId ?: null,
             'type_detail_id' => $typeDetailId,
             'item_code' => $code,
             'number_serial_first' => $sn1,
@@ -453,7 +643,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         HistoryStockDetail::create([
             'code' => $reception->code . '-' . uniqid(),
             'reception_detail_item_id' => $detailItem->id,
-            'type_id' => $this->typeId ?: null,
+            'type_id' => $typeId ?: null,
             'type_detail_id' => $typeDetailId,
             'service_id' => $serviceId,
             'service_detail_id' => $serviceDetailId,

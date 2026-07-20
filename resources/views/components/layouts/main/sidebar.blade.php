@@ -54,28 +54,12 @@
                         </a>
                     </div>
                 @endif
-                <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
-                        <a href="{{ route('menu-polda.rack-assignment') }}"
-                            class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                            <span
-                                class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                            Masukkan Ke Rak
-                        </a>
-                    </div> -->
-                <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
-                        <a href="{{ route('menu-polda.material-usage') }}"
-                            class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-usage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                            <span
-                                class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-usage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                            Material Digunakan
-                        </a>
-                    </div> -->
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a href="{{ route('menu-polda.material-damage') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                    <a href="{{ route('menu-polda.rack-assignment') }}"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Material Rusak
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.rack-assignment*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Masukkan Ke Rak
                     </a>
                 </div>
                 @if(in_array(Auth::user()->level_menu, [1, 2]))
@@ -88,30 +72,22 @@
                         </a>
                     </div>
                 @endif
-                <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
-                        <a href="{{ route('menu-polda.stock-opname') }}"
-                            class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                            <span
-                                class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.stock-opname*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                            Stock Opname
-                        </a>
-                    </div> -->
-                <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
-                        <a href="{{ route('menu-polda.mutation-stock') }}"
-                            class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.mutation-stock') || request()->routeIs('menu-polda.mutation-stock.create') || request()->routeIs('menu-polda.mutation-stock.edit') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                            <span
-                                class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.mutation-stock') || request()->routeIs('menu-polda.mutation-stock.create') || request()->routeIs('menu-polda.mutation-stock.edit') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                            Mutasi Stock
-                        </a>
-                    </div>
-                    <div x-show="open" x-collapse class="mt-1 space-y-1">
-                        <a href="{{ route('menu-polda.mutation-stock.receive') }}"
-                            class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.mutation-stock.receive*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                            <span
-                                class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.mutation-stock.receive*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                            Terima Mutasi Stock
-                        </a>
-                    </div> -->
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.material-subsidy') }}"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-subsidy*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-subsidy*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Subsidi Material
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('menu-polda.material-damage') }}"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.material-damage*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Material Rusak
+                    </a>
+                </div>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('menu-polda.stock') }}"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.stock') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
@@ -128,14 +104,6 @@
                         Riwayat Stock
                     </a>
                 </div>
-                <!-- <div x-show="open" x-collapse class="mt-1 space-y-1">
-                        <a href="{{ route('menu-polda.last-stock') }}"
-                            class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.last-stock', 'menu-polda.last-stock.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                            <span
-                                class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.last-stock', 'menu-polda.last-stock.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                            Tambah Stock Akhir
-                        </a>
-                    </div> -->
             </div>
         @endif
         @if (Auth::user()->hasRole(['Admin', 'Polres']))
@@ -323,17 +291,17 @@
                             class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.polres*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                         Stok Polres
                     </a>
-                    <a href="{{ route('stock.all') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.all*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.all*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Semua Stok
-                    </a>
                     <a href="{{ route('stock.history') }}"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.history*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
                             class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.history*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
                         Riwayat Stok
+                    </a>
+                    <a href="{{ route('stock.all') }}"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('stock.all*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('stock.all*') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Semua Stok
                     </a>
                 </div>
             </div>
@@ -406,6 +374,11 @@
                         class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('report.material-usage-detail') ? 'bg-white' : 'bg-blue-400' }}"></span>
                     Laporan Material Digunakan Detail
                 </a>
+                <a href="#"
+                    class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 text-blue-200 hover:bg-blue-700/50 hover:text-white">
+                    <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                    Laporan Material Subsidi
+                </a>
                 <a href="{{ route('report.material-damage') }}"
                     class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('report.material-damage') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                     <span
@@ -420,6 +393,53 @@
                 </a> -->
             </div>
         </div>
+
+        <!-- Kotak Pesan Section -->
+        @if (Auth::user()->hasRole(['Admin', 'Polda', 'Polres']))
+            <div class="pt-2" x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+                    <span>Kotak Pesan</span>
+                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="#"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 text-blue-200 hover:bg-blue-700/50 hover:text-white">
+                        <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                        Kotak Masuk
+                    </a>
+                    <a href="#"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 text-blue-200 hover:bg-blue-700/50 hover:text-white">
+                        <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                        Kotak Keluar
+                    </a>
+                </div>
+            </div>
+        @endif
+
+        <!-- Peraturan Section -->
+        @if (Auth::user()->hasRole(['Admin', 'Polda', 'Polres']))
+            <div class="pt-2" x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
+                    <span>Peraturan</span>
+                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="#"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 text-blue-200 hover:bg-blue-700/50 hover:text-white">
+                        <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                        List Aturan Aturan
+                    </a>
+                </div>
+            </div>
+        @endif
     </nav>
 
     <!-- User Profile (Fixed Bottom) -->

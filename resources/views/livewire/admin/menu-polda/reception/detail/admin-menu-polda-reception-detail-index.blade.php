@@ -38,66 +38,82 @@
             <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Utama</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                <!-- Code (Read-only) -->
+                <!-- Nomor SPPM Korlantas -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Kode <span class="text-red-500">*</span>
+                        Nomor SPPM Korlantas <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" wire:model="code" readonly
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
-                </div>
-
-                <!-- Type -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Tipe <span class="text-red-500">*</span>
-                    </label>
-
-                    <select
-                        wire:model="type"
-                        @disabled($receptionId)
-                        class="w-full px-3 py-2 text-sm rounded-lg
-                            border border-gray-200
-                            bg-white text-gray-700
-                            focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                            transition-all duration-200
-
-                            disabled:bg-gray-100
-                            disabled:text-gray-500
-                            disabled:border-gray-300
-                            disabled:cursor-not-allowed"
-                    >
-                        <option value="penerimaan">Penerimaan</option>
-                        <option value="stock-awal">Stock Awal</option>
-                    </select>
-
-                    @error('type')
+                    <input type="text" wire:model="code" placeholder="Contoh: SPPM/016/I/2026/KORLANTAS"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white">
+                    @error('code')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Date -->
+                <!-- Tanggal SPPM -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Tanggal <span class="text-red-500">*</span>
+                        Tanggal SPPM Korlantas <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" wire:model="date" @disabled($receptionId)
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed">
+                    <input type="date" wire:model="sppm_date"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white">
+                    @error('sppm_date')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Nomor BAPPM -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Nomor BAPPM <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" wire:model="bappm_number" placeholder="Contoh: BAPPM / 012 / V / 2026 / Ditlantas"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white">
+                    @error('bappm_number')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Tanggal BAPPM -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Tanggal BAPPM <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" wire:model="date"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white">
                     @error('date')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Name -->
+                <!-- Tipe -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Deskripsi
+                        Tipe <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" wire:model="name" @disabled($receptionId) placeholder="Masukkan deskripsi Penerimaan Barang"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed">
+                    <select wire:model="type" @disabled($receptionId)
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed">
+                        <option value="penerimaan">Penerimaan</option>
+                        <option value="stock-awal">Stock Awal</option>
+                    </select>
+                    @error('type')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
+                <!-- Name / Deskripsi -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Keterangan BAPPM
+                    </label>
+                    <input type="text" wire:model="name" placeholder="Contoh: Penerimaan TNKB Korlantas Tahap I"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white">
+                    @error('name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
+
             <div class="grid grid-cols-1 gap-6">
                 <!-- Regional Police -->
                 @if (auth()->user()->hasRole('Admin'))
@@ -107,13 +123,7 @@
                         </label>
                         @if ($canSelectRegionalPolice)
                             <div wire:ignore wire:key="select-regional-police-{{ rand() }}">
-                                <select
-                                    id="select-regional-police"
-                                    wire:model="regionalPoliceId"
-                                    @disabled($receptionId)
-                                    x-data
-                                    x-ref="input"
-                                    x-init="
+                                <select id="select-regional-police" wire:model="regionalPoliceId" @disabled($receptionId) x-data x-ref="input" x-init="
                                         const selectize = $($refs.input).selectize({
                                             dropdownParent: 'body',
                                             allowClear: true,
@@ -125,8 +135,7 @@
                                         if ($refs.input.disabled) {
                                             selectize.disable();
                                         }
-                                    "
-                                >
+                                    ">
                                     <option value="">-- Pilih Polda --</option>
                                     @foreach ($regionalPolices as $rp)
                                         <option value="{{ $rp->id }}">{{ $rp->name }}</option>
@@ -152,7 +161,7 @@
                             viewBox="0 0 20 20" fill="currentColor">
                             <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                         </svg>
-                        Material <span class="text-red-500">*</span>
+                        Material Utama <span class="text-red-500">*</span>
                     </label>
                     <div wire:ignore wire:key="select-type-global-{{ rand() }}">
                         <select id="select-type-global" @disabled($receptionId) x-data x-ref="input" x-init="
@@ -181,24 +190,127 @@
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>  
+            </div>
 
-                <!-- Description -->
-                <!-- <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Deskripsi (Opsional)
-                    </label>
-                    <textarea wire:model="description" rows="3" placeholder="Masukkan deskripsi (opsional)"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white"></textarea>
-                </div> -->
+            <!-- Accordion for Tim Komisi & Pejabat BAPPM -->
+            <div x-data="{ openKomisi: false }" class="mt-6 border border-gray-200 rounded-xl overflow-hidden">
+                <button type="button" @click="openKomisi = !openKomisi" class="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+                    <span class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Tim Komisi & Pejabat Penandatangan BAPPM (Klik untuk Ubah)
+                    </span>
+                    <svg class="h-5 w-5 text-gray-500 transition-transform duration-200" :class="openKomisi ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                
+                <div x-show="openKomisi" x-collapse class="p-4 bg-white border-t border-gray-100 space-y-6">
+                    <!-- Anggota 1 -->
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">Ketua Tim Komisi (Anggota 1)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                                <input type="text" wire:model="commission_member_1_name" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Pangkat</label>
+                                <input type="text" wire:model="commission_member_1_rank" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">NRP / NIP</label>
+                                <input type="text" wire:model="commission_member_1_nip" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Jabatan</label>
+                                <input type="text" wire:model="commission_member_1_position" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Is Active -->
-                <!-- <div class="flex items-center gap-3">
-                    <input type="checkbox" wire:model="is_active" id="is_active"
-                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                    <label for="is_active" class="text-sm font-semibold text-gray-700">
-                        Aktif
-                    </label>
-                </div> -->
+                    <!-- Anggota 2 -->
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">Anggota Tim Komisi (Anggota 2)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                                <input type="text" wire:model="commission_member_2_name" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Pangkat</label>
+                                <input type="text" wire:model="commission_member_2_rank" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">NRP / NIP</label>
+                                <input type="text" wire:model="commission_member_2_nip" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Jabatan</label>
+                                <input type="text" wire:model="commission_member_2_position" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anggota 3 -->
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">Anggota Tim Komisi (Anggota 3)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                                <input type="text" wire:model="commission_member_3_name" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Pangkat</label>
+                                <input type="text" wire:model="commission_member_3_rank" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">NRP / NIP</label>
+                                <input type="text" wire:model="commission_member_3_nip" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Jabatan</label>
+                                <input type="text" wire:model="commission_member_3_position" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kasi Fasmat & Ordonatur -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                        <div>
+                            <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">KASI FASMAT SBST</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                                    <input type="text" wire:model="kasi_fasmat_name" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Pangkat</label>
+                                    <input type="text" wire:model="kasi_fasmat_rank" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">NRP / NIP</label>
+                                    <input type="text" wire:model="kasi_fasmat_nip" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">ORDONATUR (DIREKTUR LALU LINTAS)</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
+                                    <input type="text" wire:model="ordonatur_name" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Pangkat</label>
+                                    <input type="text" wire:model="ordonatur_rank" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -207,14 +319,14 @@
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Detail Item Barang</h2>
+                <h2 class="text-xl font-bold text-gray-900">Detail Item Barang (Material Utama)</h2>
                 @if (!$receptionId)
                     <button wire:click="addDetail" type="button"
                         class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
-                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                clip-rule="evenodd" />
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
                         </svg>
                         Tambah Item
                     </button>
@@ -338,6 +450,45 @@
             @endif
         </div>
     </div>
+
+    <!-- Materiil Pendukung Card (Conditionally Rendered) -->
+    @if (count($supportingMaterials) > 0)
+        <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden mt-6">
+            <div class="p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Materiil Pendukung
+                </h2>
+                <p class="text-sm text-gray-500 mb-6">Materiil pendukung untuk material utama yang dipilih. Input jumlah untuk menambahkan ke stock.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @foreach ($supportingMaterials as $index => $sm)
+                        <div class="p-4 border border-gray-100 rounded-xl bg-gray-50/50 flex flex-col justify-between" wire:key="support-{{ $index }}">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="font-bold text-gray-900 text-sm">{{ $sm['name'] }}</span>
+                                <span class="text-xs px-2 py-0.5 bg-green-50 text-green-700 font-semibold rounded-full border border-green-200">Pendukung</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="col-span-1">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Jumlah (Qty)</label>
+                                    <input type="number" min="0" step="0.01" wire:model.live="supportingMaterials.{{ $index }}.quantity" placeholder="0" @disabled($receptionId)
+                                        class="w-full px-2 py-1.5 text-xs font-bold text-center rounded border border-green-300 focus:border-green-500 bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Keterangan / Catatan</label>
+                                    <input type="text" wire:model.blur="supportingMaterials.{{ $index }}.description" placeholder="Catatan (opsional)" @disabled($receptionId)
+                                        class="w-full px-2 py-1.5 text-xs rounded border border-gray-200 focus:border-green-500 bg-white disabled:bg-gray-100 disabled:text-gray-400">
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Action Buttons -->
     <div class="mt-6 flex items-center justify-end gap-3">

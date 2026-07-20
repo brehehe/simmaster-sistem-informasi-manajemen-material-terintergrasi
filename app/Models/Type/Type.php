@@ -22,6 +22,16 @@ class Type extends Model
         return $this->hasMany(TypeDetail::class);
     }
 
+    public function parent()
+    {
+        return $this->belongsTo(Type::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Type::class, 'parent_id');
+    }
+
     public function stocks()
     {
         return $this->hasMany(\App\Models\Stock\Stock::class);

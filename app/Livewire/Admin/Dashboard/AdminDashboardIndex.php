@@ -6,6 +6,7 @@ use App\Models\LastStock\LastStock;
 use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
+use App\Models\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
 use App\Models\Police\RegionalPolice;
 use App\Models\Reception\Reception;
 use App\Models\Stock\HistoryStock;
@@ -111,6 +112,15 @@ class AdminDashboardIndex extends Component
             ->take(5)
             ->get();
 
+        // Subsidi Material Statistics
+        $totalSubsidies = MaterialSubsidy::where('is_active', true)->count();
+        $totalSubsidiesConfirmed = MaterialSubsidy::where('is_active', true)->where('status', 'confirmed')->count();
+        $recentSubsidies = MaterialSubsidy::with(['regionalPolice'])
+            ->where('is_active', true)
+            ->latest('subsidy_date')
+            ->take(5)
+            ->get();
+
         // NEW: Type Distribution
         $typeDistribution = $this->getTypeDistribution();
 
@@ -158,6 +168,27 @@ class AdminDashboardIndex extends Component
             'percentage' => $targetRenbut > 0 ? round(($realizedGunmat / $targetRenbut) * 100, 1) : 0,
         ];
 
+        $warehouseRacks = \App\Models\Rack\Rack::whereNotNull('regional_police_id')
+            ->whereNull('police_station_id')
+            ->with(['stockDetails.type'])
+            ->get()
+            ->map(function ($rack) {
+                $items = $rack->stockDetails->groupBy('type_id')->map(function ($details) {
+                    $first = $details->first();
+                    return [
+                        'name' => $first->type?->name ?? 'Unknown',
+                        'quantity' => (int)$details->sum('quantity'),
+                    ];
+                })->values();
+
+                return [
+                    'name' => $rack->name,
+                    'description' => $rack->description,
+                    'items' => $items,
+                    'total_quantity' => $items->sum('quantity'),
+                ];
+            });
+
         return view('livewire.admin.dashboard.admin-dashboard-index', [
             'totalReceptions' => $totalReceptions,
             'totalStockPolda' => $totalStockPolda,
@@ -180,6 +211,10 @@ class AdminDashboardIndex extends Component
             'pnbpStats' => $pnbpStats,
             'renbutStats' => $renbutStats,
             'activeTargetYear' => $activeTarget ? $activeTarget->year : now()->year,
+            'warehouseRacks' => $warehouseRacks,
+            'totalSubsidies' => $totalSubsidies,
+            'totalSubsidiesConfirmed' => $totalSubsidiesConfirmed,
+            'recentSubsidies' => $recentSubsidies,
         ])->layout('components.layouts.main.app');
     }
 

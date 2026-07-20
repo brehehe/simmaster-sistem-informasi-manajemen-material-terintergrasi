@@ -195,7 +195,7 @@
                                 {{ number_format($assignment->quantity, 0) }}
                             </td>
                             <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                {{ $assignment->rackAssignment->policeStation->name }}
+                                {{ $assignment->rackAssignment->policeStation->name ?? ($assignment->rackAssignment->regionalPolice->name ?? '-') }}
                             </td>
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2">

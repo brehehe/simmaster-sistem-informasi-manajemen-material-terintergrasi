@@ -169,6 +169,14 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/material-damage/edit/{id}', 'MaterialDamage\\Detail\\AdminMenuPoldaMaterialDamageDetailIndex')
             ->name('menu-polda.material-damage.edit');
 
+        // Material Subsidy
+        Route::get('menu-polda/material-subsidy', 'MaterialSubsidy\\AdminMenuPoldaMaterialSubsidyIndex')
+            ->name('menu-polda.material-subsidy');
+        Route::get('menu-polda/material-subsidy/create', 'MaterialSubsidy\\Detail\\AdminMenuPoldaMaterialSubsidyDetailIndex')
+            ->name('menu-polda.material-subsidy.create');
+        Route::get('menu-polda/material-subsidy/edit/{id}', 'MaterialSubsidy\\Detail\\AdminMenuPoldaMaterialSubsidyDetailIndex')
+            ->name('menu-polda.material-subsidy.edit');
+
         // Material Shipment
         Route::get('menu-polda/material-shipment', 'MaterialShipment\\AdminMenuPoldaMaterialShipmentIndex')
             ->name('menu-polda.material-shipment');

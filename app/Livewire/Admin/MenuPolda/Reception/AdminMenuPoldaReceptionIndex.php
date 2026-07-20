@@ -166,6 +166,53 @@ class AdminMenuPoldaReceptionIndex extends Component
         }
     }
 
+    public function exportBappmPdf($id)
+    {
+        $reception = Reception::with([
+            'regionalPolice', 
+            'policeStation', 
+            'typeMaterial',
+            'receptionDetails.receptionDetailItems.type',
+            'receptionDetails.receptionDetailItems.typeDetail',
+            'receptionDetails.receptionDetailItems.service',
+            'receptionDetails.receptionDetailItems.serviceDetail'
+        ])->findOrFail($id);
+
+        $groupedItems = $reception->getGroupedItems();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('livewire.admin.menu-polda.reception.admin-menu-polda-reception-print', [
+            'reception' => $reception,
+            'receptionDetails' => $groupedItems,
+            'isPdf' => true,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'BAPPM-' . str_replace('/', '_', $reception->code) . '.pdf');
+    }
+
+    public function exportBappmExcel($id)
+    {
+        $reception = Reception::with([
+            'regionalPolice', 
+            'policeStation', 
+            'typeMaterial',
+            'receptionDetails.receptionDetailItems.type',
+            'receptionDetails.receptionDetailItems.typeDetail',
+            'receptionDetails.receptionDetailItems.service',
+            'receptionDetails.receptionDetailItems.serviceDetail'
+        ])->findOrFail($id);
+
+        $fileName = 'BAPPM-' . str_replace('/', '_', $reception->code) . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\BappmExport($reception),
+            $fileName
+        );
+    }
+
     public function render()
     {
         $user = Auth::user();
