@@ -279,6 +279,10 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polres.stock-opname.edit');
         Route::get('menu-polres/stock-opname/detail/{id}', 'StockOpname\\Detail\\AdminMenuPolresStockOpnameDetailIndex')
             ->name('menu-polres.stock-opname.detail');
+
+        // Live Warehouse TV Monitor Display
+        Route::get('warehouse/display', '\\App\\Livewire\\Warehouse\\WarehouseDisplayIndex')
+            ->name('warehouse.display');
     });
 
     Route::group(['namespace' => 'Stock'], function () {

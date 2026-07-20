@@ -213,6 +213,13 @@
                     </a>
                 </div>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
+                    <a href="{{ route('warehouse.display') }}" target="_blank"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 text-cyan-300 hover:bg-cyan-600/30 hover:text-white border border-cyan-500/20">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        🖥️ Live Monitor Gudang (TV)
+                    </a>
+                </div>
+                <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a  href="{{ route('menu-polres.peraturan') }}"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.peraturan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
