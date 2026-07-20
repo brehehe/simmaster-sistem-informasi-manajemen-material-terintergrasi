@@ -20,6 +20,16 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
     Route::get('dashboard', 'Dashboard\\AdminDashboardIndex')
         ->name('dashboard');
 
+    // Kotak Pesan & Notifikasi Routes
+    Route::get('dashboard/kotak-pesan', Message\AdminMessageIndex::class)->name('dashboard.kotak-pesan');
+    Route::get('menu-polda/kotak-pesan', Message\AdminMessageIndex::class)->name('menu-polda.kotak-pesan');
+    Route::get('menu-polres/kotak-pesan', Message\AdminMessageIndex::class)->name('menu-polres.kotak-pesan');
+
+    // Database Peraturan Routes
+    Route::get('dashboard/peraturan', Regulation\AdminRegulationIndex::class)->name('dashboard.peraturan');
+    Route::get('menu-polda/peraturan', Regulation\AdminRegulationIndex::class)->name('menu-polda.peraturan');
+    Route::get('menu-polres/peraturan', Regulation\AdminRegulationIndex::class)->name('menu-polres.peraturan');
+
     Route::group(['namespace' => 'Master'], function () {
         Route::get('master/regional-police', 'RegionalPolice\\AdminMasterRegionalPoliceIndex')
             ->name('master.regional-police');
@@ -103,6 +113,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
 
         Route::get('report/material-damage', 'MaterialDamage\\AdminReportMaterialDamageIndex')
             ->name('report.material-damage');
+
+        Route::get('report/material-subsidy', 'MaterialSubsidy\\AdminReportMaterialSubsidyIndex')
+            ->name('report.material-subsidy');
 
         Route::get('report/mutation', 'Mutation\\AdminReportMutationIndex')
             ->name('report.mutation');
@@ -231,8 +244,8 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polres/rack-assignment/edit/{id}', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
             ->name('menu-polres.rack-assignment.edit');
 
-        // Material Usage
-        Route::get('menu-polres/material-usage', 'MaterialUsage\\AdminMenuPolresMaterialUsageIndex')
+        // Material Usage (Directly opens Input Material Digunakan form)
+        Route::get('menu-polres/material-usage', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage');
         Route::get('menu-polres/material-usage-detail', 'MaterialUsageDetail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage-detail');
@@ -248,6 +261,10 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polres.material-damage.create');
         Route::get('menu-polres/material-damage/edit/{id}', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
             ->name('menu-polres.material-damage.edit');
+
+        // Material Subsidy
+        Route::get('menu-polres/material-subsidy', '\\App\\Livewire\\Admin\\MenuPolda\\MaterialSubsidy\\AdminMenuPoldaMaterialSubsidyIndex')
+            ->name('menu-polres.material-subsidy');
 
         // Stock Opname
         Route::get('menu-polres/stock-opname', 'StockOpname\\AdminMenuPolresStockOpnameIndex')
@@ -295,8 +312,10 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
     // Material Shipment - Receive
     Route::get('menu-polres/material-shipment/receive', 'MaterialShipment\\PolresMenuPolresMaterialShipmentReceiveIndex')
         ->name('menu-polres.material-shipment.receive');
+    Route::get('menu-polres/penerimaan-material', 'MaterialShipment\\PolresMenuPolresMaterialShipmentReceiveIndex');
     Route::get('menu-polres/material-shipment/receive/{id}', 'MaterialShipment\\PolresMenuPolresMaterialShipmentReceiveDetail')
         ->name('menu-polres.material-shipment.receive.detail');
+    Route::get('menu-polres/penerimaan-material/detil-pengiriman/{id}', 'MaterialShipment\\PolresMenuPolresMaterialShipmentReceiveDetail');
 
     // Mutation Stock - Receive
     Route::get('menu-polres/mutation-stock/receive', 'MutationStock\\PolresMenuPolresMutationStockReceiveIndex')
@@ -326,6 +345,8 @@ Route::post('/logout', function () {
 })->name('logout');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('dashboard/peraturan/download/{id}', [App\Http\Controllers\RegulationController::class, 'download'])->name('peraturan.download');
+
     Route::redirect('settings', 'settings/profile');
 
     Route::get('settings/profile', Profile::class)->name('profile.edit');

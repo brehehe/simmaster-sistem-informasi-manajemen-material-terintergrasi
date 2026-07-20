@@ -156,7 +156,7 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <a href="{{ route('menu-polres.mutation-stock.receive.detail', ['id' => $mutation->id]) }}"
-                                    wire:navigate
+                                    
                                     class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors font-medium text-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                         fill="currentColor">
@@ -308,7 +308,7 @@
         });
 
         // Reinitialize when page loaded via Livewire
-        document.addEventListener('livewire:navigated', () => {
+        document.addEventListener('lived', () => {
             console.log('Livewire navigated - reset scanner state');
             html5QrCode = null;
             isScanning = false;

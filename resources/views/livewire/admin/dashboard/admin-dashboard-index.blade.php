@@ -200,9 +200,187 @@
         </div>
     @endif
 
-    <!-- ========================================================================= -->
-    <!-- KELOMPOK 1: ANEV PNBP & RENCANA KEBUTUHAN (RENBUT) -->
-    <!-- ========================================================================= -->
+    @if($isPolres && $polresDashboardData)
+        <!-- ========================================================================= -->
+        <!-- DASHBOARD POLRES (KASLAN / KRI MONEV PENGAWASAN) -->
+        <!-- ========================================================================= -->
+        <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-800 text-white shadow-xl">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 text-xs font-semibold mb-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Dashboard Pengawasan & Monev Pimpinan (Kaslan / KRI)
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">{{ $polresDashboardData['police_station'] }}</h2>
+                    <p class="text-blue-200 text-sm mt-1">Sisa stok material PNBP, penggunaan hari ini, dan pengawasan material rusak</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 text-right">
+                    <p class="text-xs text-blue-200">Tanggal Hari Ini</p>
+                    <p class="text-sm font-bold text-white">{{ now()->locale('id')->isoFormat('D MMMM Y') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. STOCK MATERIAL PNBP PER RAK / DOKUMEN -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="h-6 w-1.5 bg-blue-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-gray-900">Stock Material (Sisa Stok PNBP)</h3>
+                </div>
+                <span class="text-xs text-gray-500 italic">* Khusus Material PNBP Polres</span>
+            </div>
+
+            <!-- Material PNBP Stock Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                @forelse($polresDashboardData['stock_by_material'] as $index => $item)
+                    @php
+                        $bgGradients = [
+                            'bg-gradient-to-br from-blue-700 to-indigo-800',
+                            'bg-gradient-to-br from-indigo-700 to-blue-900',
+                            'bg-gradient-to-br from-blue-800 to-cyan-800',
+                            'bg-gradient-to-br from-blue-900 to-slate-900',
+                        ];
+                        $bgClass = $bgGradients[$index % count($bgGradients)];
+                    @endphp
+                    <div class="relative overflow-hidden rounded-2xl {{ $bgClass }} p-6 text-white shadow-lg transition-transform hover:scale-[1.02]">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-blue-200">Sisa Stok</span>
+                                <h4 class="text-xl font-extrabold text-white mt-1">{{ $item['type_name'] }}</h4>
+                            </div>
+                            <div class="bg-white/20 p-3 rounded-xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-white/20 flex items-baseline justify-between">
+                            <span class="text-3xl font-black text-white">{{ number_format($item['total_stock'], 0, ',', '.') }}</span>
+                            <span class="text-xs text-blue-200 font-medium">unit</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-4 p-8 bg-white rounded-2xl border border-gray-100 text-center text-gray-500">
+                        Belum ada data stok material PNBP di Polres ini
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Breakdown Per Rak jika ada -->
+            @if(count($polresDashboardData['racks']) > 0)
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                    <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">Penataan Rak Material</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        @foreach($polresDashboardData['racks'] as $rack)
+                            <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-bold text-blue-900">{{ $rack['name'] }}</span>
+                                    <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full">{{ number_format($rack['total_quantity']) }} unit</span>
+                                </div>
+                                <div class="space-y-1 mt-2">
+                                    @foreach($rack['items'] as $item)
+                                        <div class="flex items-center justify-between text-xs text-gray-600">
+                                            <span>{{ $item['name'] }}:</span>
+                                            <span class="font-semibold text-gray-900">{{ number_format($item['quantity']) }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <!-- 2. PENGGUNAAN HARI INI -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="h-6 w-1.5 bg-emerald-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-gray-900">Penggunaan Hari Ini</h3>
+                </div>
+                <span class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                    {{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                @forelse($polresDashboardData['today_usage'] as $usage)
+                    <div class="bg-white rounded-2xl p-5 shadow-md border border-emerald-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase">{{ $usage['type_name'] }}</p>
+                            <p class="text-2xl font-extrabold text-emerald-700 mt-1">{{ number_format($usage['quantity_today'], 0, ',', '.') }}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">digunakan hari ini</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-4 p-6 bg-white rounded-2xl border border-gray-100 text-center text-gray-400">
+                        Belum ada transaksi penggunaan material hari ini
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- 3. MATERIAL RUSAK & RECEIVINGS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Material Rusak Summary -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <h4 class="font-bold text-gray-900">Ringkasan Material Rusak</h4>
+                    </div>
+                    <span class="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">Total: {{ number_format($polresDashboardData['damage_total']) }}</span>
+                </div>
+
+                <div class="space-y-3">
+                    @forelse($polresDashboardData['damage_by_material'] as $dmg)
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-red-50/50 border border-red-100">
+                            <span class="text-sm font-semibold text-gray-800">{{ $dmg['type_name'] }}</span>
+                            <span class="text-sm font-bold text-red-600">{{ number_format($dmg['quantity']) }} unit</span>
+                        </div>
+                    @empty
+                        <p class="text-sm text-gray-400 text-center py-4">Tidak ada laporan material rusak di Polres</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Penerimaan Terbaru dari Polda -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                        <h4 class="font-bold text-gray-900">Penerimaan Material Terbaru dari Polda</h4>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    @forelse($polresDashboardData['recent_receptions'] as $rec)
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-blue-50/50 border border-blue-100">
+                            <div>
+                                <p class="text-xs font-mono text-blue-700 font-bold">{{ $rec->code }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $rec->date ? $rec->date->format('d/m/Y') : '-' }}</p>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800">
+                                {{ $rec->receptionDetails->sum('quantity') }} unit
+                            </span>
+                        </div>
+                    @empty
+                        <p class="text-sm text-gray-400 text-center py-4">Belum ada penerimaan material dari Polda</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    @else
+        <!-- ========================================================================= -->
+        <!-- KELOMPOK 1: ANEV PNBP & RENCANA KEBUTUHAN (RENBUT) (POLDA / ADMIN) -->
+        <!-- ========================================================================= -->
     <div class="mb-10">
         <div class="flex items-center gap-3 mb-6">
             <div class="h-6 w-1.5 bg-blue-600 rounded-full"></div>
@@ -713,11 +891,12 @@
             </div>
         </div>
     @endif
+    @endif
 </div>
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initDashboardScripts() {
             const targetAchievementData = @json($targetAchievementChart);
             const targetAchievementPalette = [
                 '#2563eb',
@@ -1125,6 +1304,8 @@
                     }
                 });
             }
-        });
+        }
+        document.addEventListener('DOMContentLoaded', initDashboardScripts);
+        document.addEventListener('lived', initDashboardScripts);
     </script>
 @endpush

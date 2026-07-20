@@ -23,6 +23,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
     public string $code = '';
     public ?string $date = null;
     public ?string $policeStationId = null;
+    public string $status = 'approved';
     public string $description = '';
 
     // Global material selector
@@ -119,6 +120,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
         $this->code = $materialDamage->code;
         $this->date = $materialDamage->date->format('Y-m-d');
         $this->policeStationId = $materialDamage->police_station_id;
+        $this->status = $materialDamage->status ?? 'approved';
         $this->description = $materialDamage->description ?? '';
 
         if ($materialDamage->materialDamageDetails->isNotEmpty()) {
@@ -309,6 +311,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             'date' => 'required|date',
             'policeStationId' => 'required|exists:police_stations,id',
             'typeId' => 'required|exists:types,id',
+            'status' => 'required|in:reported,under_review,approved,disposed',
             'details' => 'required|array|min:1',
             'details.*.stock_detail_id' => 'required|exists:stock_details,id',
             'details.*.quantity' => 'required|numeric|min:1',
@@ -326,6 +329,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                     'code' => $this->code,
                     'date' => $this->date,
                     'police_station_id' => $this->policeStationId,
+                    'status' => $this->status,
                     'description' => $this->description,
                     'is_active' => true,
                 ];

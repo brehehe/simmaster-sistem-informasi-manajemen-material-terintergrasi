@@ -8,7 +8,7 @@
                 </h1>
                 <p class="text-gray-500 mt-1">Kelola data penerimaan barang</p>
             </div>
-            <a href="{{ route('menu-polda.reception.create') }}" wire:navigate
+            <a href="{{ route('menu-polda.reception.create') }}" 
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"

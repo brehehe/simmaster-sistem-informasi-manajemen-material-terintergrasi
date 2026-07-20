@@ -61,7 +61,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
 
         $user = Auth::user();
-        if ($user->hasRole('Polres')) {
+        if ($user->hasRole('Polres') || !empty($user->police_station_id)) {
             $this->policeStationId = $user->police_station_id;
         }
 
@@ -310,17 +310,14 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public function save()
     {
         $this->validate([
-            'code' => 'required|string|max:255',
             'date' => 'required|date',
             'policeStationId' => 'required|exists:police_stations,id',
             'typeId' => 'required|exists:types,id',
             'details' => 'required|array|min:1',
-            'details.*.stock_detail_id' => 'required|exists:stock_details,id',
             'details.*.quantity' => 'required|numeric|min:1',
             'details.*.usage_type' => 'required|string',
         ], [
             'typeId.required' => 'Material utama harus dipilih',
-            'details.*.stock_detail_id.required' => 'Barang harus dipilih',
             'details.*.quantity.min' => 'Jumlah minimal 1',
         ]);
 
@@ -398,10 +395,10 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
                 $this->stockService->processMaterialUsage($materialUsage);
 
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data material digunakan berhasil disimpan.');
+                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data material digunakan berhasil disimpan. PNBP & Gunmat di Dashboard Polda otomatis bertambah.');
             });
 
-            return $this->redirect(route('menu-polres.material-usage'), navigate: true);
+            return $this->redirect(route('menu-polres.material-usage.create'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

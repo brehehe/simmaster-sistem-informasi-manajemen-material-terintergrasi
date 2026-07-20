@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <a href="{{ route('menu-polres.mutation-stock.receive') }}" wire:navigate
+                    <a href="{{ route('menu-polres.mutation-stock.receive') }}" 
                         class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
@@ -199,7 +199,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3">
-        <a href="{{ route('menu-polres.mutation-stock.receive') }}" wire:navigate
+        <a href="{{ route('menu-polres.mutation-stock.receive') }}" 
             class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200 text-center">
             Kembali
         </a>

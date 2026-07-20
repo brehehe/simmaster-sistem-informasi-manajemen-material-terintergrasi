@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <a href="{{ route('menu-polda.material-shipment') }}" wire:navigate class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                    <a href="{{ route('menu-polda.material-shipment') }}"  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                         </svg>
@@ -287,7 +287,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 mt-8">
-        <a href="{{ route('menu-polda.material-shipment') }}" wire:navigate class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
+        <a href="{{ route('menu-polda.material-shipment') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
 
         @if (!$shipmentId)
             <button wire:click="save(false)" class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-center">💾 Simpan Draft</button>
@@ -299,7 +299,7 @@
 
     <script>
         // Clean up Selectize instances from body during Livewire updates
-        document.addEventListener('livewire:navigated', () => {
+        document.addEventListener('lived', () => {
             $('.selectize-dropdown').remove();
         });
     </script>

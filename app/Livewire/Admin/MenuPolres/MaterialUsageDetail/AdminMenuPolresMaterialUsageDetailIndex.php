@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\MenuPolres\MaterialUsageDetail;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Type\Type;
+use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
 use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
@@ -13,7 +14,6 @@ use App\Models\Type\TypeDetail;
 class AdminMenuPolresMaterialUsageDetailIndex extends Component
 {
     use WithPagination;
-
 
     #[Url]
     public $policeStationId = '';
@@ -24,21 +24,66 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     #[Url]
     public $typeDetailId = '';
 
+    #[Url]
+    public $dateFrom = '';
+
+    #[Url]
+    public $dateTo = '';
+
+    #[Url]
+    public $usageType = '';
+
+    public function mount()
+    {
+        // Default: tampilkan hari ini
+        if (!$this->dateFrom && !$this->dateTo) {
+            $this->dateFrom = now()->format('Y-m-d');
+            $this->dateTo   = now()->format('Y-m-d');
+        }
+    }
+
+    public function setDatePreset(string $preset)
+    {
+        match($preset) {
+            'today'      => [$this->dateFrom, $this->dateTo] = [now()->format('Y-m-d'), now()->format('Y-m-d')],
+            'yesterday'  => [$this->dateFrom, $this->dateTo] = [now()->subDay()->format('Y-m-d'), now()->subDay()->format('Y-m-d')],
+            'this_week'  => [$this->dateFrom, $this->dateTo] = [now()->startOfWeek()->format('Y-m-d'), now()->endOfWeek()->format('Y-m-d')],
+            'this_month' => [$this->dateFrom, $this->dateTo] = [now()->startOfMonth()->format('Y-m-d'), now()->endOfMonth()->format('Y-m-d')],
+            'all'        => [$this->dateFrom, $this->dateTo] = ['', ''],
+            default      => null,
+        };
+        $this->resetPage();
+    }
+
+    public function updatedPoliceStationId() { $this->resetPage(); }
+    public function updatedTypeId() { $this->resetPage(); }
+    public function updatedTypeDetailId() { $this->resetPage(); }
+    public function updatedDateFrom() { $this->resetPage(); }
+    public function updatedDateTo() { $this->resetPage(); }
+    public function updatedUsageType() { $this->resetPage(); }
+
     public function render()
     {
         $user = auth()->user();
-        $query = Type::query();
 
+        // Determine police station scope
+        $scopedPoliceStationId = null;
+        if ($user->hasRole('Admin') && $this->policeStationId) {
+            $scopedPoliceStationId = $this->policeStationId;
+        } elseif (!$user->hasRole('Admin')) {
+            $scopedPoliceStationId = $user->police_station_id;
+        }
+
+        // Type query
+        $typeQuery = Type::query();
         if ($user->userType && !empty($user->userType->types)) {
-            $query->whereIn('id', $user->userType->types);
+            $typeQuery->whereIn('id', $user->userType->types);
         }
-
-        // Filter Types query if specific type selected
         if ($this->typeId) {
-            $query->where('id', $this->typeId);
+            $typeQuery->where('id', $this->typeId);
         }
+        $types = $typeQuery->get();
 
-        $types = $query->get();
         $typeGroups = [];
 
         // Load filter options
@@ -57,66 +102,70 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         if ($this->typeId) {
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
-             // If no type selected, show all allowed type details? Or empty?
-             // Usually better to show relevant ones or empty. Let's show all allowed if feasible or just depend on type.
-             // For simplicity and performance, maybe fetch all allowed or let user select type first.
-             // Let's fetch all allowed type details if no type selected, but limited by user permission
-             $tdQuery = TypeDetail::query();
-             if ($user->userType && !empty($user->userType->types)) {
-                 $tdQuery->whereIn('type_id', $user->userType->types);
-             }
-             $typeDetails = $tdQuery->orderBy('name')->get();
+            $tdQuery = TypeDetail::query();
+            if ($user->userType && !empty($user->userType->types)) {
+                $tdQuery->whereIn('type_id', $user->userType->types);
+            }
+            $typeDetails = $tdQuery->orderBy('name')->get();
         }
 
+        // Count totals for summary header
+        $totalUsageCount = 0;
+        $totalQty        = 0;
 
         foreach ($types as $type) {
-            $details = MaterialUsageDetail::query()
-                ->whereHas('materialUsage', function ($q) use ($user) {
-                    if ($user->hasRole('Admin')) {
-                        if ($this->policeStationId) {
-                             $q->where('police_station_id', $this->policeStationId);
-                        }
-                    } else {
-                        // Strict check for non-admin
-                        $q->where('police_station_id', $user->police_station_id);
+            $detailQuery = MaterialUsageDetail::query()
+                ->whereHas('materialUsage', function ($q) use ($scopedPoliceStationId) {
+                    if ($scopedPoliceStationId) {
+                        $q->where('police_station_id', $scopedPoliceStationId);
+                    }
+                    if ($this->dateFrom) {
+                        $q->whereDate('date', '>=', $this->dateFrom);
+                    }
+                    if ($this->dateTo) {
+                        $q->whereDate('date', '<=', $this->dateTo);
                     }
                 })
-                ->when($this->typeDetailId, function($q) {
-                    $q->where('type_detail_id', $this->typeDetailId);
-                })
+                ->when($this->typeDetailId, fn($q) => $q->where('type_detail_id', $this->typeDetailId))
+                ->when($this->usageType, fn($q) => $q->where('usage_type', $this->usageType))
                 ->with([
                     'typeDetail',
                     'materialUsageDetailItems.service',
                     'materialUsageDetailItems.serviceDetail',
-                    'materialUsage.policeStation'
+                    'materialUsage.policeStation',
                 ])
                 ->where('type_id', $type->id)
-                ->paginate(5, ['*'], 'page_' . $type->id);
+                ->orderBy('created_at', 'desc');
 
-            // Fetch services for this specific type
+            $details = $detailQuery->paginate(10, ['*'], 'page_' . $type->id);
+
+            if ($details->isEmpty()) continue;
+
             $services = \App\Models\Service\Service::with(['details'])
-                ->where('type_id', $type->id)
-                ->get();
+                ->where('type_id', $type->id)->get();
 
-            // Check if type has type details
             $hasTypeDetails = $type->typeDetails()->exists();
 
-            // Only include types that have details
-            if ($details->isNotEmpty()) {
-                 $typeGroups[] = [
-                    'type' => $type,
-                    'details' => $details,
-                    'services' => $services,
-                    'hasTypeDetails' => $hasTypeDetails
-                ];
-            }
+            $groupTotalQty = $details->sum('quantity');
+            $totalQty      += $groupTotalQty;
+            $totalUsageCount += $details->total();
+
+            $typeGroups[] = [
+                'type'           => $type,
+                'details'        => $details,
+                'services'       => $services,
+                'hasTypeDetails' => $hasTypeDetails,
+                'groupTotalQty'  => $groupTotalQty,
+            ];
         }
 
         return view('livewire.admin.menu-polres.material-usage-detail.admin-menu-polres-material-usage-detail-index', [
-            'typeGroups' => $typeGroups,
-            'policeStations' => $policeStations,
-            'allTypes' => $allTypes,
-            'typeDetails' => $typeDetails
+            'typeGroups'      => $typeGroups,
+            'policeStations'  => $policeStations,
+            'allTypes'        => $allTypes,
+            'typeDetails'     => $typeDetails,
+            'totalUsageCount' => $totalUsageCount,
+            'totalQty'        => $totalQty,
         ])->layout('components.layouts.main.app');
     }
 }

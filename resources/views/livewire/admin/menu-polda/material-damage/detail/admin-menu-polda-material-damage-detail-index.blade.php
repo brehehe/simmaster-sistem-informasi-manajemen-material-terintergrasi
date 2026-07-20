@@ -8,7 +8,7 @@
                 </h1>
                 <p class="text-gray-500 mt-1">Kelola material rusak dengan tracking pengurangan stock (Batch)</p>
             </div>
-            <a href="{{ route('menu-polda.material-damage') }}" wire:navigate
+            <a href="{{ route('menu-polda.material-damage') }}" 
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -36,7 +36,7 @@
         <div class="p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Utama</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Kode <span class="text-red-500">*</span>
@@ -52,6 +52,22 @@
                     <input type="date" wire:model="date" @disabled($materialDamageId)
                         class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
                     @error('date')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Status Laporan <span class="text-red-500">*</span>
+                    </label>
+                    <select wire:model="status" @disabled($materialDamageId)
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
+                        <option value="approved">Disetujui</option>
+                        <option value="reported">Dilaporkan</option>
+                        <option value="under_review">Dalam Pemeriksaan</option>
+                        <option value="disposed">Dimusnahkan</option>
+                    </select>
+                    @error('status')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -317,7 +333,7 @@
 
     <!-- Action Buttons -->
     <div class="mt-6 flex items-center justify-end gap-3">
-        <a href="{{ route('menu-polda.material-damage') }}" wire:navigate
+        <a href="{{ route('menu-polda.material-damage') }}" 
             class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
             {{ $materialDamageId ? 'Kembali' : 'Batal' }}
         </a>

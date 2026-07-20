@@ -189,7 +189,100 @@ class AdminDashboardIndex extends Component
                 ];
             });
 
+        // Polres Specific Dashboard Data
+        $user = auth()->user();
+        $isPolres = $user->hasRole('Polres') || !empty($user->police_station_id);
+        $polresDashboardData = null;
+
+        if ($isPolres) {
+            $stationId = $user->police_station_id;
+
+            $polresRacks = \App\Models\Rack\Rack::where('police_station_id', $stationId)
+                ->with(['stockDetails.type'])
+                ->get()
+                ->map(function ($rack) {
+                    $items = $rack->stockDetails->groupBy('type_id')->map(function ($details) {
+                        $first = $details->first();
+                        return [
+                            'name' => $first->type?->name ?? 'Unknown',
+                            'quantity' => (int) $details->sum('quantity'),
+                        ];
+                    })->values();
+
+                    return [
+                        'name' => $rack->name,
+                        'description' => $rack->description,
+                        'items' => $items,
+                        'total_quantity' => $items->sum('quantity'),
+                    ];
+                });
+
+            $polresStockByMaterial = \App\Models\Stock\StockDetail::where('police_station_id', $stationId)
+                ->where('is_active', true)
+                ->with('type')
+                ->get()
+                ->groupBy('type_id')
+                ->map(function($details) {
+                    $first = $details->first();
+                    return [
+                        'type_name' => $first->type?->name ?? 'Material',
+                        'total_stock' => (int) $details->sum('quantity'),
+                    ];
+                })->values();
+
+            $todayUsageByMaterial = MaterialUsageDetail::whereHas('materialUsage', function($q) use ($stationId) {
+                    $q->where('police_station_id', $stationId)
+                      ->whereDate('date', today());
+                })
+                ->with('type')
+                ->get()
+                ->groupBy('type_id')
+                ->map(function($details) {
+                    $first = $details->first();
+                    return [
+                        'type_name' => $first->type?->name ?? 'Material',
+                        'quantity_today' => (int) $details->sum('quantity'),
+                    ];
+                })->values();
+
+            $polresMaterialDamageTotal = \App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail::whereHas('materialDamage', function($q) use ($stationId) {
+                    $q->where('police_station_id', $stationId);
+                })->sum('quantity') ?? 0;
+
+            $polresMaterialDamageByMaterial = \App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail::whereHas('materialDamage', function($q) use ($stationId) {
+                    $q->where('police_station_id', $stationId);
+                })
+                ->with('type')
+                ->get()
+                ->groupBy('type_id')
+                ->map(function($details) {
+                    $first = $details->first();
+                    return [
+                        'type_name' => $first->type?->name ?? 'Material',
+                        'quantity' => (int) $details->sum('quantity'),
+                    ];
+                })->values();
+
+            $recentPolresReceptions = Reception::where('police_station_id', $stationId)
+                ->with(['receptionDetails.type'])
+                ->latest('date')
+                ->take(5)
+                ->get();
+
+            $polresDashboardData = [
+                'police_station' => $user->policeStation?->name ?? 'Polres',
+                'racks' => $polresRacks,
+                'stock_by_material' => $polresStockByMaterial,
+                'today_usage' => $todayUsageByMaterial,
+                'damage_total' => $polresMaterialDamageTotal,
+                'damage_by_material' => $polresMaterialDamageByMaterial,
+                'recent_receptions' => $recentPolresReceptions,
+            ];
+        }
+
         return view('livewire.admin.dashboard.admin-dashboard-index', [
+            'isPolres' => $isPolres,
+            'polresDashboardData' => $polresDashboardData,
             'totalReceptions' => $totalReceptions,
             'totalStockPolda' => $totalStockPolda,
             'totalStockPolres' => $totalStockPolres,

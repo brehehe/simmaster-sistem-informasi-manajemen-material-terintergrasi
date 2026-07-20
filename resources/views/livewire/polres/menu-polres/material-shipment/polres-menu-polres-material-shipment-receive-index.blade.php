@@ -3,8 +3,8 @@
     <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-blue-600">Terima Material</h1>
-                <p class="text-gray-500 mt-1">Terima material yang dikirim dari Polda</p>
+                <h1 class="text-3xl font-bold text-blue-600">Penerimaan Material</h1>
+                <p class="text-gray-500 mt-1">Terima dan pantau pengiriman material SPPM yang dikirim dari Polda</p>
             </div>
         </div>
     </div>
@@ -34,7 +34,7 @@
 
     <!-- Search Card -->
     <div
-        class="bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl shadow-xl shadow-blue-200/50 border border-blue-100 overflow-hidden mb-6 p-6">
+        class="bg-gradient-to-br from-blue-50 to-blue-50/50 rounded-2xl shadow-xl shadow-blue-200/50 border border-blue-100 overflow-hidden mb-6 p-6">
         <div class="flex items-center gap-3 mb-4">
             <div class="p-3 rounded-xl bg-blue-500 text-white shadow-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -47,12 +47,12 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <!-- Manual Input -->
+            <!-- Manual Input Nomor SPPM -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Input Kode Pengiriman Manual</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Input Nomor SPPM Manual</label>
                 <div class="flex gap-2">
                     <input wire:model="searchCode" type="text"
-                        placeholder="Contoh: SHP-20251217-001"
+                        placeholder="Contoh: SPPM-2026-001 atau Kode Pengiriman..."
                         class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                         wire:keydown.enter="searchByCode">
                     <button wire:click="searchByCode" type="button"
@@ -84,111 +84,92 @@
         </div>
     </div>
 
-    <!-- Pending Shipments Table -->
+    <!-- Received Shipments Table -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-        <div class="p-4 border-b border-gray-100">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-gray-800">Pengiriman Diterima</h3>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-600">Tampilkan</span>
-                    <select wire:model.live="perPage"
-                        class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                    </select>
-                </div>
+        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-gray-800">Pengiriman Diterima</h3>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Tampilkan</span>
+                <select wire:model.live="perPage"
+                    class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                </select>
+                <span class="text-sm text-gray-600">data</span>
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tipe Material</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Detail Material</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No. Seri</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Qty</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Polres</th>
-                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
+                    <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th class="px-6 py-4 w-12 text-center">No</th>
+                        <th class="px-6 py-4">Kode SPPM</th>
+                        <th class="px-6 py-4">Tanggal</th>
+                        <th class="px-6 py-4">Waktu</th>
+                        <th class="px-6 py-4 text-center">Rendi (I, II, III, IV)</th>
+                        <th class="px-6 py-4 text-center">Status</th>
+                        <th class="px-6 py-4">Polres</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
-                    @forelse ($materialShipments as $index => $detail)
+                    @forelse ($materialShipments as $index => $shipment)
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                            <td class="px-6 py-4 text-sm text-gray-500 text-center">
                                 {{ $materialShipments->firstItem() + $index }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm font-medium text-blue-600">{{ $detail->materialShipment->code ?? '-' }}</span>
+                                <span class="text-sm font-bold font-mono text-blue-600">{{ $shipment->code }}</span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                {{ \Carbon\Carbon::parse($detail->materialShipment->shipment_date)->format('d M Y') }}
+                            <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                {{ $shipment->shipment_date ? \Carbon\Carbon::parse($shipment->shipment_date)->format('d M Y') : ($shipment->shipped_at ? \Carbon\Carbon::parse($shipment->shipped_at)->format('d M Y') : '-') }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                {{ $detail->type->name ?? '-' }}
+                            <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                {{ $shipment->shipped_at ? \Carbon\Carbon::parse($shipment->shipped_at)->format('H:i') : ($shipment->created_at ? \Carbon\Carbon::parse($shipment->created_at)->format('H:i') : '-') }} WIB
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                {{ $detail->typeDetail->name ?? '-' }}
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                                @php
+                                    $stage = $shipment->rendi_stage ?? ($shipment->status === 'received' ? 'Rendi IV' : 'Rendi II');
+                                @endphp
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    {{ $stage }}
+                                </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                                @if($detail->code)
-                                    <span class="text-xs text-gray-500 mb-1">{{ $detail->code }}</span>
-                                @endif
-                                <span>{{ $detail->number_serial_first }}</span>
-                                @if($detail->number_serial_second)
-                                    <span class="text-xs text-gray-500">{{ $detail->number_serial_second }}</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if ($detail->materialShipment->status === 'sent')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                                @if ($shipment->status === 'shipped' || $shipment->status === 'sent')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
                                         Dikirim
                                     </span>
-                                @elseif ($detail->materialShipment->status === 'received')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                @elseif ($shipment->status === 'received')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
                                         Diterima
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        {{ ucfirst($detail->materialShipment->status) }}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800">
+                                        {{ ucfirst($shipment->status) }}
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                {{ number_format($detail->quantity, 0) }}
-                            </td>
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                {{ $detail?->materialShipment?->receiverPoliceStation?->name }}
+                            <td class="px-6 py-4 text-sm text-gray-900 font-semibold whitespace-nowrap">
+                                {{ $shipment->receiverPoliceStation->name ?? '-' }}
                             </td>
                             <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('menu-polres.material-shipment.receive.detail', ['id' => $detail->material_shipment_id]) }}"
-                                       wire:navigate
-                                       class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                                       title="Detail">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </a>
-                                </div>
+                                <a  href="{{ route('menu-polres.material-shipment.receive.detail', ['id' => $shipment->id]) }}"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Detail
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-12 text-center whitespace-nowrap">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                </svg>
-                                <p class="text-gray-500 text-lg font-medium">Tidak ada data pengiriman</p>
-                                <p class="text-gray-400 text-sm mt-1">Belum ada data pengiriman yang diterima</p>
+                            <td colspan="8" class="px-6 py-10 text-center text-gray-500">
+                                Belum ada data pengiriman material diterima
                             </td>
                         </tr>
                     @endforelse
@@ -196,132 +177,8 @@
             </table>
         </div>
 
-
-        @if ($materialShipments->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-                {{ $materialShipments->links() }}
-            </div>
-        @endif
-    </div>
-
-    <!-- Barcode Scanner Modal -->
-    <div id="scannerModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen px-4">
-            <div class="fixed inset-0 transition-opacity bg-gray-900/70 backdrop-blur-sm" onclick="stopScanner()">
-            </div>
-            <div
-                class="relative inline-block w-full max-w-2xl p-6 my-8 text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-gray-900">Scan Barcode/QR Code</h3>
-                    <button onclick="stopScanner()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="reader" class="rounded-xl overflow-hidden border-2 border-blue-200"></div>
-                <p class="text-sm text-gray-500 mt-3 text-center">Arahkan kamera ke barcode atau QR code pengiriman</p>
-            </div>
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            {{ $materialShipments->links() }}
         </div>
     </div>
 </div>
-
-@push('scripts')
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script>
-        let html5QrCode = null;
-        let isScanning = false;
-
-        function startScanner() {
-            // Prevent multiple scanners
-            if (isScanning) {
-                console.log('Scanner already running');
-                return;
-            }
-
-            document.getElementById('scannerModal').classList.remove('hidden');
-
-            // Cleanup previous instance if exists
-            if (html5QrCode) {
-                try {
-                    html5QrCode.clear();
-                } catch (e) {
-                    console.log('Error clearing previous scanner:', e);
-                }
-                html5QrCode = null;
-            }
-
-            // Create new instance
-            html5QrCode = new Html5Qrcode("reader");
-            isScanning = true;
-
-            html5QrCode.start({
-                    facingMode: "environment"
-                }, // Use back camera
-                {
-                    fps: 10,
-                    qrbox: {
-                        width: 250,
-                        height: 250
-                    }
-                },
-                (decodedText) => {
-                    // Success callback
-                    console.log(`Scanned: ${decodedText}`);
-                    @this.set('searchCode', decodedText);
-                    @this.searchByCode();
-                    stopScanner();
-                },
-                (errorMessage) => {
-                    // Error callback (optional, can be ignored)
-                }
-            ).catch((err) => {
-                alert('Error starting camera: ' + err);
-                stopScanner();
-            });
-        }
-
-        function stopScanner() {
-            if (html5QrCode && isScanning) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                    isScanning = false;
-                    document.getElementById('scannerModal').classList.add('hidden');
-                }).catch((err) => {
-                    console.error('Error stopping scanner:', err);
-                    html5QrCode = null;
-                    isScanning = false;
-                    document.getElementById('scannerModal').classList.add('hidden');
-                });
-            } else {
-                isScanning = false;
-                document.getElementById('scannerModal').classList.add('hidden');
-            }
-        }
-
-        // Cleanup scanner when navigating away with Livewire
-        document.addEventListener('livewire:navigating', () => {
-            console.log('Livewire navigating - cleanup scanner');
-            if (html5QrCode && isScanning) {
-                try {
-                    html5QrCode.stop();
-                    html5QrCode.clear();
-                } catch (e) {
-                    console.log('Error during navigation cleanup:', e);
-                }
-                html5QrCode = null;
-                isScanning = false;
-            }
-        });
-
-        // Reinitialize when page loaded via Livewire
-        document.addEventListener('livewire:navigated', () => {
-            console.log('Livewire navigated - reset scanner state');
-            html5QrCode = null;
-            isScanning = false;
-        });
-    </script>
-@endpush

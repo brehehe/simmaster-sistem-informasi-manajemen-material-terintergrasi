@@ -8,7 +8,7 @@
                 </h1>
                 <p class="text-gray-500 mt-1">Kelola penggunaan material dengan tracking pengurangan stock (Batch)</p>
             </div>
-            <a href="{{ route('menu-polda.material-usage') }}" wire:navigate
+            <a href="{{ route('menu-polda.material-usage') }}" 
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -256,7 +256,7 @@
 
     <!-- Action Buttons -->
     <div class="mt-6 flex items-center justify-end gap-3">
-        <a href="{{ route('menu-polda.material-usage') }}" wire:navigate
+        <a href="{{ route('menu-polda.material-usage') }}" 
             class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
             Batal
         </a>

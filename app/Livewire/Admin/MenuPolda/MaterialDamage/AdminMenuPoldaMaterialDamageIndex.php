@@ -38,6 +38,9 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
     #[Url]
     public $typeDetailId = '';
 
+    #[Url]
+    public $filterStatus = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
         'startDate' => ['except' => null],
@@ -45,8 +48,14 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         'regionalPoliceId' => ['except' => null],
         'typeId' => ['except' => ''],
         'typeDetailId' => ['except' => ''],
+        'filterStatus' => ['except' => ''],
         'perPage' => ['except' => 10],
     ];
+
+    public function updatedFilterStatus()
+    {
+        $this->resetPage();
+    }
 
     public function updatedSearch()
     {
@@ -149,6 +158,10 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
             $query->whereHas('materialDamageDetails', function ($q) {
                 $q->where('type_detail_id', $this->typeDetailId);
             });
+        }
+
+        if ($this->filterStatus) {
+            $query->where('status', $this->filterStatus);
         }
 
         // Search

@@ -6,7 +6,7 @@
                 <h1 class="text-3xl font-bold text-blue-600">Masukkan Ke Rak</h1>
                 <p class="text-gray-500 mt-1">Kelola perpindahan material ke/antar rak</p>
             </div>
-            <a href="{{ route('menu-polda.rack-assignment.create') }}" wire:navigate
+            <a href="{{ route('menu-polda.rack-assignment.create') }}" 
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -126,7 +126,7 @@
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('menu-polda.rack-assignment.edit', $assignment->id) }}"
-                                        wire:navigate
+                                        
                                         class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
                                         title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"

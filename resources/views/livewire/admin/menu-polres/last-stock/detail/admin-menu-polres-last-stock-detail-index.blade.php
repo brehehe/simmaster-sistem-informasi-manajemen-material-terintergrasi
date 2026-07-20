@@ -8,7 +8,7 @@
                 </h1>
                 <p class="text-gray-500 mt-1">{{ $isEditMode ? 'Perbarui' : 'Buat' }} data Stock Awal</p>
             </div>
-            <a href="{{ route('menu-polres.last-stock') }}" wire:navigate
+            <a href="{{ route('menu-polres.last-stock') }}" 
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -315,7 +315,7 @@
     <!-- Action Buttons -->
     <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-4 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
         <div class="max-w-7xl mx-auto flex items-center justify-end gap-3 px-4">
-            <a href="{{ route('menu-polres.last-stock') }}" wire:navigate
+            <a href="{{ route('menu-polres.last-stock') }}" 
                 class="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
                 Batal
             </a>

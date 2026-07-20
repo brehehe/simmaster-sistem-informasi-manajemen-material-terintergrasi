@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <a href="{{ route('menu-polres.material-damage') }}" wire:navigate class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                    <a href="{{ route('menu-polres.material-damage') }}"  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                         </svg>
@@ -52,6 +52,17 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
                     <input type="date" wire:model="date" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
                     @error('date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status Laporan <span class="text-red-500">*</span></label>
+                    <select wire:model="status" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
+                        <option value="approved">Disetujui</option>
+                        <option value="reported">Dilaporkan</option>
+                        <option value="under_review">Dalam Pemeriksaan</option>
+                        <option value="disposed">Dimusnahkan</option>
+                    </select>
+                    @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 @if (Auth::user()->hasRole('Admin'))
@@ -289,7 +300,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 mt-4">
-        <a href="{{ route('menu-polres.material-damage') }}" wire:navigate class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
+        <a href="{{ route('menu-polres.material-damage') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
         @if (!$isEditMode)
             <button wire:click="save" type="button"
                 class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-red-600 to-red-700 rounded-xl hover:from-red-700 hover:to-red-800 shadow-xl shadow-red-500/30 transition-all transform hover:scale-105 text-center">
@@ -300,7 +311,7 @@
     </div>
 
     <script>
-        document.addEventListener('livewire:navigated', () => {
+        document.addEventListener('lived', () => {
             $('.selectize-dropdown').remove();
         });
     </script>

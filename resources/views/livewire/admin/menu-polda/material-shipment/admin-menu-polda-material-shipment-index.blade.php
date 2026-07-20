@@ -6,7 +6,7 @@
                 <h1 class="text-3xl font-bold text-blue-600">Pengiriman Material</h1>
                 <p class="text-gray-500 mt-1">Kelola pengiriman material dari Polda ke Polres</p>
             </div>
-            <a href="{{ route('menu-polda.material-shipment.create') }}" wire:navigate
+            <a href="{{ route('menu-polda.material-shipment.create') }}" 
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -227,7 +227,7 @@
 
                                     @if ($shipment->status === 'draft')
                                         <a href="{{ route('menu-polda.material-shipment.edit', ['id' => $shipment->id]) }}"
-                                            wire:navigate
+                                            
                                             class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
                                             title="Edit">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -256,7 +256,7 @@
                                             </svg>
                                         </button>
                                         <a href="{{ route('menu-polda.material-shipment.edit', $shipment->id) }}"
-                                            wire:navigate
+                                            
                                             class="p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
                                             title="Edit / View Form">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

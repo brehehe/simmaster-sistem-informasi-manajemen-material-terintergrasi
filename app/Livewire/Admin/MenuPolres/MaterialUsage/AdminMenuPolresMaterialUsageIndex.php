@@ -35,6 +35,11 @@ class AdminMenuPolresMaterialUsageIndex extends Component
     public $showDeleteModal = false;
     public $materialUsageId = null;
 
+    public function mount()
+    {
+        return $this->redirect(route('menu-polres.material-usage.create'), navigate: true);
+    }
+
     public function render()
     {
         $user = auth()->user();

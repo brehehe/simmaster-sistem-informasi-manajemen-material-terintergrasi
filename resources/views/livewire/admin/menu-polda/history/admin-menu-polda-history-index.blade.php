@@ -130,23 +130,21 @@
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 60px;">No</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
-                            style="width: 200px;">Lokasi</th>
-                        <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 200px;">Kode</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 100px;">Tipe</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 120px;">Tanggal</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
-                            style="width: 120px;">Type</th>
+                            style="width: 150px;">Material</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
-                            style="width: 150px;">Type Detail</th>
+                            style="width: 150px;">Material Detail</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 180px;">No Seri</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
-                            style="width: 150px;">Lokasi</th>
+                            style="width: 180px;">Lokasi</th>
                         <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
-                            style="width: 100px;">Quantity</th>
+                            style="width: 120px;">Quantity</th>
                         <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             style="width: 220px;">Description</th>
                     </tr>
@@ -156,12 +154,6 @@
                         <tr class="hover:bg-blue-50/50 transition-colors duration-150">
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $historyStocks->firstItem() + $index }}
-                            </td>
-                            <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="truncate"
-                                    title="{{ $history->regionalPolice->name ?? ($history->regionalPolice->name ?? '-') }}">
-                                    {{ $history->regionalPolice->name ?? ($history->regionalPolice->name ?? '-') }}
-                                </div>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <span
@@ -185,15 +177,15 @@
                                     ];
                                 @endphp
                                 <span
-                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold {{ $statusTypeColors[$history->status_type] ?? 'bg-gray-100 text-gray-700' }}">
+                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $statusTypeColors[$history->status_type] ?? 'bg-gray-100 text-gray-700' }}">
                                     {{ $statusTypeLabels[$history->status_type] ?? $history->status_type }}
                                 </span>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $history->date->format('d/m/Y') }}
+                                {{ $history->date ? $history->date->format('d/m/Y') : '-' }}
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="truncate" title="{{ $history->type->name ?? '-' }}">
+                                <div class="truncate font-medium" title="{{ $history->type->name ?? '-' }}">
                                     {{ $history->type->name ?? '-' }}
                                 </div>
                             </td>
@@ -203,24 +195,26 @@
                                 </div>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="truncate" title="{{ $history->serial_number ?? '-' }}">
+                                <div class="truncate font-mono text-xs" title="{{ $history->serial_number ?? '-' }}">
                                     {{ $history->serial_number ?? '-' }}
                                 </div>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="truncate"
-                                    title="{{ $history->regionalPolice->name ?? ($history->regionalPolice->name ?? '-') }}">
-                                    {{ $history->regionalPolice->name ?? ($history->regionalPolice->name ?? '-') }}
+                                @php
+                                    $locationName = $history->policeStation?->name ?? ($history->regionalPolice?->name ?? '-');
+                                @endphp
+                                <div class="truncate font-medium text-gray-700" title="{{ $locationName }}">
+                                    {{ $locationName }}
                                 </div>
                             </td>
                             <td class="px-4 py-4 text-right whitespace-nowrap">
                                 <span
-                                    class="text-sm font-semibold {{ $history->status_type == 'out' ? 'text-red-600' : 'text-green-600' }}">
+                                    class="text-sm font-bold {{ $history->status_type == 'out' ? 'text-red-600' : 'text-green-600' }}">
                                     {{ $history->status_type == 'out' ? '-' : '+' }}{{ number_format($history->quantity, 0, ',', '.') }}
                                 </span>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <div class="truncate" title="{{ $history->description ?? '-' }}">
+                                <div class="truncate max-w-xs" title="{{ $history->description ?? '-' }}">
                                     {{ $history->description ?? '-' }}
                                 </div>
                             </td>

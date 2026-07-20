@@ -137,7 +137,7 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <a href="{{ route('menu-polres.mutation-stock.receive.detail', ['id' => $mutation->id]) }}"
-                                    wire:navigate
+                                    
                                     class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors font-medium text-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                         fill="currentColor">

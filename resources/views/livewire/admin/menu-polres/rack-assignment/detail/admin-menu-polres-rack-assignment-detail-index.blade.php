@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <a href="{{ route('menu-polres.rack-assignment') }}" wire:navigate class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                    <a href="{{ route('menu-polres.rack-assignment') }}"  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                         </svg>
@@ -52,6 +52,18 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
                     <input type="date" wire:model="date" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
                     @error('date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih SPPM (Penerimaan Material)</label>
+                    <select wire:model.live="materialShipmentId" @disabled($isEditMode)
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-purple-200 bg-purple-50/40 text-purple-900 font-semibold focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 disabled:bg-gray-100 disabled:text-gray-500">
+                        <option value="">-- Pilih Kode SPPM Terbaru / Unassigned --</option>
+                        @foreach ($availableSppms as $sppm)
+                            <option value="{{ $sppm->id }}">{{ $sppm->code }} (Tgl: {{ \Carbon\Carbon::parse($sppm->received_at ?? $sppm->shipment_date)->format('d/m/Y') }})</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-purple-600 mt-1">Otomatis muat rincian isi dari SPPM ke rak.</p>
                 </div>
 
                 @if (Auth::user()->hasRole('Admin'))
@@ -295,7 +307,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 mt-4">
-        <a href="{{ route('menu-polres.rack-assignment') }}" wire:navigate class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
+        <a href="{{ route('menu-polres.rack-assignment') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
         @if (!$isEditMode)
             <button wire:click="save" type="button"
                 class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">
@@ -306,7 +318,7 @@
     </div>
 
     <script>
-        document.addEventListener('livewire:navigated', () => {
+        document.addEventListener('lived', () => {
             $('.selectize-dropdown').remove();
         });
     </script>

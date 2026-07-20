@@ -8,7 +8,7 @@
                 </h1>
                 <p class="text-gray-500 mt-1">Kelola target berdasarkan polda/polres dan material</p>
             </div>
-            <a href="{{ route('master.target') }}" wire:navigate
+            <a href="{{ route('master.target') }}" 
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"

@@ -7,7 +7,7 @@
                 <p class="text-gray-500 mt-1">Kelola material yang rusak dengan tracking pengurangan stock
                 </p>
             </div>
-            <a href="{{ route('menu-polda.material-damage.create') }}" wire:navigate
+            <a href="{{ route('menu-polda.material-damage.create') }}" 
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -37,7 +37,7 @@
         <div class="p-4 border-b border-gray-100">
              <!-- Filter Card -->
              <div class="bg-white rounded-xl mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '3' : '2' }} gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '4' : '3' }} gap-4">
                     @if(auth()->user()->hasRole('Admin'))
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Polda</label>
@@ -105,6 +105,29 @@
                             </select>
                         </div>
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Status</label>
+                        <div wire:ignore>
+                            <select id="select-status" x-data x-init="
+                                const selectize = $($el).selectize({
+                                    dropdownParent: 'body',
+                                    allowClear: true,
+                                    plugins: ['clear_button'],
+                                    onChange: function(val) {
+                                        @this.set('filterStatus', val);
+                                    }
+                                })[0].selectize;
+                            "
+                            placeholder="Semua Status">
+                                <option value="">Semua Status</option>
+                                <option value="approved" @selected($filterStatus == 'approved')>Disetujui</option>
+                                <option value="reported" @selected($filterStatus == 'reported')>Dilaporkan</option>
+                                <option value="under_review" @selected($filterStatus == 'under_review')>Dalam Pemeriksaan</option>
+                                <option value="disposed" @selected($filterStatus == 'disposed')>Dimusnahkan</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -148,6 +171,7 @@
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Kode Lap</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Tanggal</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Item Count</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Deskripsi</th>
                         <th class="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">Aksi</th>
                     </tr>
@@ -171,6 +195,17 @@
                                     {{ $damage->materialDamageDetails->count() }} Item
                                 </span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if($damage->status === 'approved')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Disetujui</span>
+                                @elseif($damage->status === 'disposed')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">Dimusnahkan</span>
+                                @elseif($damage->status === 'under_review')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Pemeriksaan</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Dilaporkan</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                                 {{ $damage->description ?: '-' }}
                             </td>
@@ -184,7 +219,7 @@
                                             <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <a href="{{ route('menu-polda.material-damage.edit', $damage->id) }}" wire:navigate
+                                    <a href="{{ route('menu-polda.material-damage.edit', $damage->id) }}" 
                                         class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
                                         title="Edit Transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -208,7 +243,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="8" class="px-6 py-12 text-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"

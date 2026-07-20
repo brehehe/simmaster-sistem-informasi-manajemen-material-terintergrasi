@@ -7,7 +7,7 @@
                 <p class="text-gray-500 mt-1">Kelola stock opname untuk Polres
                 </p>
             </div>
-            <a href="{{ route('menu-polres.stock-opname.create') }}" wire:navigate
+            <a href="{{ route('menu-polres.stock-opname.create') }}" 
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -160,7 +160,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2">
                                     <!-- View Detail -->
-                                    <a wire:navigate href="{{ route('menu-polres.stock-opname.detail', $opname->id) }}"
+                                    <a  href="{{ route('menu-polres.stock-opname.detail', $opname->id) }}"
                                         class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
                                         title="Lihat Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
 
                                     @if ($opname->status === 'draft')
                                         <!-- Edit -->
-                                        <a wire:navigate
+                                        <a 
                                             href="{{ route('menu-polres.stock-opname.edit', $opname->id) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold rounded-lg transition-colors"
                                             title="Edit">

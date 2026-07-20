@@ -25,6 +25,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
     public ?string $date = null;
     public ?string $regionalPoliceId = null;
     public ?string $policeStationId = null;
+    public string $status = 'approved';
     public string $description = '';
     public ?string $typeId = null; // Adding typeId for global material
 
@@ -41,6 +42,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
     public $services = [];
     public $racks = [];
     public $regionalPolices = [];
+    public $policeStations = [];
 
     protected StockService $stockService;
 
@@ -77,7 +79,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
     {
         $this->types = Type::where('is_active', true)->orderBy('name')->get();
         $this->regionalPolices = RegionalPolice::where('is_active', true)->orderBy('name')->get();
-        // Assuming racks aren't heavily used if we auto-map from stock. We'll leave it out of the grid unless needed.
+        $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
     }
 
     protected function loadTypeData($typeId)
@@ -132,6 +134,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
         $this->date = $materialDamage->date->format('Y-m-d');
         $this->regionalPoliceId = $materialDamage->regional_police_id;
         $this->policeStationId = $materialDamage->police_station_id;
+        $this->status = $materialDamage->status ?? 'approved';
         $this->description = $materialDamage->description ?? '';
 
         // Derive typeId from the first detail (since MaterialDamage header doesn't have it natively)
@@ -394,6 +397,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
             'code' => 'required|string|max:255',
             'date' => 'required|date',
             'typeId' => 'required|exists:types,id',
+            'status' => 'required|in:reported,under_review,approved,disposed',
             'details' => 'required|array|min:1',
             'details.*.quantity' => 'required|numeric|min:1',
             'details.*.damage_type' => 'required|in:damaged,lost',
@@ -467,6 +471,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
                     'date' => $this->date,
                     'regional_police_id' => $this->regionalPoliceId,
                     'police_station_id' => $this->policeStationId,
+                    'status' => $this->status,
                     'description' => $this->description,
                     'is_active' => true,
                 ];

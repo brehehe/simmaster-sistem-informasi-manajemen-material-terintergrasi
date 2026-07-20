@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\MenuPolres\RackAssignment\Detail;
 
 use App\Models\MenuPolda\RackAssignment\RackAssignment;
+use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Police\PoliceStation;
 use App\Models\Rack\Rack;
 use App\Models\Stock\StockDetail;
@@ -24,6 +25,7 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
     public ?string $date = null;
     public ?string $policeStationId = null;
     public string $description = '';
+    public ?string $materialShipmentId = null;
 
     // Global type selector (drives cascading dropdowns)
     public ?string $typeId = null;
@@ -59,7 +61,7 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
 
         $user = Auth::user();
-        if ($user->hasRole('Polres')) {
+        if ($user->hasRole('Polres') || !empty($user->police_station_id)) {
             $this->policeStationId = $user->police_station_id;
         }
 
@@ -71,6 +73,69 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
             $this->code = RackAssignment::generateCode();
             $this->date = now()->format('Y-m-d');
             $this->addDetail();
+        }
+    }
+
+    public function updatedMaterialShipmentId($value)
+    {
+        if (!$value) return;
+
+        $shipment = MaterialShipment::with([
+            'materialShipmentDetails.type',
+            'materialShipmentDetails.typeDetail',
+            'materialShipmentDetails.stockDetail',
+            'materialShipmentDetails.stockDetail.service',
+            'materialShipmentDetails.stockDetail.serviceDetail',
+        ])->find($value);
+
+        if (!$shipment || $shipment->materialShipmentDetails->isEmpty()) {
+            return;
+        }
+
+        $firstDetail = $shipment->materialShipmentDetails->first();
+        if ($firstDetail && $firstDetail->type_id) {
+            $this->typeId = $firstDetail->type_id;
+            $this->loadTypeData($this->typeId);
+        }
+
+        $this->details = [];
+        $this->stockOptions = [];
+
+        foreach ($shipment->materialShipmentDetails as $index => $detail) {
+            $stockDetail = $detail->stockDetail;
+
+            if (!$stockDetail) {
+                $stockDetail = StockDetail::where('police_station_id', $this->policeStationId)
+                    ->where('type_id', $detail->type_id)
+                    ->when($detail->type_detail_id, fn($q) => $q->where('type_detail_id', $detail->type_detail_id))
+                    ->where('is_active', true)
+                    ->first();
+            }
+
+            $stockKey = $this->generateStockKey([
+                'code' => $detail->code,
+                'number_serial_first' => $detail->number_serial_first,
+                'number_serial_second' => $detail->number_serial_second,
+            ]);
+
+            $this->details[] = [
+                'stock_detail_id' => $stockDetail?->id ?? '',
+                'type_id' => $detail->type_id ?? '',
+                'type_detail_id' => $detail->type_detail_id ?? '',
+                'service_id' => $stockDetail?->service_id ?? '',
+                'service_detail_id' => $stockDetail?->service_detail_id ?? '',
+                'selected_stock_key' => $stockKey,
+                'from_rack_id' => $stockDetail?->rack_id ?? '',
+                'to_rack_id' => '',
+                'item_code' => $detail->code ?? '',
+                'number_serial_first' => $detail->number_serial_first ?? '',
+                'number_serial_second' => $detail->number_serial_second ?? '',
+                'quantity' => (float) $detail->quantity,
+                'available_quantity' => $stockDetail ? (float) $stockDetail->quantity : (float) $detail->quantity,
+                'notes' => 'Penugasan SPPM: ' . $shipment->code,
+            ];
+
+            $this->loadStockOptions($index);
         }
     }
 
@@ -202,7 +267,6 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
         if (count($parts) !== 2) return;
         [$index, $field] = $parts;
 
-        // Auto-fill type_detail_id when service_id is selected
         if ($field === 'service_id' && $value) {
             $service = collect($this->services)->firstWhere('id', $value);
             $typeDetailId = data_get($service, 'type_detail_id');
@@ -212,7 +276,6 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
             $this->details[$index]['service_detail_id'] = '';
         }
 
-        // Clear service if type_detail changes and current service doesn't belong to it
         if ($field === 'type_detail_id') {
             $serviceId = $this->details[$index]['service_id'] ?? '';
             if ($serviceId) {
@@ -225,7 +288,6 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
             }
         }
 
-        // When cascading filters change, reset and reload stock options
         if (in_array($field, ['type_detail_id', 'service_id', 'service_detail_id'])) {
             $this->details[$index]['selected_stock_key'] = '';
             $this->details[$index]['stock_detail_id'] = '';
@@ -234,7 +296,6 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
             $this->loadStockOptions($index);
         }
 
-        // When stock key is selected, populate stock info
         if ($field === 'selected_stock_key') {
             $option = collect($this->stockOptions[$index] ?? [])->where('key', $value)->first();
             if ($option) {
@@ -293,7 +354,6 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
             ];
         })->values()->toArray();
 
-        // For non-serial-number types: auto-set quantity and stock_detail_id
         if (!$this->is_with_serial_number) {
             $totalQty = (int) $stocks->sum('quantity');
             $this->details[$index]['available_quantity'] = $totalQty;
@@ -336,7 +396,7 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
         ], [
             'policeStationId.required' => 'Polres harus dipilih',
             'typeId.required' => 'Material utama harus dipilih',
-            'details.*.stock_detail_id.required' => 'Barang harus dipilih',
+            'details.*.stock_detail_id.required' => 'Barang/Stok harus valid',
             'details.*.quantity.min' => 'Quantity minimal 1',
         ]);
 
@@ -381,7 +441,7 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
 
                 $this->stockService->processRackAssignment($rackAssignment);
 
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Penugasan rak berhasil disimpan.');
+                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Penugasan rak berhasil disimpan! Stok rak Polres otomatis bertambah.');
             });
 
             return $this->redirect(route('menu-polres.rack-assignment'), navigate: true);
@@ -392,10 +452,16 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
 
     public function render()
     {
+        $availableSppms = MaterialShipment::where('receiver_police_station_id', $this->policeStationId)
+            ->where('status', 'received')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('livewire.admin.menu-polres.rack-assignment.detail.admin-menu-polres-rack-assignment-detail-index', [
             'types' => Type::where('is_active', true)->orderBy('name')->get(),
             'typeDetails' => $this->typeDetails,
             'services' => $this->services,
+            'availableSppms' => $availableSppms,
         ])->layout('components.layouts.main.app');
     }
 }

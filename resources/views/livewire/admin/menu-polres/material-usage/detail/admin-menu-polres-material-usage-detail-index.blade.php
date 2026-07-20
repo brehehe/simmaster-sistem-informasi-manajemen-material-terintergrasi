@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <a href="{{ route('menu-polres.material-usage') }}" wire:navigate class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                    <a href="{{ route('menu-polres.material-usage-detail') }}"  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                         </svg>
@@ -44,10 +44,7 @@
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Kode <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model.defer="code" readonly class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
-                </div>
+                <!-- Tanggal (auto, no code shown) -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
                     <input type="date" wire:model="date" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
@@ -78,6 +75,11 @@
                         @error('policeStationId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 @endif
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi (Opsional)</label>
+                    <textarea wire:model="description" rows="1" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Catatan penggunaan material..."></textarea>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -110,10 +112,21 @@
                     @error('typeId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi (Opsional)</label>
-                    <textarea wire:model="description" rows="2" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Catatan penggunaan material..."></textarea>
+                @if($typeId)
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-green-50 border border-green-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div class="text-xs text-green-800">
+                        <p class="font-bold mb-1">Petunjuk Pengisian Detail:</p>
+                        <ul class="space-y-0.5 list-disc list-inside">
+                            <li>Isi <strong>No Seri A</strong> (awal) dan <strong>No Seri B</strong> (akhir) sesuai barang</li>
+                            <li>Jumlah dihitung otomatis dari stok tersedia</li>
+                            <li>Tambahkan baris baru untuk <strong>material pendukung</strong> seperti blanko, dll.</li>
+                        </ul>
+                    </div>
                 </div>
+                @endif
             </div>
         </div>
     </div>
@@ -128,36 +141,37 @@
                 Detail Penggunaan Material
             </h2>
             @if (!$isEditMode)
-                <button wire:click="addDetail" type="button"
-                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    Tambah Item
-                </button>
+                <div class="flex items-center gap-2">
+                    <button wire:click="addDetail" type="button"
+                        class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Tambah Item
+                    </button>
+                </div>
             @endif
         </div>
 
         <div class="p-0">
             <div class="overflow-x-auto overflow-y-visible pb-24">
-                <table class="w-full text-sm text-left align-top border-collapse min-w-[1200px]">
+                <table class="w-full text-sm text-left align-top border-collapse min-w-[1400px]">
                     <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
                         <tr>
-                            <th class="px-3 py-3 font-semibold w-12 text-center text-xs">No</th>
+                            <th class="px-3 py-3 font-semibold w-10 text-center text-xs">No</th>
                             @if($is_type_detail)
-                                <th class="px-3 py-3 font-semibold text-xs min-w-[140px]">Detail Material</th>
+                                <th class="px-3 py-3 font-semibold text-xs min-w-[130px]">Detail Material</th>
                             @endif
-                            <th class="px-3 py-3 font-semibold text-xs min-w-[140px]">Service</th>
-                            <th class="px-3 py-3 font-semibold text-xs min-w-[140px]">Service Detail</th>
-                            @if($is_with_serial_number)
-                                <th class="px-3 py-3 font-semibold text-xs min-w-[240px]">Identitas Barang (Kode | S/N)</th>
-                            @endif
+                            <th class="px-3 py-3 font-semibold text-xs min-w-[130px]">Service</th>
+                            <th class="px-3 py-3 font-semibold text-xs min-w-[130px]">Service Detail</th>
+                            <th class="px-3 py-3 font-semibold text-xs min-w-[150px] bg-blue-50">No Seri A (Awal)</th>
+                            <th class="px-3 py-3 font-semibold text-xs min-w-[150px] bg-blue-50">No Seri B (Akhir)</th>
                             <th class="px-3 py-3 font-semibold text-xs min-w-[120px]">Jenis Penggunaan</th>
-                            <th class="px-3 py-3 font-semibold text-xs w-28 text-center bg-blue-50">Tersedia</th>
+                            <th class="px-3 py-3 font-semibold text-xs w-24 text-center bg-blue-100">Tersedia</th>
                             <th class="px-3 py-3 font-semibold text-xs w-24">Jumlah <span class="text-red-500">*</span></th>
-                            <th class="px-3 py-3 font-semibold text-xs min-w-[140px]">Catatan</th>
+                            <th class="px-3 py-3 font-semibold text-xs min-w-[130px]">Catatan</th>
                             @if (!$isEditMode)
-                                <th class="px-3 py-3 font-semibold w-16 text-center text-xs"></th>
+                                <th class="px-3 py-3 font-semibold w-14 text-center text-xs"></th>
                             @endif
                         </tr>
                     </thead>
@@ -174,7 +188,7 @@
                                 $filteredServiceDetails = data_get($selectedSvc, 'details', []);
                             @endphp
                             <tr wire:key="row-{{ $index }}-{{ $typeId }}" class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-3 py-3 text-center font-medium text-gray-500 align-top text-xs pt-5">{{ $index + 1 }}</td>
+                                <td class="px-3 py-3 text-center font-medium text-gray-500 align-top text-xs pt-4">{{ $index + 1 }}</td>
 
                                 @if($is_type_detail)
                                     <td class="px-3 py-3 align-top">
@@ -208,8 +222,10 @@
                                     </select>
                                 </td>
 
-                                @if($is_with_serial_number)
-                                    <td class="px-2 py-3 align-top">
+                                {{-- No Seri A (number_serial_first) --}}
+                                <td class="px-2 py-3 align-top bg-blue-50/30">
+                                    @if($is_with_serial_number)
+                                        {{-- Stock key selector for items with serial numbers --}}
                                         <div wire:ignore wire:key="stock-key-{{ $index }}-{{ md5(json_encode($stockOptions[$index] ?? [])) }}">
                                             <select x-data x-init="
                                                 const selectize = $($el).selectize({
@@ -220,21 +236,40 @@
                                                     }
                                                 })[0].selectize;
                                             " wire:model="details.{{ $index }}.selected_stock_key" @disabled($isEditMode)
-                                                class="w-full text-xs rounded border border-gray-300 disabled:bg-gray-100">
+                                                class="w-full text-xs rounded border border-blue-300 disabled:bg-gray-100">
                                                 <option value="">-- Pilih Barang --</option>
                                                 @foreach($stockOptions[$index] ?? [] as $opt)
-                                                    <option value="{{ $opt['key'] }}">{{ $opt['key'] }} (Stok: {{ $opt['quantity'] }})</option>
+                                                    <option value="{{ $opt['key'] }}">{{ $opt['number_serial_first'] ?: $opt['item_code'] }} (Stok: {{ $opt['quantity'] }})</option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                        @error("details.{$index}.stock_detail_id") <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
-                                    </td>
-                                @endif
+                                        {{-- Show the selected serial number --}}
+                                        @if(!empty($detail['number_serial_first']))
+                                            <div class="text-[10px] text-blue-700 font-mono mt-1 px-1">{{ $detail['number_serial_first'] }}</div>
+                                        @endif
+                                    @else
+                                        <input type="text"
+                                            wire:model.live="details.{{ $index }}.number_serial_first"
+                                            placeholder="Nomor Seri Awal..." @disabled($isEditMode)
+                                            class="w-full px-2 py-2 text-xs font-mono rounded border border-blue-300 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:text-gray-500">
+                                    @endif
+                                    @error("details.{$index}.stock_detail_id") <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                                </td>
 
+                                {{-- No Seri B (number_serial_second) --}}
+                                <td class="px-2 py-3 align-top bg-blue-50/30">
+                                    <input type="text"
+                                        wire:model.live="details.{{ $index }}.number_serial_second"
+                                        placeholder="Nomor Seri Akhir..." @disabled($isEditMode)
+                                        class="w-full px-2 py-2 text-xs font-mono rounded border border-blue-300 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:text-gray-500">
+                                </td>
+
+                                {{-- Jenis Penggunaan (Material Digunakan / Material Pendukung) --}}
                                 <td class="px-3 py-3 align-top">
                                     <select wire:model.live="details.{{ $index }}.usage_type" @disabled($isEditMode)
                                         class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                                         <option value="Material Digunakan">Material Digunakan</option>
+                                        <option value="Material Pendukung">Material Pendukung</option>
                                         <option value="Pembangunan">Pembangunan</option>
                                         <option value="Pemeliharaan">Pemeliharaan</option>
                                         <option value="Lainnya">Lainnya</option>
@@ -242,10 +277,11 @@
                                 </td>
 
                                 <!-- Tersedia -->
-                                <td class="px-3 py-3 align-top bg-blue-50/30 text-center">
-                                    <div class="font-semibold {{ $detail['available_quantity'] > 0 ? 'text-blue-600' : 'text-gray-400' }} pt-2 text-xs">
+                                <td class="px-3 py-3 align-top bg-blue-50/40 text-center">
+                                    <div class="font-bold {{ $detail['available_quantity'] > 0 ? 'text-blue-600' : 'text-gray-400' }} pt-2 text-sm">
                                         {{ number_format($detail['available_quantity'], 0, ',', '.') }}
                                     </div>
+                                    <div class="text-[10px] text-gray-400">unit</div>
                                 </td>
 
                                 <!-- Quantity -->
@@ -260,7 +296,7 @@
                                 </td>
 
                                 <td class="px-3 py-3 align-top">
-                                    <input type="text" wire:model.defer="details.{{ $index }}.description" placeholder="..." @disabled($isEditMode)
+                                    <input type="text" wire:model.defer="details.{{ $index }}.description" placeholder="Ket..." @disabled($isEditMode)
                                         class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                                 </td>
 
@@ -277,7 +313,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="py-12 text-center text-gray-400 italic">Klik "Tambah Item" untuk mulai input penggunaan material...</td>
+                                <td colspan="11" class="py-12 text-center text-gray-400 italic">Klik "Tambah Item" untuk mulai input penggunaan material...</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -288,7 +324,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 mt-4">
-        <a href="{{ route('menu-polres.material-usage') }}" wire:navigate class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
+        <a href="{{ route('menu-polres.material-usage-detail') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Lihat Riwayat</a>
         @if (!$isEditMode)
             <button wire:click="save" type="button"
                 class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">
@@ -299,7 +335,7 @@
     </div>
 
     <script>
-        document.addEventListener('livewire:navigated', () => {
+        document.addEventListener('lived', () => {
             $('.selectize-dropdown').remove();
         });
     </script>
