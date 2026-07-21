@@ -104,22 +104,6 @@
                         Riwayat Stock
                     </a>
                 </div>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a  href="{{ route('menu-polda.kotak-pesan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.kotak-pesan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.kotak-pesan*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Kotak Pesan
-                    </a>
-                </div>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a  href="{{ route('menu-polda.peraturan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polda.peraturan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polda.peraturan*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Peraturan
-                    </a>
-                </div>
             </div>
         @endif
         @if (Auth::user()->hasRole(['Admin', 'Polres']))
@@ -205,26 +189,10 @@
                     </a>
                 </div>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a  href="{{ route('menu-polres.kotak-pesan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.kotak-pesan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.kotak-pesan*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Kotak Pesan
-                    </a>
-                </div>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('warehouse.display') }}" target="_blank"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 text-cyan-300 hover:bg-cyan-600/30 hover:text-white border border-cyan-500/20">
                         <span class="h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
                         🖥️ Live Monitor Gudang (TV)
-                    </a>
-                </div>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a  href="{{ route('menu-polres.peraturan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.peraturan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.peraturan*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Peraturan
                     </a>
                 </div>
             </div>
@@ -388,46 +356,28 @@
             </div>
         </div>
 
-        <!-- Kotak Pesan Section -->
+        <!-- Kotak Pesan -->
         @if (Auth::user()->hasRole(['Admin', 'Polda', 'Polres']))
-            <div class="pt-2" x-data="{ open: {{ request()->routeIs('*kotak-pesan*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
-                    <span>Kotak Pesan</span>
-                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a  href="{{ route('dashboard.kotak-pesan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('*kotak-pesan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('*kotak-pesan*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Kotak Masuk / Keluar
-                    </a>
-                </div>
-            </div>
+            <a href="{{ route('dashboard.kotak-pesan') }}"
+                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 {{ request()->routeIs('*kotak-pesan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Kotak Pesan
+            </a>
         @endif
 
-        <!-- Peraturan Section -->
+        <!-- Peraturan -->
         @if (Auth::user()->hasRole(['Admin', 'Polda', 'Polres']))
-            <div class="pt-2" x-data="{ open: {{ request()->routeIs('*peraturan*') ? 'true' : 'false' }} }">
-                <button @click="open = !open"
-                    class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-400">
-                    <span>Peraturan</span>
-                    <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
-                    <a  href="{{ route('dashboard.peraturan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('*peraturan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <span class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('*peraturan*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        List Aturan Aturan
-                    </a>
-                </div>
-            </div>
+            <a href="{{ route('dashboard.peraturan') }}"
+                class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 {{ request()->routeIs('*peraturan*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Peraturan
+            </a>
         @endif
     </nav>
 

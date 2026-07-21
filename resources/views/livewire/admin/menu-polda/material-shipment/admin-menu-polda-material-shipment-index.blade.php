@@ -6,15 +6,22 @@
                 <h1 class="text-3xl font-bold text-blue-600">Pengiriman Material</h1>
                 <p class="text-gray-500 mt-1">Kelola pengiriman material dari Polda ke Polres</p>
             </div>
-            <a href="{{ route('menu-polda.material-shipment.create') }}" 
-                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                        clip-rule="evenodd" />
-                </svg>
-                Tambah Data
-            </a>
+            <div class="flex items-center gap-2">
+                <button wire:click="openScanQrModal()" type="button"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-300 transform hover:scale-105 text-sm">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                    📷 Scan QR Code SPPM
+                </button>
+                <a href="{{ route('menu-polda.material-shipment.create') }}" 
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Tambah Data
+                </a>
+            </div>
         </div>
     </div>
 
@@ -211,58 +218,59 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <!-- Print PDF Button (for all status) -->
-                                    <a href="{{ route('menu-polda.material-shipment.print', $shipment->id) }}"
-                                        target="_blank"
-                                        class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                                        title="Cetak PDF">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </a>
+                                <div class="flex items-center justify-center gap-1.5" x-data="{ showPrintMenu: false }">
+                                    <!-- Print Dropdown (2 Output SPPM) -->
+                                    <div class="relative">
+                                        <button @click="showPrintMenu = !showPrintMenu" @click.away="showPrintMenu = false"
+                                            class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex items-center gap-1"
+                                            title="Pilihan Cetak SPPM">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                                            </svg>
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                        <div x-show="showPrintMenu" x-cloak
+                                            class="absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50 text-left text-xs">
+                                            <a href="{{ route('menu-polda.material-shipment.print', ['id' => $shipment->id, 'mode' => 'ttd_ka']) }}"
+                                                target="_blank" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium">
+                                                📄 SPPM TTD KA (Kosong / Pengajuan)
+                                            </a>
+                                            <a href="{{ route('menu-polda.material-shipment.print', ['id' => $shipment->id, 'mode' => 'qr']) }}"
+                                                target="_blank" class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium border-t border-gray-100">
+                                                📱 SPPM Versi Barcode / QR Code
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Scan QR Code Button (Petugas Warehouse) -->
+                                    <button wire:click="openScanQrModal('{{ $shipment->id }}')"
+                                        class="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                        title="Scan QR Code Warehouse">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </button>
+
+                                    <!-- View Data Pengambilan (Picking Sheet) -->
+                                    <button wire:click="openPickingDetailModal('{{ $shipment->id }}')"
+                                        class="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                        title="View Data Pengambilan Material (Warehouse)">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
 
                                     @if ($shipment->status === 'draft')
                                         <a href="{{ route('menu-polda.material-shipment.edit', ['id' => $shipment->id]) }}"
-                                            
                                             class="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"
                                             title="Edit">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                                fill="currentColor">
-                                                <path
-                                                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                             </svg>
                                         </a>
                                         <button wire:click="openDeleteModal('{{ $shipment->id }}')"
                                             class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                             title="Hapus">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                    clip-rule="evenodd" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                             </svg>
                                         </button>
-                                    @else
-                                        <button wire:click="viewDetail('{{ $shipment->id }}')" 
-                                            class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                                            title="View Detail">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                        <a href="{{ route('menu-polda.material-shipment.edit', $shipment->id) }}"
-                                            
-                                            class="p-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-                                            title="Edit / View Form">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                            </svg>
-                                        </a>
                                     @endif
                                 </div>
                             </td>
@@ -445,5 +453,231 @@
             </div>
         </div>
     @endif
+
+    {{-- SCAN QR CODE MODAL (FITUR PETUGAS WAREHOUSE WITH LIVE CAMERA SCANNER) --}}
+    @if($showScanQrModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+            x-data="{
+                scanner: null,
+                isScanning: false,
+                showCameraBox: false,
+                cameraError: null,
+                startCamera() {
+                    this.cameraError = null;
+                    this.isScanning = true;
+                    this.showCameraBox = true;
+                    if (!window.Html5Qrcode) {
+                        const script = document.createElement('script');
+                        script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+                        script.onload = () => { this.runCameraStream(); };
+                        document.head.appendChild(script);
+                    } else {
+                        this.runCameraStream();
+                    }
+                },
+                runCameraStream() {
+                    this.$nextTick(() => {
+                        try {
+                            const html5QrCode = new Html5Qrcode('qr-reader');
+                            this.scanner = html5QrCode;
+                            html5QrCode.start(
+                                { facingMode: 'environment' },
+                                { fps: 10, qrbox: { width: 220, height: 220 } },
+                                (decodedText) => {
+                                    $wire.set('scanInputCode', decodedText);
+                                    $wire.call('processScanQr');
+                                    this.stopCamera();
+                                },
+                                (errorMessage) => {}
+                            ).catch(err => {
+                                this.isScanning = false;
+                                this.cameraError = 'Izin kamera ditolak atau kamera tidak tersedia.';
+                            });
+                        } catch(e) {
+                            this.isScanning = false;
+                            this.cameraError = 'Kamera tidak dapat diinisialisasi.';
+                        }
+                    });
+                },
+                stopCamera() {
+                    this.showCameraBox = false;
+                    if (this.scanner && this.isScanning) {
+                        this.scanner.stop().then(() => {
+                            this.isScanning = false;
+                        }).catch(() => {
+                            this.isScanning = false;
+                        });
+                    }
+                }
+            }">
+            <div class="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden">
+                {{-- Sticky Modal Header --}}
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                    <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                        🔍 Fitur Scan / Verifikasi QR Code SPPM
+                    </h3>
+                    <button wire:click="closeScanQrModal" @click="stopCamera()" class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+
+                {{-- Scrollable Modal Body --}}
+                <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                    {{-- Live Camera Scanner Viewfinder (Hidden by default) --}}
+                    <div x-show="showCameraBox" x-cloak class="bg-slate-950 p-3 rounded-2xl border-2 border-emerald-400/40 relative overflow-hidden text-center mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span>KAMERA SCANNER AKTIF</span>
+                            </span>
+                            <button @click="stopCamera()" class="px-2 py-0.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/30">
+                                🛑 Sembunyikan Kamera
+                            </button>
+                        </div>
+
+                        {{-- Html5Qrcode Reader Container --}}
+                        <div id="qr-reader" class="w-full max-w-xs mx-auto rounded-xl overflow-hidden bg-slate-900 border border-slate-800" style="max-height: 200px;"></div>
+
+                        <template x-if="cameraError">
+                            <div class="mt-2 p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-[11px]">
+                                ⚠️ <span x-text="cameraError"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Code Input Section --}}
+                    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-4 rounded-2xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-emerald-900">Scan / Input Kode SPPM:</label>
+                            <button type="button" @click="showCameraBox ? stopCamera() : startCamera()"
+                                class="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 underline flex items-center gap-1">
+                                <span x-text="showCameraBox ? '🙈 Sembunyikan Kamera' : '📷 Buka Kamera Scanner'"></span>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" wire:model="scanInputCode" placeholder="Masukkan / scan kode (Contoh: SHP-20260720-001)"
+                                wire:keydown.enter="processScanQr"
+                                class="w-full px-3.5 py-2.5 text-xs font-mono font-bold rounded-xl border border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white">
+                            <button type="button" wire:click="processScanQr"
+                                class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0">
+                                Verifikasi
+                            </button>
+                        </div>
+                    </div>
+
+                    @if($scannedShipment)
+                        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-xs">
+                            <div class="flex items-center justify-between border-b border-gray-200 pb-2 mb-3">
+                                <div>
+                                    <span class="font-mono text-sm font-bold text-blue-600">{{ $scannedShipment->code }}</span>
+                                    <div class="text-gray-500 text-[10px]">Tujuan: <strong>{{ $scannedShipment->receiverPoliceStation?->name ?? 'Polres' }}</strong></div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full font-bold text-[10px] {{ $scannedShipment->status === 'shipped' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+                                    {{ strtoupper($scannedShipment->status) }}
+                                </span>
+                            </div>
+
+                            <h4 class="font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Rincian Barang & Lokasi Rak Ambil:</h4>
+                            <div class="space-y-2 max-h-40 overflow-y-auto pr-1 mb-3">
+                                @foreach($scannedShipment->materialShipmentDetails as $d)
+                                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 flex items-center justify-between">
+                                        <div>
+                                            <div class="font-bold text-gray-800">{{ $d->type?->name ?? '-' }} ({{ $d->typeDetail?->name ?? '-' }})</div>
+                                            <div class="text-[10px] text-emerald-600 font-semibold">📍 Rak: {{ $d->stockDetail?->rack?->name ?? 'Gudang Utama' }}</div>
+                                        </div>
+                                        <span class="font-bold text-blue-600 font-mono text-xs">{{ number_format($d->quantity, 0, ',', '.') }} unit</span>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @if($scannedShipment->status === 'draft')
+                                <button wire:click="confirmWarehousePicking" type="button"
+                                    class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all text-xs">
+                                    ✅ Konfirmasi Material Selesai Diambil dari Rak (Siap Kirim)
+                                </button>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Sticky Modal Footer --}}
+                <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+                    <button wire:click="closeScanQrModal" @click="stopCamera()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- VIEW DATA PENGAMBILAN MODAL (PICKING LOG SHEET) --}}
+    @if($showPickingDetailModal && $selectedShipment)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden">
+                {{-- Sticky Modal Header --}}
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                    <div>
+                        <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                            📋 Data Pengambilan Material (Warehouse Picking Sheet)
+                        </h3>
+                        <p class="text-xs text-gray-500">Rincian lokasi rak & barang yang diambil petugas warehouse untuk SPPM: <strong class="font-mono text-blue-600">{{ $selectedShipment->code }}</strong></p>
+                    </div>
+                    <button wire:click="closePickingDetailModal" class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+
+                {{-- Scrollable Modal Body --}}
+                <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl text-xs border border-gray-200">
+                        <div>
+                            <span class="text-gray-400 block">Tujuan Polres:</span>
+                            <strong class="text-gray-800 text-sm">{{ $selectedShipment->receiverPoliceStation?->name ?? '-' }}</strong>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block">Tanggal Pengiriman:</span>
+                            <strong class="text-gray-800 text-sm">{{ \Carbon\Carbon::parse($selectedShipment->shipment_date)->format('d F Y') }}</strong>
+                        </div>
+                    </div>
+
+                    <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">Daftar Barang & Lokasi Rak Gudang:</h4>
+                    <div class="overflow-x-auto border border-gray-200 rounded-2xl">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-gray-100 text-gray-700 font-semibold">
+                                <tr>
+                                    <th class="p-3 text-center w-10">No</th>
+                                    <th class="p-3">Nama Material</th>
+                                    <th class="p-3">Detail</th>
+                                    <th class="p-3 text-center bg-emerald-50">Lokasi Rak</th>
+                                    <th class="p-3 text-center">Jumlah Diambil</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($selectedShipment->materialShipmentDetails as $idx => $det)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="p-3 text-center text-gray-400">{{ $idx + 1 }}</td>
+                                        <td class="p-3 font-bold text-gray-800">{{ $det->type?->name ?? '-' }}</td>
+                                        <td class="p-3 text-gray-600">{{ $det->typeDetail?->name ?? '-' }}</td>
+                                        <td class="p-3 text-center bg-emerald-50/50">
+                                            <span class="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 font-mono">
+                                                📍 {{ $det->stockDetail?->rack?->name ?? 'Gudang Utama' }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-center font-bold text-blue-600 font-mono">
+                                            {{ number_format($det->quantity, 0, ',', '.') }} unit
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Sticky Modal Footer --}}
+                <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+                    <button wire:click="closePickingDetailModal" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
+
 

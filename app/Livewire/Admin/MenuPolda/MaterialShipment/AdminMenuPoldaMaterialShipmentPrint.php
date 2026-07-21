@@ -9,10 +9,12 @@ class AdminMenuPoldaMaterialShipmentPrint extends Component
 {
     public $shipmentId;
     public $shipment;
+    public string $mode = 'qr';
 
     public function mount($id)
     {
         $this->shipmentId = $id;
+        $this->mode = request()->query('mode', 'qr');
         $this->shipment = MaterialShipment::with([
             'senderRegionalPolice',
             'receiverPoliceStation',

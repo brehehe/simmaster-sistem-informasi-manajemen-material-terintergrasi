@@ -45,6 +45,8 @@ class DatabaseSeeder extends Seeder
             RackSeeder::class,
             // Connected data seeder that aligns stock, receptions, shipments, usages, etc.
             ConnectedDataSeeder::class,
+            // Demo SPPM shipments and inbox messages for 5 primary Polres
+            DemoSppmShipmentSeeder::class,
         ]);
     }
 }

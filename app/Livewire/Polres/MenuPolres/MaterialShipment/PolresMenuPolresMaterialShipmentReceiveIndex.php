@@ -11,7 +11,7 @@ class PolresMenuPolresMaterialShipmentReceiveIndex extends Component
     use WithPagination;
 
     public string $searchCode = '';
-    public string $statusFilter = 'received';
+    public string $statusFilter = '';
     public int $perPage = 10;
 
     public function paginationView()

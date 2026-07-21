@@ -21,8 +21,17 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     public int $perPage = 10;
     public bool $showDeleteModal = false;
     public bool $showDetailModal = false;
+    public bool $showScanQrModal = false;
+    public bool $showPickingDetailModal = false;
     public ?string $shipmentId = null;
     public $selectedShipment = null;
+    public string $scanInputCode = '';
+    public $scannedShipment = null;
+
+    public function toJSON()
+    {
+        return [];
+    }
 
     public function paginationView()
     {
@@ -134,6 +143,103 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     public function closeDetailModal()
     {
         $this->showDetailModal = false;
+        $this->selectedShipment = null;
+        $this->shipmentId = null;
+    }
+
+    public function openScanQrModal(?string $id = null): void
+    {
+        $this->shipmentId = $id;
+        $this->scanInputCode = '';
+        $this->scannedShipment = null;
+        if ($id) {
+            $this->scannedShipment = MaterialShipment::with([
+                'receiverPoliceStation',
+                'materialShipmentDetails.type',
+                'materialShipmentDetails.typeDetail',
+                'materialShipmentDetails.stockDetail.rack'
+            ])->find($id);
+            if ($this->scannedShipment) {
+                $this->scanInputCode = $this->scannedShipment->code;
+            }
+        }
+        $this->showScanQrModal = true;
+    }
+
+    public function closeScanQrModal(): void
+    {
+        $this->showScanQrModal = false;
+        $this->scanInputCode = '';
+        $this->scannedShipment = null;
+        $this->shipmentId = null;
+    }
+
+    public function processScanQr(): void
+    {
+        if (empty(trim($this->scanInputCode))) {
+            session()->flash('error', 'Silakan masukkan atau scan kode QR SPPM.');
+            return;
+        }
+
+        $code = trim($this->scanInputCode);
+        $shipment = MaterialShipment::with([
+            'receiverPoliceStation',
+            'materialShipmentDetails.type',
+            'materialShipmentDetails.typeDetail',
+            'materialShipmentDetails.stockDetail.rack'
+        ])->where(function ($q) use ($code) {
+            $q->where('code', 'ilike', '%' . $code . '%');
+            if (\Illuminate\Support\Str::isUuid($code)) {
+                $q->orWhere('id', $code);
+            }
+        })->first();
+
+        if (!$shipment) {
+            session()->flash('error', "Data pengiriman dengan kode '{$code}' tidak ditemukan.");
+            $this->scannedShipment = null;
+            return;
+        }
+
+        $this->scannedShipment = $shipment;
+        session()->flash('success', "QR Code Valid! Transaksi SPPM {$shipment->code} ditemukan.");
+    }
+
+    public function confirmWarehousePicking(): void
+    {
+        if (!$this->scannedShipment) return;
+
+        try {
+            if ($this->scannedShipment->status === 'draft') {
+                $this->scannedShipment->update([
+                    'status' => 'shipped',
+                    'shipped_at' => now(),
+                ]);
+                session()->flash('success', "Pengambilan material untuk SPPM {$this->scannedShipment->code} telah diverifikasi petugas warehouse!");
+            } else {
+                session()->flash('info', "SPPM {$this->scannedShipment->code} sudah diverifikasi sebelumnya.");
+            }
+            $this->closeScanQrModal();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal memproses verifikasi: ' . $e->getMessage());
+        }
+    }
+
+    public function openPickingDetailModal(string $id): void
+    {
+        $this->shipmentId = $id;
+        $this->selectedShipment = MaterialShipment::with([
+            'receiverPoliceStation',
+            'senderRegionalPolice',
+            'materialShipmentDetails.type',
+            'materialShipmentDetails.typeDetail',
+            'materialShipmentDetails.stockDetail.rack'
+        ])->find($id);
+        $this->showPickingDetailModal = true;
+    }
+
+    public function closePickingDetailModal(): void
+    {
+        $this->showPickingDetailModal = false;
         $this->selectedShipment = null;
         $this->shipmentId = null;
     }

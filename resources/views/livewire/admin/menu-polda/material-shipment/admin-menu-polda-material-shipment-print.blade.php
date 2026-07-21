@@ -206,8 +206,16 @@
                 <td></td>
                 <td>
                     <div style="margin-bottom: 5px;">Surabaya, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ \Carbon\Carbon::parse($shipment->shipment_date)->translatedFormat('F Y') }}</div>
-                    <div class="sign-space"></div>
-                    <div class="name-title">...................................................</div>
+                    @if(($mode ?? 'qr') === 'ttd_ka')
+                        <div style="font-weight: bold; margin-bottom: 2px;">a.n. DIREKTUR LALU LINTAS POLDA JATIM</div>
+                        <div style="font-weight: bold; margin-bottom: 5px;">KASUBDIT REGIDENT / KASI PASMAT</div>
+                        <div class="sign-space" style="height: 75px;"></div>
+                        <div class="name-title">...................................................</div>
+                        <div style="font-size: 10px; margin-top: 2px;">PANGKAT / NRP. ...........................</div>
+                    @else
+                        <div class="sign-space" style="height: 60px;"></div>
+                        <div class="name-title">...................................................</div>
+                    @endif
                 </td>
             </tr>
         </table>
@@ -239,10 +247,17 @@
             </tr>
         </table>
     </div>
-    <div style="margin-top:10px; text-align: right;">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data={{ $shipment->code }}" 
-                alt="QR Code" 
-                style="width: 80px; height: 80px; border: 1px solid #eee;">
-        <p style="font-size: 8px; margin: 2px 0 0 0; font-family: monospace;">{{ $shipment->code }}</p>
-    </div>  
+
+    @if(($mode ?? 'qr') !== 'ttd_ka')
+        <div style="margin-top:10px; text-align: right;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data={{ $shipment->code }}" 
+                    alt="QR Code" 
+                    style="width: 90px; height: 90px; border: 1px solid #ddd; padding: 2px; background: #fff;">
+            <p style="font-size: 9px; margin: 3px 0 0 0; font-family: monospace; font-weight: bold; color: #1e3a8a;">SPPM QR: {{ $shipment->code }}</p>
+        </div>  
+    @else
+        <div style="margin-top: 15px; font-size: 9px; color: #666; font-style: italic; border-top: 1px dashed #ccc; padding-top: 5px;">
+            * Dokumen SPPM ini khusus untuk pengajuan TTD Kasubdit / Kasi Pasmat.
+        </div>
+    @endif
 </div>

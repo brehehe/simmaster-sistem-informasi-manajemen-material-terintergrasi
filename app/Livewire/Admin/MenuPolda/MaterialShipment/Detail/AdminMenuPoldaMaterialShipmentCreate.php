@@ -189,7 +189,9 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
             $query->where('type_detail_id', $detail['type_detail_id']);
         }
 
-        if (!empty($detail['service_id'])) {
+        if ($detail['service_id'] === 'MAIN_MATERIAL') {
+            $query->whereNull('service_id');
+        } elseif (!empty($detail['service_id'])) {
             $query->where('service_id', $detail['service_id']);
             if (empty($detail['service_detail_id'])) {
                 // No sub-service selected → only stock at the service level (service_detail_id = NULL)
@@ -198,7 +200,6 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
                 $query->where('service_detail_id', $detail['service_detail_id']);
             }
         }
-
 
         $stocks = $query->get();
 
@@ -239,12 +240,14 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
         [$index, $field] = $parts;
 
         // Auto-fill type_detail_id when service_id is selected
-        if ($field === 'service_id' && $value) {
+        if ($field === 'service_id' && $value && $value !== 'MAIN_MATERIAL') {
             $service = collect($this->services)->firstWhere('id', $value);
             $typeDetailId = data_get($service, 'type_detail_id');
             if ($typeDetailId) {
                 $this->details[$index]['type_detail_id'] = $typeDetailId;
             }
+            $this->details[$index]['service_detail_id'] = '';
+        } elseif ($field === 'service_id' && $value === 'MAIN_MATERIAL') {
             $this->details[$index]['service_detail_id'] = '';
         }
 
@@ -378,12 +381,15 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
         $policeStations = $this->regional_police_id ? PoliceStation::where('regional_police_id', $this->regional_police_id)
             ->where('is_active', true)->orderBy('name')->get() : collect();
 
+        $selectedType = $this->typeId ? Type::find($this->typeId) : null;
+
         return view('livewire.admin.menu-polda.material-shipment.detail.admin-menu-polda-material-shipment-create', [
             'policeStations' => $policeStations,
             'regionalPolices' => $this->regionalPolices,
             'types' => Type::orderBy('name')->get(),
             'typeDetails' => $this->typeDetails,
             'services' => $this->services,
+            'selectedType' => $selectedType,
         ])->layout('components.layouts.main.app');
     }
 }

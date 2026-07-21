@@ -50,8 +50,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Row 1: Code & Date -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Kode Pengiriman <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model.defer="code" readonly class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor SPPM <span class="text-red-500">*</span></label>
+                    <input type="text" wire:model.defer="code" readonly class="w-full px-3 py-2 text-sm font-mono font-bold rounded-lg border border-gray-200 bg-gray-50 text-blue-600 cursor-not-allowed">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Pengiriman <span class="text-red-500">*</span></label>
@@ -163,7 +163,7 @@
                                 @if($is_type_detail)
                                     <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Detail Material</th>
                                 @endif
-                                <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Service</th>
+                                <th class="px-3 py-3 font-semibold text-xs min-w-[180px]">Material / Service Pendukung</th>
                                 <th class="px-3 py-3 font-semibold text-xs min-w-[150px]">Service Detail</th>
                                 @if($is_with_serial_number)
                                     <th class="px-3 py-3 font-semibold text-xs min-w-[250px]">Identitas Barang (Kode | Serial Number)</th>
@@ -188,7 +188,7 @@
                         $rowTypeDetailId ? 'type_detail_id' : 'type_id',
                         $rowTypeDetailId ? $rowTypeDetailId : $typeId
                     );
-                    $selectedSvc = collect($this->services)->firstWhere('id', $rowServiceId);
+                    $selectedSvc = $rowServiceId !== 'MAIN_MATERIAL' ? collect($this->services)->firstWhere('id', $rowServiceId) : null;
                     $filteredServiceDetails = data_get($selectedSvc, 'details', []);
                 @endphp
 
@@ -206,10 +206,15 @@
 
                                 <td class="px-3 py-3 align-top">
                                     <select wire:model.live="details.{{ $index }}.service_id" @disabled($shipmentId)
-                                        class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
-                                        <option value="">-- Semua Service --</option>
+                                        class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500 font-medium">
+                                        <option value="">-- Semua Material & Pendukung --</option>
+                                        @if($selectedType)
+                                            <option value="MAIN_MATERIAL" class="font-bold text-blue-700 bg-blue-50">
+                                                📦 {{ $selectedType->name }} (Material Utama)
+                                            </option>
+                                        @endif
                                         @foreach($filteredServices as $svc)
-                                            <option value="{{ data_get($svc, 'id') }}">{{ data_get($svc, 'name') }}</option>
+                                            <option value="{{ data_get($svc, 'id') }}">📄 {{ data_get($svc, 'name') }}</option>
                                         @endforeach
                                     </select>
                                 </td>
