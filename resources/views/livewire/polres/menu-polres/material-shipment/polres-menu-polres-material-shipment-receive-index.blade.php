@@ -1,4 +1,55 @@
-<div>
+<div x-data="{
+    showScannerModal: false,
+    scanner: null,
+    cameraError: null,
+    openScanner() {
+        this.showScannerModal = true;
+        this.cameraError = null;
+    },
+    closeScanner() {
+        this.stopCamera();
+        this.showScannerModal = false;
+    },
+    startCamera() {
+        this.cameraError = null;
+        if (!window.Html5Qrcode) {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            script.onload = () => { this.runCamera(); };
+            document.head.appendChild(script);
+        } else {
+            this.runCamera();
+        }
+    },
+    runCamera() {
+        this.$nextTick(() => {
+            try {
+                const html5QrCode = new Html5Qrcode('polres-qr-reader');
+                this.scanner = html5QrCode;
+                html5QrCode.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 220, height: 220 } },
+                    (decodedText) => {
+                        $wire.set('searchCode', decodedText);
+                        $wire.call('searchByCode');
+                        this.closeScanner();
+                    },
+                    () => {}
+                ).catch(err => {
+                    this.cameraError = 'Izin kamera ditolak atau kamera tidak tersedia.';
+                });
+            } catch (e) {
+                this.cameraError = 'Kamera tidak dapat diinisialisasi.';
+            }
+        });
+    },
+    stopCamera() {
+        if (this.scanner) {
+            this.scanner.stop().catch(() => {});
+            this.scanner = null;
+        }
+    }
+}">
     <!-- Header -->
     <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -52,7 +103,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Input Nomor SPPM Manual</label>
                 <div class="flex gap-2">
                     <input wire:model="searchCode" type="text"
-                        placeholder="Contoh: SPPM-2026-001 atau Kode Pengiriman..."
+                        placeholder="Contoh: SPPM/SHP-20260721-001..."
                         class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                         wire:keydown.enter="searchByCode">
                     <button wire:click="searchByCode" type="button"
@@ -69,7 +120,7 @@
             <!-- Barcode Scanner -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Atau Scan Barcode/QR Code</label>
-                <button onclick="startScanner()" type="button"
+                <button @click="openScanner()" type="button"
                     class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -78,7 +129,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Aktifkan Kamera Scanner
+                    Verifikasi QR Code / Barcode SPPM
                 </button>
             </div>
         </div>
@@ -179,6 +230,53 @@
 
         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
             {{ $materialShipments->links() }}
+        </div>
+    </div>
+
+    <!-- SCANNER MODAL FOR POLRES RECEIVE -->
+    <div x-show="showScannerModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden" @click.away="closeScanner()">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                    🔍 Verifikasi & Scan QR Code SPPM
+                </h3>
+                <button @click="closeScanner()" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 p-4 rounded-2xl">
+                    <label class="block text-xs font-bold text-blue-900 mb-2">Input Nomor SPPM Manual:</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" x-model="$wire.searchCode" placeholder="Contoh: SPPM/SHP-20260721-001"
+                            @keydown.enter="$wire.searchByCode(); closeScanner();"
+                            class="w-full px-3.5 py-2.5 text-xs font-mono font-bold rounded-xl border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                        <button type="button" @click="$wire.searchByCode(); closeScanner();"
+                            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0">
+                            Cari SPPM
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center pt-2">
+                    <button type="button" @click="startCamera()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all inline-flex items-center gap-1.5">
+                        📷 Buka Kamera Webcam Scanner
+                    </button>
+                </div>
+
+                <div id="polres-qr-reader" class="w-full max-w-xs mx-auto rounded-xl overflow-hidden bg-slate-900 border border-slate-800" style="max-height: 200px;"></div>
+
+                <template x-if="cameraError">
+                    <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-600 text-xs text-center">
+                        ⚠️ <span x-text="cameraError"></span>
+                    </div>
+                </template>
+            </div>
+
+            <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+                <button @click="closeScanner()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 </div>
