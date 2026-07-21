@@ -7,16 +7,15 @@ use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
-use App\Models\Spatie\Role;
 use App\Models\Stock\StockDetail;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class DemoSppmShipmentSeeder extends Seeder
+class DemoSppmShipmentPartTwoSeeder extends Seeder
 {
     /**
-     * Run the database seeds for demo SPPM shipments & Polres accounts.
+     * Run the database seeds for demo SPPM shipments & Polres accounts (Part 2).
      */
     public function run(): void
     {
@@ -37,57 +36,67 @@ class DemoSppmShipmentSeeder extends Seeder
             ]
         );
 
-        // Target Polres Data
+        // 6 New Target Polres Data
         $targetPolresList = [
             [
-                'station_name' => 'Polrestabes Surabaya',
-                'account_name' => 'Polrestabes Surabaya',
-                'email' => 'polrestabes-surabaya@sbst.test',
-                'sppm_code' => 'SPPM/SHP-20260721-SBY',
-                'serial_first' => 'SBY-2026-0001',
-                'serial_second' => 'SBY-2026-1000',
-                'quantity' => 1000,
-                'notes' => 'Pengiriman Materiel SIM Card 1.000 Unit ke Polrestabes Surabaya',
+                'station_name' => 'Polres Kediri Kota',
+                'account_name' => 'Polres Kediri Kota',
+                'email' => 'polres-kediri-kota@sbst.test',
+                'sppm_code' => 'SPPM/SHP-20260721-KDK',
+                'serial_first' => 'KDK-2026-0001',
+                'serial_second' => 'KDK-2026-0300',
+                'quantity' => 300,
+                'notes' => 'Pengiriman Materiel SIM Card 300 Unit ke Polres Kediri Kota',
             ],
             [
-                'station_name' => 'Polres Gresik',
-                'account_name' => 'Polres Gresik',
-                'email' => 'polres-gresik@sbst.test',
-                'sppm_code' => 'SPPM/SHP-20260721-GRK',
-                'serial_first' => 'GRK-2026-0001',
-                'serial_second' => 'GRK-2026-0500',
-                'quantity' => 500,
-                'notes' => 'Pengiriman Materiel STNK 500 Unit ke Polres Gresik',
+                'station_name' => 'Polres Kediri',
+                'account_name' => 'Polres Kediri',
+                'email' => 'polres-kediri@sbst.test',
+                'sppm_code' => 'SPPM/SHP-20260721-KDB',
+                'serial_first' => 'KDB-2026-0001',
+                'serial_second' => 'KDB-2026-0450',
+                'quantity' => 450,
+                'notes' => 'Pengiriman Materiel STNK 450 Unit ke Polres Kediri',
             ],
             [
-                'station_name' => 'Polres Mojokerto Kota',
-                'account_name' => 'Polres Mojokerto Kota',
-                'email' => 'polres-mojokerto-kota@sbst.test',
-                'sppm_code' => 'SPPM/SHP-20260721-MJK',
-                'serial_first' => 'MJK-2026-0001',
-                'serial_second' => 'MJK-2026-0350',
+                'station_name' => 'Polres Blitar Kota',
+                'account_name' => 'Polres Blitar Kota',
+                'email' => 'polres-blitar-kota@sbst.test',
+                'sppm_code' => 'SPPM/SHP-20260721-BLK',
+                'serial_first' => 'BLK-2026-0001',
+                'serial_second' => 'BLK-2026-0200',
+                'quantity' => 200,
+                'notes' => 'Pengiriman Materiel BPKB 200 Unit ke Polres Blitar Kota',
+            ],
+            [
+                'station_name' => 'Polres Blitar',
+                'account_name' => 'Polres Blitar',
+                'email' => 'polres-blitar@sbst.test',
+                'sppm_code' => 'SPPM/SHP-20260721-BLB',
+                'serial_first' => 'BLB-2026-0001',
+                'serial_second' => 'BLB-2026-0350',
                 'quantity' => 350,
-                'notes' => 'Pengiriman Materiel TNKB REG 350 Unit ke Polres Mojokerto Kota',
+                'notes' => 'Pengiriman Materiel TNKB REG 350 Unit ke Polres Blitar',
             ],
             [
-                'station_name' => 'Polres Mojokerto',
-                'account_name' => 'Polres Mojokerto',
-                'email' => 'polres-mojokerto@sbst.test',
-                'sppm_code' => 'SPPM/SHP-20260721-MOJ',
-                'serial_first' => 'MOJ-2026-0001',
-                'serial_second' => 'MOJ-2026-0400',
+                'station_name' => 'Polres Trenggalek',
+                'account_name' => 'Polres Trenggalek',
+                'email' => 'polres-trenggalek@sbst.test',
+                'sppm_code' => 'SPPM/SHP-20260721-TRG',
+                'serial_first' => 'TRG-2026-0001',
+                'serial_second' => 'TRG-2026-0250',
+                'quantity' => 250,
+                'notes' => 'Pengiriman Materiel SIM Card 250 Unit ke Polres Trenggalek',
+            ],
+            [
+                'station_name' => 'Polres Tulungagung',
+                'account_name' => 'Polres Tulungagung',
+                'email' => 'polres-tulungagung@sbst.test',
+                'sppm_code' => 'SPPM/SHP-20260721-TLG',
+                'serial_first' => 'TLG-2026-0001',
+                'serial_second' => 'TLG-2026-0400',
                 'quantity' => 400,
-                'notes' => 'Pengiriman Materiel BPKB 400 Unit ke Polres Mojokerto',
-            ],
-            [
-                'station_name' => 'Polres Jombang',
-                'account_name' => 'Polres Jombang',
-                'email' => 'polres-jombang@sbst.test',
-                'sppm_code' => 'SPPM/SHP-20260721-JBG',
-                'serial_first' => 'JBG-2026-0001',
-                'serial_second' => 'JBG-2026-0600',
-                'quantity' => 600,
-                'notes' => 'Pengiriman Materiel SIM Card 600 Unit ke Polres Jombang',
+                'notes' => 'Pengiriman Materiel STNK 400 Unit ke Polres Tulungagung',
             ],
         ];
 
@@ -164,7 +173,7 @@ class DemoSppmShipmentSeeder extends Seeder
 
             if (!$existingMessage) {
                 Message::create([
-                    'code' => 'MSG-' . date('Ymd') . '-' . str_pad($idx + 10, 4, '0', STR_PAD_LEFT),
+                    'code' => 'MSG-' . date('Ymd') . '-' . str_pad($idx + 30, 4, '0', STR_PAD_LEFT),
                     'sender_id' => $adminUser->id,
                     'sender_regional_police_id' => $polda->id,
                     'receiver_type' => 'polres',

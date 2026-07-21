@@ -47,6 +47,8 @@ class DatabaseSeeder extends Seeder
             ConnectedDataSeeder::class,
             // Demo SPPM shipments and inbox messages for 5 primary Polres
             DemoSppmShipmentSeeder::class,
+            // Demo SPPM shipments (Part 2) for Kediri, Blitar, Trenggalek, Tulungagung
+            DemoSppmShipmentPartTwoSeeder::class,
         ]);
     }
 }
