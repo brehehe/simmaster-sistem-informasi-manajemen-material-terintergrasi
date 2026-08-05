@@ -5,12 +5,14 @@ namespace App\Livewire\Admin\MenuPolda\MaterialShipment;
 use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Police\PoliceStation;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use App\Models\Police\RegionalPolice;
+use Illuminate\Support\Facades\Storage;
 
 class AdminMenuPoldaMaterialShipmentIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
     public ?string $startDate = null;
@@ -27,6 +29,13 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     public $selectedShipment = null;
     public string $scanInputCode = '';
     public $scannedShipment = null;
+
+    // Picking form fields (TTD, Foto, Identitas)
+    public string $pickerName     = '';
+    public string $pickerRank     = '';
+    public string $pickerPosition = '';
+    public string $pickerSignature = ''; // base64 PNG
+    public $pickerPhoto = null;
 
     public function toJSON()
     {
@@ -152,6 +161,8 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
         $this->shipmentId = $id;
         $this->scanInputCode = '';
         $this->scannedShipment = null;
+        $this->resetPickingForm();
+
         if ($id) {
             $this->scannedShipment = MaterialShipment::with([
                 'receiverPoliceStation',
@@ -172,6 +183,16 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
         $this->scanInputCode = '';
         $this->scannedShipment = null;
         $this->shipmentId = null;
+        $this->resetPickingForm();
+    }
+
+    private function resetPickingForm(): void
+    {
+        $this->pickerName      = '';
+        $this->pickerRank      = '';
+        $this->pickerPosition  = '';
+        $this->pickerSignature = '';
+        $this->pickerPhoto     = null;
     }
 
     public function processScanQr(): void
@@ -208,13 +229,37 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     {
         if (!$this->scannedShipment) return;
 
+        $this->validate([
+            'pickerName'      => 'required|string|max:200',
+            'pickerRank'      => 'required|string|max:100',
+            'pickerPosition'  => 'required|string|max:200',
+            'pickerSignature' => 'required|string',
+            'pickerPhoto'     => 'nullable|file|image|max:5120',
+        ], [
+            'pickerName.required'      => 'Nama pengambil wajib diisi.',
+            'pickerRank.required'      => 'Pangkat wajib diisi.',
+            'pickerPosition.required'  => 'Jabatan wajib diisi.',
+            'pickerSignature.required' => 'Tanda tangan digital wajib dibuat.',
+        ]);
+
         try {
+            $photoPath = null;
+            if ($this->pickerPhoto) {
+                $photoPath = $this->pickerPhoto->store('shipment-photos', 'public');
+            }
+
             if ($this->scannedShipment->status === 'draft') {
                 $this->scannedShipment->update([
-                    'status' => 'shipped',
-                    'shipped_at' => now(),
+                    'status'           => 'shipped',
+                    'shipped_at'       => now(),
+                    'picker_name'      => $this->pickerName,
+                    'picker_rank'      => $this->pickerRank,
+                    'picker_position'  => $this->pickerPosition,
+                    'picker_signature' => $this->pickerSignature,
+                    'picker_photo'     => $photoPath,
+                    'picked_at'        => now(),
                 ]);
-                session()->flash('success', "Pengambilan material untuk SPPM {$this->scannedShipment->code} telah diverifikasi petugas warehouse!");
+                session()->flash('success', "Serah terima material SPPM {$this->scannedShipment->code} berhasil! Status: Terkirim.");
             } else {
                 session()->flash('info', "SPPM {$this->scannedShipment->code} sudah diverifikasi sebelumnya.");
             }

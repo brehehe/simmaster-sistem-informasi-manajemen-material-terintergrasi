@@ -221,32 +221,45 @@
         </table>
     </div>
 
-    <!-- Pihak Penerima -->
-    <div class="receiver-info">
-        <p>YANG MENERIMA :</p>
-        <table style="width: auto;">
+    <!-- Pihak Penerima / Pengambil Gudang -->
+    <div class="receiver-info" style="margin-top: 15px;">
+        <p style="font-weight: bold; margin-bottom: 5px;">YANG MENERIMA / SERAH TERIMA GUDANG :</p>
+        <table style="width: auto; border: none;">
             <tr>
-                <td>Nama</td>
-                <td>:</td>
-                <td>__________________________</td>
+                <td style="border: none; padding: 2px 10px 2px 0; font-weight: bold;">Nama</td>
+                <td style="border: none; padding: 2px 5px;">:</td>
+                <td style="border: none; padding: 2px 0;">{{ $shipment->picker_name ?: ($shipment->received_by ?: '__________________________') }}</td>
             </tr>
             <tr>
-                <td>Pangkat / Nrp</td>
-                <td>:</td>
-                <td>__________________________</td>
+                <td style="border: none; padding: 2px 10px 2px 0; font-weight: bold;">Pangkat / NRP</td>
+                <td style="border: none; padding: 2px 5px;">:</td>
+                <td style="border: none; padding: 2px 0;">{{ $shipment->picker_rank ?: '__________________________' }}</td>
             </tr>
             <tr>
-                <td>Jabatan</td>
-                <td>:</td>
-                <td>__________________________</td>
+                <td style="border: none; padding: 2px 10px 2px 0; font-weight: bold;">Jabatan</td>
+                <td style="border: none; padding: 2px 5px;">:</td>
+                <td style="border: none; padding: 2px 0;">{{ $shipment->picker_position ?: '__________________________' }}</td>
             </tr>
             <tr>
-                <td>Tanda Tangan</td>
-                <td>:</td>
-                <td>__________________________</td>
+                <td style="border: none; padding: 2px 10px 2px 0; font-weight: bold; vertical-align: top;">Tanda Tangan</td>
+                <td style="border: none; padding: 2px 5px; vertical-align: top;">:</td>
+                <td style="border: none; padding: 2px 0;">
+                    @if($shipment->picker_signature)
+                        <img src="{{ $shipment->picker_signature }}" style="max-height: 55px; display: block; margin-top: 2px;">
+                    @else
+                        __________________________
+                    @endif
+                </td>
             </tr>
         </table>
     </div>
+
+    @if($shipment->picker_photo)
+        <div style="margin-top: 20px; page-break-inside: avoid; border-top: 1px dashed #ccc; pt-3;">
+            <p style="font-size: 10px; font-weight: bold; margin-bottom: 5px;">LAMPIRAN FOTO DOKUMENTASI SERAH TERIMA GUDANG:</p>
+            <img src="{{ \Illuminate\Support\Facades\Storage::url($shipment->picker_photo) }}" style="max-height: 140px; border: 1px solid #ccc; border-radius: 4px; padding: 3px;">
+        </div>
+    @endif
 
     @if(($mode ?? 'qr') !== 'ttd_ka')
         <div style="margin-top:10px; text-align: right;">

@@ -454,88 +454,86 @@
         </div>
     @endif
 
-    {{-- SCAN QR CODE MODAL (FITUR PETUGAS WAREHOUSE WITH LIVE CAMERA SCANNER) --}}
+    {{-- SCAN QR CODE MODAL — SERAH TERIMA WAREHOUSE (DENGAN TTD & FOTO) --}}
     @if($showScanQrModal)
         <div class="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4"
             x-data="{
-                scanner: null,
-                isScanning: false,
-                showCameraBox: false,
-                cameraError: null,
+                scanner: null, isScanning: false, showCameraBox: false, cameraError: null,
+                sigCanvas: null, sigCtx: null, isDrawing: false, sigEmpty: true,
+                photoStream: null, showPhotoCamera: false, photoPreview: null,
+                initSignature() {
+                    this.$nextTick(() => {
+                        const c = this.$refs.sigPad;
+                        if (!c) return;
+                        this.sigCanvas = c;
+                        this.sigCtx = c.getContext('2d');
+                        this.sigCtx.strokeStyle = '#1e293b';
+                        this.sigCtx.lineWidth = 2;
+                        this.sigCtx.lineCap = 'round';
+                        this.sigCtx.lineJoin = 'round';
+                    });
+                },
+                startDraw(e) { this.isDrawing=true; this.sigEmpty=false; const p=this.getPos(e); this.sigCtx.beginPath(); this.sigCtx.moveTo(p.x,p.y); },
+                draw(e) { if(!this.isDrawing) return; e.preventDefault(); const p=this.getPos(e); this.sigCtx.lineTo(p.x,p.y); this.sigCtx.stroke(); },
+                stopDraw() { if(!this.isDrawing) return; this.isDrawing=false; if(!this.sigEmpty) $wire.set('pickerSignature',this.sigCanvas.toDataURL('image/png')); },
+                clearSig() { if(this.sigCtx) this.sigCtx.clearRect(0,0,this.sigCanvas.width,this.sigCanvas.height); this.sigEmpty=true; $wire.set('pickerSignature',''); },
+                getPos(e) { const r=this.sigCanvas.getBoundingClientRect(); const sx=this.sigCanvas.width/r.width,sy=this.sigCanvas.height/r.height; const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY; return {x:(cx-r.left)*sx,y:(cy-r.top)*sy}; },
                 startCamera() {
-                    this.cameraError = null;
-                    this.isScanning = true;
-                    this.showCameraBox = true;
-                    if (!window.Html5Qrcode) {
-                        const script = document.createElement('script');
-                        script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-                        script.onload = () => { this.runCameraStream(); };
-                        document.head.appendChild(script);
-                    } else {
-                        this.runCameraStream();
-                    }
+                    this.cameraError=null; this.isScanning=true; this.showCameraBox=true;
+                    if (!window.Html5Qrcode) { const s=document.createElement('script'); s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'; s.onload=()=>this.runCameraStream(); document.head.appendChild(s); } else { this.runCameraStream(); }
                 },
                 runCameraStream() {
                     this.$nextTick(() => {
                         try {
-                            const html5QrCode = new Html5Qrcode('qr-reader');
-                            this.scanner = html5QrCode;
-                            html5QrCode.start(
-                                { facingMode: 'environment' },
-                                { fps: 10, qrbox: { width: 220, height: 220 } },
-                                (decodedText) => {
-                                    $wire.set('scanInputCode', decodedText);
-                                    $wire.call('processScanQr');
-                                    this.stopCamera();
-                                },
-                                (errorMessage) => {}
-                            ).catch(err => {
-                                this.isScanning = false;
-                                this.cameraError = 'Izin kamera ditolak atau kamera tidak tersedia.';
-                            });
-                        } catch(e) {
-                            this.isScanning = false;
-                            this.cameraError = 'Kamera tidak dapat diinisialisasi.';
-                        }
+                            const qr = new Html5Qrcode('admin-qr-reader'); this.scanner=qr;
+                            qr.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220}},
+                                (text)=>{ $wire.set('scanInputCode',text); $wire.call('processScanQr'); this.stopCamera(); }, ()=>{}
+                            ).catch(()=>{ this.isScanning=false; this.cameraError='Izin kamera ditolak.'; });
+                        } catch(e) { this.isScanning=false; this.cameraError='Kamera tidak dapat diinisialisasi.'; }
                     });
                 },
-                stopCamera() {
-                    this.showCameraBox = false;
-                    if (this.scanner && this.isScanning) {
-                        this.scanner.stop().then(() => {
-                            this.isScanning = false;
-                        }).catch(() => {
-                            this.isScanning = false;
-                        });
-                    }
-                }
-            }">
-            <div class="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden">
+                stopCamera() { this.showCameraBox=false; if(this.scanner&&this.isScanning){ this.scanner.stop().then(()=>this.isScanning=false).catch(()=>this.isScanning=false); } },
+                async openPhotoCamera() {
+                    try { this.photoStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); this.$refs.photoVid.srcObject=this.photoStream; this.showPhotoCamera=true; }
+                    catch(e) { alert('Izin kamera ditolak.'); }
+                },
+                closePhotoCamera() { if(this.photoStream){this.photoStream.getTracks().forEach(t=>t.stop());this.photoStream=null;} this.showPhotoCamera=false; },
+                capturePhoto() {
+                    const cv=document.createElement('canvas'); cv.width=this.$refs.photoVid.videoWidth; cv.height=this.$refs.photoVid.videoHeight;
+                    cv.getContext('2d').drawImage(this.$refs.photoVid,0,0);
+                    cv.toBlob(async(blob)=>{ const f=new File([blob],'foto-'+Date.now()+'.jpg',{type:'image/jpeg'}); const dt=new DataTransfer(); dt.items.add(f); this.$refs.photoInput.files=dt.files; this.$refs.photoInput.dispatchEvent(new Event('change')); this.photoPreview=cv.toDataURL('image/jpeg',0.8); this.closePhotoCamera(); },'image/jpeg',0.85);
+                },
+                handlePhotoChange(e) { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>this.photoPreview=ev.target.result;r.readAsDataURL(f);} }
+            }"
+            x-init="$nextTick(() => { if ($wire.scannedShipment) initSignature(); })">
+            <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[95vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden">
                 {{-- Sticky Modal Header --}}
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
-                    <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                        🔍 Fitur Scan / Verifikasi QR Code SPPM
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
+                    <h3 class="text-base font-bold flex items-center gap-2">
+                        📷 Verifikasi & Serah Terima Material — QR SPPM
                     </h3>
-                    <button wire:click="closeScanQrModal" @click="stopCamera()" class="text-gray-400 hover:text-gray-600">✕</button>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('warehouse.scan') }}" target="_blank"
+                            class="text-xs bg-white/20 hover:bg-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all">
+                            🖥️ Buka Halaman Warehouse
+                        </a>
+                        <button wire:click="closeScanQrModal" @click="stopCamera(); closePhotoCamera()" class="text-white/80 hover:text-white">✕</button>
+                    </div>
                 </div>
 
                 {{-- Scrollable Modal Body --}}
                 <div class="p-6 overflow-y-auto flex-1 space-y-4">
-                    {{-- Live Camera Scanner Viewfinder (Hidden by default) --}}
-                    <div x-show="showCameraBox" x-cloak class="bg-slate-950 p-3 rounded-2xl border-2 border-emerald-400/40 relative overflow-hidden text-center mb-4">
+                    {{-- Live Camera QR Scanner --}}
+                    <div x-show="showCameraBox" x-cloak class="bg-slate-950 p-3 rounded-2xl border-2 border-emerald-400/40 text-center">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                <span>KAMERA SCANNER AKTIF</span>
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>KAMERA SCANNER AKTIF
                             </span>
                             <button @click="stopCamera()" class="px-2 py-0.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/30">
-                                🛑 Sembunyikan Kamera
+                                🛑 Sembunyikan
                             </button>
                         </div>
-
-                        {{-- Html5Qrcode Reader Container --}}
-                        <div id="qr-reader" class="w-full max-w-xs mx-auto rounded-xl overflow-hidden bg-slate-900 border border-slate-800" style="max-height: 200px;"></div>
-
+                        <div id="admin-qr-reader" class="w-full max-w-xs mx-auto rounded-xl overflow-hidden bg-slate-900 border border-slate-800" style="max-height: 200px;"></div>
                         <template x-if="cameraError">
                             <div class="mt-2 p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-[11px]">
                                 ⚠️ <span x-text="cameraError"></span>
@@ -575,24 +573,104 @@
                                 </span>
                             </div>
 
-                            <h4 class="font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Rincian Barang & Lokasi Rak Ambil:</h4>
-                            <div class="space-y-2 max-h-40 overflow-y-auto pr-1 mb-3">
-                                @foreach($scannedShipment->materialShipmentDetails as $d)
-                                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 flex items-center justify-between">
-                                        <div>
-                                            <div class="font-bold text-gray-800">{{ $d->type?->name ?? '-' }} ({{ $d->typeDetail?->name ?? '-' }})</div>
-                                            <div class="text-[10px] text-emerald-600 font-semibold">📍 Rak: {{ $d->stockDetail?->rack?->name ?? 'Gudang Utama' }}</div>
-                                        </div>
-                                        <span class="font-bold text-blue-600 font-mono text-xs">{{ number_format($d->quantity, 0, ',', '.') }} unit</span>
-                                    </div>
-                                @endforeach
+                            {{-- Tabel Rincian dengan Nomor Seri --}}
+                            <h4 class="font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Rincian Barang, Nomor Seri & Lokasi Rak:</h4>
+                            <div class="overflow-x-auto rounded-xl border border-gray-200 mb-3">
+                                <table class="w-full text-[10px]">
+                                    <thead class="bg-gray-100 text-gray-600 font-semibold">
+                                        <tr>
+                                            <th class="p-2">Material</th>
+                                            <th class="p-2 font-mono bg-blue-50">Nomor Seri / Kode</th>
+                                            <th class="p-2 text-center bg-emerald-50">Rak</th>
+                                            <th class="p-2 text-center">Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        @foreach($scannedShipment->materialShipmentDetails as $d)
+                                            <tr class="bg-white">
+                                                <td class="p-2 font-bold text-gray-800">{{ $d->type?->name ?? '-' }} <span class="text-gray-400 font-normal">({{ $d->typeDetail?->name ?? '-' }})</span></td>
+                                                <td class="p-2 font-mono text-blue-600 bg-blue-50/30">{{ implode(' | ', array_filter([$d->code, $d->number_serial_first, $d->number_serial_second])) ?: '—' }}</td>
+                                                <td class="p-2 text-center bg-emerald-50/30"><span class="font-bold text-emerald-700">📍 {{ $d->stockDetail?->rack?->name ?? 'Gudang' }}</span></td>
+                                                <td class="p-2 text-center font-bold text-blue-600">{{ number_format($d->quantity, 0, ',', '.') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
 
                             @if($scannedShipment->status === 'draft')
+                                {{-- Identitas Pengambil + TTD + Foto --}}
+                                <div class="border border-purple-100 rounded-xl p-3 bg-purple-50/30 mb-3" x-init="initSignature()">
+                                    <h4 class="font-bold text-purple-800 text-[10px] uppercase tracking-wider mb-2">👤 Identitas Pengambil</h4>
+                                    <div class="grid grid-cols-3 gap-2 mb-2">
+                                        <div>
+                                            <label class="block text-[10px] font-semibold text-gray-600 mb-1">Nama <span class="text-red-500">*</span></label>
+                                            <input type="text" wire:model="pickerName" placeholder="Nama lengkap" class="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-purple-400">
+                                            @error('pickerName') <p class="text-red-500 text-[9px] mt-0.5">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-semibold text-gray-600 mb-1">Pangkat <span class="text-red-500">*</span></label>
+                                            <input type="text" wire:model="pickerRank" placeholder="Pangkat" class="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-purple-400">
+                                            @error('pickerRank') <p class="text-red-500 text-[9px] mt-0.5">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-semibold text-gray-600 mb-1">Jabatan <span class="text-red-500">*</span></label>
+                                            <input type="text" wire:model="pickerPosition" placeholder="Jabatan" class="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:border-purple-400">
+                                            @error('pickerPosition') <p class="text-red-500 text-[9px] mt-0.5">{{ $message }}</p> @enderror
+                                        </div>
+                                    </div>
+
+                                    {{-- TTD Canvas --}}
+                                    <div class="mb-2">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="text-[10px] font-semibold text-gray-600">✍️ TTD Digital <span class="text-red-500">*</span></label>
+                                            <button type="button" @click="clearSig()" class="text-[9px] text-red-500 bg-red-50 px-2 py-0.5 rounded font-semibold">🗑️ Hapus</button>
+                                        </div>
+                                        <div class="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 relative overflow-hidden" style="touch-action:none;">
+                                            <canvas x-ref="sigPad" width="560" height="110" class="w-full cursor-crosshair block"
+                                                @mousedown="startDraw($event)" @mousemove="draw($event)" @mouseup="stopDraw()" @mouseleave="stopDraw()"
+                                                @touchstart.prevent="startDraw($event)" @touchmove.prevent="draw($event)" @touchend="stopDraw()"></canvas>
+                                            <div x-show="sigEmpty" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                <p class="text-gray-300 text-xs">Tanda tangan di sini...</p>
+                                            </div>
+                                        </div>
+                                        @error('pickerSignature') <p class="text-red-500 text-[9px] mt-0.5">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    {{-- Foto Dokumentasi --}}
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="text-[10px] font-semibold text-gray-600">📸 Foto Dokumentasi (opsional)</label>
+                                            <button type="button" @click="showPhotoCamera ? closePhotoCamera() : openPhotoCamera()"
+                                                class="text-[9px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                                                <span x-text="showPhotoCamera ? '🙈 Tutup' : '📷 Kamera'"></span>
+                                            </button>
+                                        </div>
+                                        <div x-show="showPhotoCamera" class="rounded-xl overflow-hidden bg-black mb-2">
+                                            <video x-ref="photoVid" autoplay playsinline class="w-full max-h-28 object-cover"></video>
+                                            <div class="flex justify-center p-1.5 bg-black/50">
+                                                <button type="button" @click="capturePhoto()" class="w-8 h-8 rounded-full bg-white border-2 border-gray-300 text-sm flex items-center justify-center">📸</button>
+                                            </div>
+                                        </div>
+                                        <input x-ref="photoInput" type="file" wire:model="pickerPhoto" accept="image/*" @change="handlePhotoChange($event)"
+                                            class="w-full text-[10px] text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-amber-100 file:text-amber-700">
+                                        <div x-show="photoPreview" class="mt-2 rounded-lg overflow-hidden border border-gray-200">
+                                            <img :src="photoPreview" alt="Preview" class="w-full max-h-24 object-cover">
+                                        </div>
+                                        @error('pickerPhoto') <p class="text-red-500 text-[9px] mt-0.5">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+
                                 <button wire:click="confirmWarehousePicking" type="button"
-                                    class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all text-xs">
-                                    ✅ Konfirmasi Material Selesai Diambil dari Rak (Siap Kirim)
+                                    wire:loading.attr="disabled" wire:loading.class="opacity-50"
+                                    class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all text-xs flex items-center justify-center gap-2">
+                                    <span wire:loading.remove wire:target="confirmWarehousePicking">✅ Konfirmasi Serah Terima Material</span>
+                                    <span wire:loading wire:target="confirmWarehousePicking">⏳ Menyimpan...</span>
                                 </button>
+                            @else
+                                <div class="text-center py-2 text-xs text-green-700 font-bold bg-green-50 rounded-xl border border-green-200">
+                                    ✅ SPPM sudah diproses (status: {{ strtoupper($scannedShipment->status) }})
+                                </div>
                             @endif
                         </div>
                     @endif
@@ -600,7 +678,7 @@
 
                 {{-- Sticky Modal Footer --}}
                 <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
-                    <button wire:click="closeScanQrModal" @click="stopCamera()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
+                    <button wire:click="closeScanQrModal" @click="stopCamera(); closePhotoCamera()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
                         Tutup
                     </button>
                 </div>
@@ -636,7 +714,36 @@
                         </div>
                     </div>
 
-                    <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">Daftar Barang & Lokasi Rak Gudang:</h4>
+                    {{-- Identitas Pengambil (jika sudah diisi) --}}
+                    @if($selectedShipment->picker_name)
+                        <div class="bg-purple-50 border border-purple-100 rounded-2xl p-4 text-xs">
+                            <h4 class="font-bold text-purple-800 uppercase tracking-wider text-[10px] mb-3">👤 Identitas Pengambil Material</h4>
+                            <div class="grid grid-cols-3 gap-4 mb-3">
+                                <div><span class="text-gray-400 block">Nama</span><strong class="text-gray-800">{{ $selectedShipment->picker_name }}</strong></div>
+                                <div><span class="text-gray-400 block">Pangkat</span><strong class="text-gray-800">{{ $selectedShipment->picker_rank }}</strong></div>
+                                <div><span class="text-gray-400 block">Jabatan</span><strong class="text-gray-800">{{ $selectedShipment->picker_position }}</strong></div>
+                            </div>
+                            @if($selectedShipment->picked_at)
+                                <div class="text-[10px] text-gray-400 mb-2">⏰ Serah terima: {{ \Carbon\Carbon::parse($selectedShipment->picked_at)->format('d F Y, H:i') }} WIB</div>
+                            @endif
+                            @if($selectedShipment->picker_signature)
+                                <div class="mb-2"><span class="text-gray-400 block mb-1 text-[10px]">✍️ TTD Digital:</span>
+                                    <div class="bg-white rounded-xl border border-gray-200 p-2 inline-block">
+                                        <img src="{{ $selectedShipment->picker_signature }}" alt="TTD" class="max-h-16 max-w-full">
+                                    </div>
+                                </div>
+                            @endif
+                            @if($selectedShipment->picker_photo)
+                                <div><span class="text-gray-400 block mb-1 text-[10px]">📸 Foto Dokumentasi:</span>
+                                    <img src="{{ Storage::url($selectedShipment->picker_photo) }}" alt="Foto" class="max-h-32 rounded-xl border border-gray-200 object-cover">
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="text-xs text-gray-400 bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">Identitas pengambil belum diisi (belum diproses serah terima)</div>
+                    @endif
+
+                    <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">Daftar Barang, Nomor Seri & Lokasi Rak:</h4>
                     <div class="overflow-x-auto border border-gray-200 rounded-2xl">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-gray-100 text-gray-700 font-semibold">
@@ -644,8 +751,9 @@
                                     <th class="p-3 text-center w-10">No</th>
                                     <th class="p-3">Nama Material</th>
                                     <th class="p-3">Detail</th>
+                                    <th class="p-3 font-mono bg-blue-50">Nomor Seri / Kode</th>
                                     <th class="p-3 text-center bg-emerald-50">Lokasi Rak</th>
-                                    <th class="p-3 text-center">Jumlah Diambil</th>
+                                    <th class="p-3 text-center">Qty</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -654,14 +762,9 @@
                                         <td class="p-3 text-center text-gray-400">{{ $idx + 1 }}</td>
                                         <td class="p-3 font-bold text-gray-800">{{ $det->type?->name ?? '-' }}</td>
                                         <td class="p-3 text-gray-600">{{ $det->typeDetail?->name ?? '-' }}</td>
-                                        <td class="p-3 text-center bg-emerald-50/50">
-                                            <span class="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 font-mono">
-                                                📍 {{ $det->stockDetail?->rack?->name ?? 'Gudang Utama' }}
-                                            </span>
-                                        </td>
-                                        <td class="p-3 text-center font-bold text-blue-600 font-mono">
-                                            {{ number_format($det->quantity, 0, ',', '.') }} unit
-                                        </td>
+                                        <td class="p-3 font-mono text-blue-600 bg-blue-50/30">{{ implode(' | ', array_filter([$det->code, $det->number_serial_first, $det->number_serial_second])) ?: '—' }}</td>
+                                        <td class="p-3 text-center bg-emerald-50/50"><span class="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 font-mono">📍 {{ $det->stockDetail?->rack?->name ?? 'Gudang Utama' }}</span></td>
+                                        <td class="p-3 text-center font-bold text-blue-600 font-mono">{{ number_format($det->quantity, 0, ',', '.') }} unit</td>
                                     </tr>
                                 @endforeach
                             </tbody>

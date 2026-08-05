@@ -40,55 +40,12 @@
 
     <!-- Right Side -->
     <div class="flex items-center gap-3">
-        <!-- Notification -->
-        {{-- <div class="relative" x-data="{ open: false }">
-            <button @click="open = !open"
-                class="relative rounded-xl p-2.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span
-                    class="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">3</span>
-            </button>
-            <!-- Notification Dropdown -->
-            <div x-show="open" @click.away="open = false" x-transition
-                class="absolute right-0 mt-2 w-80 rounded-2xl bg-white py-2 shadow-xl ring-1 ring-black/5" x-cloak>
-                <div class="border-b border-gray-100 px-4 py-3">
-                    <h3 class="font-semibold text-gray-900">Notifikasi</h3>
-                </div>
-                <div class="max-h-80 overflow-y-auto">
-                    <a href="#" class="flex gap-3 px-4 py-3 hover:bg-blue-50">
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900">Paket SBST-001234 terkirim</p>
-                            <p class="text-xs text-gray-500">5 menit yang lalu</p>
-                        </div>
-                    </a>
-                    <a href="#" class="flex gap-3 px-4 py-3 hover:bg-blue-50">
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900">Konfirmasi penerimaan berhasil</p>
-                            <p class="text-xs text-gray-500">30 menit yang lalu</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div> --}}
 
-        <!-- Date -->
+        {{-- Notification Bell — SPPM Database Notifications --}}
+        @livewire('actions.notification-bell')
+
+        {{-- Date --}}
+
         <div class="hidden items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-sm text-blue-700 lg:flex">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

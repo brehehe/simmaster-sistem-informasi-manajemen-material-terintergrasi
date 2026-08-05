@@ -283,6 +283,10 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         // Live Warehouse TV Monitor Display
         Route::get('warehouse/display', '\\App\\Livewire\\Warehouse\\WarehouseDisplayIndex')
             ->name('warehouse.display');
+
+        // Warehouse Scan QR — Serah Terima (Petugas Warehouse / Admin)
+        Route::get('warehouse/scan', '\\App\\Livewire\\Warehouse\\WarehouseScanIndex')
+            ->name('warehouse.scan');
     });
 
     Route::group(['namespace' => 'Stock'], function () {

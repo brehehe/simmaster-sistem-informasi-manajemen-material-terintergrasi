@@ -11,6 +11,8 @@ use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Models\Service\Service;
 use App\Models\Service\ServiceDetail;
+use App\Models\User;
+use App\Notifications\SppmCreatedNotification;
 use Carbon\Carbon;
 use Livewire\Component;
 
@@ -352,6 +354,17 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
                 } else {
                     session()->flash('success', 'Pengiriman berhasil disimpan.');
                 }
+                // Kirim notifikasi ke semua user Admin Polres di police station tujuan
+                if (!$this->isEditMode) {
+                    $receiverPoliceStationId = $this->receiver_police_station_id;
+                    $polresAdmins = User::whereHas('roles', fn($q) => $q->whereIn('name', ['Admin', 'Polres']))
+                        ->where('police_station_id', $receiverPoliceStationId)
+                        ->get();
+                    foreach ($polresAdmins as $admin) {
+                        try { $admin->notify(new SppmCreatedNotification($shipment->fresh())); } catch (\Exception) {}
+                    }
+                }
+
             });
 
             return $this->redirect(route('menu-polda.material-shipment'), navigate: true);

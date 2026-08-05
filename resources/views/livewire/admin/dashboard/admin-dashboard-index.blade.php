@@ -5,7 +5,16 @@
             <h1 class="text-2xl font-bold text-gray-900 lg:text-3xl">Dashboard</h1>
             <p class="mt-1 text-gray-500">Visualisasi data dan statistik sistem manajemen material.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
+            @if(Auth::user()->hasRole(['Admin', 'Polda', 'Warehouse']))
+                <a href="{{ route('warehouse.scan') }}"
+                    class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
+                    <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Scan QR SPPM Gudang
+                </a>
+            @endif
             <button wire:click="toggleDataKendaraan"
                 class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
                 Data Kendaraan
