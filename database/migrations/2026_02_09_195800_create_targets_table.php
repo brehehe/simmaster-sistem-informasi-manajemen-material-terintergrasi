@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('targets', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
-            $table->integer('year', 4);
+            $table->integer('year');
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

@@ -7,8 +7,7 @@ use App\Models\Target\Target;
 use App\Models\Target\TargetDetail;
 use App\Models\Type\Type;
 use App\Models\User;
-use Livewire\Livewire;
-use Spatie\Permission\Models\Role;
+use App\Models\Spatie\Role;
 
 it('renders target index page for admin', function () {
     Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
