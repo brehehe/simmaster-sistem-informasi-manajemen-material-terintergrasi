@@ -6,208 +6,275 @@
             <p class="mt-1 text-gray-500">Visualisasi data dan statistik sistem manajemen material.</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-            @if(Auth::user()->hasRole(['Admin', 'Polda', 'Warehouse']))
-                <a href="{{ route('warehouse.scan') }}"
-                    class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
-                    <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Scan QR SPPM Gudang
-                </a>
-            @endif
             <button wire:click="toggleDataKendaraan"
-                class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
-                Data Kendaraan
-            </button>
-            <button wire:click="$refresh"
-                class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
+                class="inline-flex items-center gap-2 rounded-xl border {{ $showDataKendaraan ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50' }} px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h2" />
                 </svg>
-                Refresh
+                {{ $showDataKendaraan ? 'Tutup Pengecekan' : 'Data Kendaraan' }}
             </button>
+            @if(!$showDataKendaraan)
+                <button wire:click="$refresh"
+                    class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+            @endif
         </div>
     </div>
 
-
     @if($showDataKendaraan)
-        <!-- Data Kendaraan Section -->
-        <div x-transition class="mb-8 rounded-2xl border border-blue-100 bg-white p-6 shadow-lg">
+        <!-- ========================================================================= -->
+        <!-- MODUL KHUSUS: PENGECEKAN DATA KENDARAAN (SAMSAT, BAPENDA & ERI) -->
+        <!-- ========================================================================= -->
+        <div x-transition class="mb-10 rounded-2xl border border-blue-100 bg-white p-6 shadow-xl">
+            <!-- Header Modul -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-100 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">Pengecekan Data Kendaraan & Material SBST</h2>
+                        <p class="text-xs text-gray-500">Terintegrasi dengan Database BAPENDA Jatim dan ERI Korlantas Polri</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button wire:click="openImportEriModal" type="button"
+                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold shadow-md shadow-emerald-600/20 transition-all">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Import Data ERI
+                    </button>
+                    @if($vehicleData)
+                        <button onclick="window.print()" type="button"
+                            class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-md shadow-blue-600/20 transition-all">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            Export / Download PDF Hasil Cek
+                        </button>
+                    @endif
+                    <button wire:click="toggleDataKendaraan" type="button"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 px-3.5 py-2 text-xs font-semibold transition-all">
+                        Kembali ke Dashboard
+                    </button>
+                </div>
+            </div>
+
             <!-- Jenis Dokumen -->
-            <div class="mb-6 p-4 rounded-xl bg-green-50/50 border border-green-100">
-                <p class="text-sm font-semibold text-green-800 mb-3">Jenis Dokumen <span class="text-red-500">*</span> <span
-                        class="text-xs font-normal text-green-600">(berlaku untuk semua nopol)</span></p>
-                <div class="flex gap-4">
+            <div class="mb-6 p-4 rounded-xl bg-blue-50/60 border border-blue-100">
+                <p class="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Jenis Dokumen Yang Dicek <span class="text-red-500">*</span></p>
+                <div class="flex gap-6">
                     @foreach(['STNK', 'TNKB', 'BPKB'] as $doc)
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="checkbox" value="{{ $doc }}" wire:model.live="selectedDocTypes"
                                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="ml-2 text-sm font-bold text-blue-900">{{ $doc }}</span>
+                            <span class="ml-2 text-sm font-bold text-gray-800">{{ $doc }}</span>
                         </label>
                     @endforeach
                 </div>
             </div>
 
-            <!-- Daftar Kendaraan -->
-            <div class="mb-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-blue-900">Daftar Kendaraan</h3>
-                        <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">1
-                            kendaraan</span>
+            <!-- Form Pencarian Nopol -->
+            <div class="p-6 rounded-2xl border border-gray-200 bg-gray-50/50 mb-8">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Masukkan Nomor Polisi (NOPOL)</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-grow">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">🚘</span>
+                        <input type="text" wire:model.lazy="searchNopol" placeholder="Contoh: L 1111 AAA"
+                            class="w-full rounded-xl border-gray-300 bg-white pl-11 pr-4 py-3 font-mono font-black text-lg text-gray-900 uppercase tracking-widest focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 shadow-sm">
                     </div>
-                    <div class="flex gap-2">
-                        <button
-                            class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-700">Nomor
-                            Material</button>
-                        <button
-                            class="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-700">Tambah
-                            Nopol</button>
-                    </div>
+                    <button wire:click="cekKendaraan" wire:loading.attr="disabled"
+                        class="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
+                        <span wire:loading.remove wire:target="cekKendaraan">Cek Data Kendaraan</span>
+                        <span wire:loading wire:target="cekKendaraan">Memeriksa BAPENDA...</span>
+                    </button>
                 </div>
+            </div>
 
-                <!-- Search Area -->
-                <div class="p-4 rounded-xl border border-gray-200 bg-gray-50/50 mb-4">
-                    <div class="flex gap-3">
-                        <div class="relative flex-grow">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">1</span>
-                            <input type="text" wire:model.lazy="searchNopol" placeholder="L1111AAA"
-                                class="w-full rounded-lg border-green-300 bg-white pl-8 pr-4 py-2.5 text-center font-bold text-gray-900 focus:border-green-500 focus:ring-green-500 uppercase">
+            @if($vehicleData)
+                <!-- Vehicle Data Display & Printable Sheet -->
+                <div class="mb-8 rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm" id="printableVehicleCheck">
+                    <!-- Status Banner -->
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="h-3 w-3 rounded-full bg-white animate-pulse"></span>
+                            <p class="text-sm font-bold uppercase tracking-wide">Data Kendaraan Ditemukan: {{ $vehicleData['nopol'] }} — {{ $vehicleData['owner'] }}</p>
                         </div>
-                        <button wire:click="cekKendaraan" wire:loading.attr="disabled"
-                            class="rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-bold text-white hover:bg-blue-700 shadow-sm transition-all focus:ring-4 focus:ring-blue-500/20">
-                            Cek
-                        </button>
+                        <span class="text-xs bg-white/20 px-3 py-1 rounded-full font-mono font-bold">TERVERIFIKASI BAPENDA & ERI</span>
                     </div>
 
-                    @if($vehicleData)
-                        <!-- Vehicle Data Display -->
-                        <div class="mt-4 p-3 rounded-lg bg-green-50 border border-green-200">
-                            <p class="text-xs font-bold text-green-700">Data ditemukan - <span
-                                    class="uppercase">{{ $vehicleData['owner'] }}</span></p>
-                        </div>
-
-                        <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="p-6">
+                        <!-- Spek Kendaraan Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Nama
-                                    Pemilik *</label>
-                                <input type="text" value="{{ $vehicleData['owner'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Nama Pemilik *</label>
+                                <input type="text" value="{{ $vehicleData['owner'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-900">
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">NIK</label>
-                                <input type="text" value="{{ $vehicleData['nik'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">NIK</label>
+                                <input type="text" value="{{ $vehicleData['nik'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-mono font-bold text-gray-900">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No
-                                    HP</label>
-                                <input type="text" value="{{ $vehicleData['hp'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No HP</label>
+                                <input type="text" value="{{ $vehicleData['hp'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-900">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No
-                                    Rangka</label>
-                                <input type="text" value="{{ $vehicleData['chassis'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No Rangka</label>
+                                <input type="text" value="{{ $vehicleData['chassis'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-mono font-bold text-gray-900">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No
-                                    Mesin</label>
-                                <input type="text" value="{{ $vehicleData['engine'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No Mesin</label>
+                                <input type="text" value="{{ $vehicleData['engine'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-mono font-bold text-gray-900">
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Merk</label>
-                                <input type="text" value="{{ $vehicleData['brand'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Merk</label>
+                                <input type="text" value="{{ $vehicleData['brand'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-900">
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tipe</label>
-                                <input type="text" value="{{ $vehicleData['type'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Tipe</label>
+                                <input type="text" value="{{ $vehicleData['type'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-900">
                             </div>
                             <div>
-                                <label
-                                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Warna</label>
-                                <input type="text" value="{{ $vehicleData['color'] }}" readonly
-                                    class="w-full rounded-lg border-gray-200 bg-gray-100 p-2.5 text-sm font-bold text-gray-900">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Warna</label>
+                                <input type="text" value="{{ $vehicleData['color'] }}" readonly class="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-900">
                             </div>
                         </div>
 
                         <!-- Serials Banner -->
-                        <div class="mt-6 flex flex-wrap gap-4 rounded-lg bg-blue-900 p-4 text-sm font-bold text-white">
-                            <div class="flex items-center gap-2">
-                                <span class="text-blue-300">No. Seri BPKB :</span>
-                                <span>{{ $vehicleData['bpkb_serial'] }}</span>
-                            </div>
-                            <div class="border-l border-blue-700 h-5 hidden md:block"></div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-blue-300">No. Seri STNK :</span>
-                                <span>{{ $vehicleData['stnk_serial'] }}</span>
+                        <div class="mb-6 rounded-xl bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 p-5 text-white shadow-md">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-blue-300 mb-3">Identitas Nomor Material SBST Terdaftar</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="p-3 bg-white/10 rounded-lg border border-white/10">
+                                    <span class="text-[10px] uppercase font-bold text-blue-200">No. Seri BPKB</span>
+                                    <p class="font-mono text-base font-extrabold text-amber-300 mt-0.5">{{ $vehicleData['bpkb_serial'] }}</p>
+                                </div>
+                                <div class="p-3 bg-white/10 rounded-lg border border-white/10">
+                                    <span class="text-[10px] uppercase font-bold text-blue-200">No. Seri STNK</span>
+                                    <p class="font-mono text-base font-extrabold text-emerald-300 mt-0.5">{{ $vehicleData['stnk_serial'] }}</p>
+                                </div>
+                                <div class="p-3 bg-white/10 rounded-lg border border-white/10">
+                                    <span class="text-[10px] uppercase font-bold text-blue-200">No. Polisi / TNKB</span>
+                                    <p class="font-mono text-base font-extrabold text-white mt-0.5">{{ $vehicleData['tnkb_serial'] }}</p>
+                                </div>
                             </div>
                         </div>
-                    @endif
+
+                        <!-- Lembar Tanda Tangan Dinas (Exportable) -->
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest text-center mb-6">Lembar Pengesahan Hasil Pemeriksaan</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center text-xs">
+                                <div>
+                                    <p class="font-semibold text-gray-600">Mengetahui,</p>
+                                    <p class="font-bold text-gray-900 uppercase">KASUBDIT REGIDENT DITLANTAS POLDA JATIM</p>
+                                    <div class="h-20 flex items-center justify-center">
+                                        <span class="text-gray-300 italic text-[10px]">[ Tanda Tangan & Cap Dinas ]</span>
+                                    </div>
+                                    <p class="font-bold text-gray-900 underline uppercase">YANTO MULYANTO P, S.H., S.I.K., M.H., M.Si.</p>
+                                    <p class="text-gray-500">AKBP NRP 86052014</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-600">Petugas Pemeriksa,</p>
+                                    <p class="font-bold text-gray-900 uppercase">KASI FASMAT SBST DITLANTAS POLDA JATIM</p>
+                                    <div class="h-20 flex items-center justify-center">
+                                        <span class="text-gray-300 italic text-[10px]">[ Tanda Tangan & Cap Dinas ]</span>
+                                    </div>
+                                    <p class="font-bold text-gray-900 underline uppercase">AYIP RIZAL, S.E., M.M.</p>
+                                    <p class="text-gray-500">KOMPOL NRP 84091823</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            @endif
 
-            <!-- Data Pengurus -->
-            <div class="p-6 rounded-xl border border-gray-100 bg-gray-50/30">
-                <p class="text-sm font-bold text-purple-900 mb-4">Data Pengurus <span
-                        class="text-xs font-normal text-purple-600 tracking-normal">(berlaku untuk semua kendaraan)</span>
-                </p>
-
-                <div class="flex gap-6 mb-6">
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input type="radio" value="WP" wire:model.live="pengurusType"
-                            class="border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm font-bold text-blue-900 uppercase">WP (Wajib Pajak)</span>
-                    </label>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input type="radio" value="Kuasa" wire:model.live="pengurusType"
-                            class="border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm font-bold text-blue-900 uppercase tracking-wider font-sans">Kuasa</span>
-                    </label>
+            <!-- Tabel Riwayat Pengecekan Kendaraan -->
+            <div class="mt-8 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50">
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-sm">Riwayat Pengecekan Kendaraan</h3>
+                        <p class="text-xs text-gray-500">Daftar log kendaraan yang telah dicek pada sistem</p>
+                    </div>
+                    <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">{{ count($vehicleCheckHistory) }} Riwayat</span>
                 </div>
-
-                <div class="p-4 rounded-xl bg-blue-50/50 border border-blue-100 mb-6">
-                    <p class="text-xs font-medium text-blue-700 italic">Data WP diambil dari hasil cek SAMSAT (bisa diedit
-                        jika perlu)</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Nama WP
-                            *</label>
-                        <input type="text" value="{{ $vehicleData['owner'] ?? '' }}"
-                            class="w-full rounded-lg border-green-100 bg-green-50/50 p-2.5 text-sm font-bold text-gray-900 focus:border-green-500 focus:ring-green-500">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">NIK
-                            WP</label>
-                        <input type="text" value="{{ $vehicleData['nik'] ?? '' }}"
-                            class="w-full rounded-lg border-green-100 bg-green-50/50 p-2.5 text-sm font-bold text-gray-900 focus:border-green-500 focus:ring-green-500">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">No HP WP
-                            <span class="text-gray-400 font-normal leading-normal italic">(Opsional)</span></label>
-                        <input type="text" placeholder="08xxxxxxxxxx"
-                            class="w-full rounded-lg border-gray-200 bg-white p-2.5 text-sm font-bold text-gray-900 focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Email WP
-                            <span class="text-gray-400 font-normal leading-normal italic">(Opsional)</span></label>
-                        <input type="email" placeholder="email@example.com"
-                            class="w-full rounded-lg border-gray-200 bg-white p-2.5 text-sm font-bold text-gray-900 focus:border-blue-500 focus:ring-blue-500">
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase tracking-wider font-semibold">
+                            <tr>
+                                <th class="px-4 py-3">No</th>
+                                <th class="px-4 py-3">No. Polisi</th>
+                                <th class="px-4 py-3">Nama Pemilik</th>
+                                <th class="px-4 py-3">Merk / Tipe</th>
+                                <th class="px-4 py-3">No. Seri BPKB</th>
+                                <th class="px-4 py-3">No. Seri STNK</th>
+                                <th class="px-4 py-3">Waktu Cek</th>
+                                <th class="px-4 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse($vehicleCheckHistory as $index => $history)
+                                <tr class="hover:bg-blue-50/40 transition-colors">
+                                    <td class="px-4 py-3 text-gray-500">{{ $index + 1 }}</td>
+                                    <td class="px-4 py-3 font-mono font-bold text-blue-700">{{ $history['nopol'] }}</td>
+                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ $history['owner'] }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $history['brand_type'] }}</td>
+                                    <td class="px-4 py-3 font-mono text-gray-700">{{ $history['bpkb'] }}</td>
+                                    <td class="px-4 py-3 font-mono text-gray-700">{{ $history['stnk'] }}</td>
+                                    <td class="px-4 py-3 text-gray-500">{{ $history['checked_at'] }}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
+                                            {{ $history['status'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">Belum ada riwayat pengecekan</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    @endif
+
+        <!-- Modal Import ERI -->
+        @if($showImportEriModal)
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+                        <h3 class="text-base font-bold text-gray-900">Import Data ERI Korlantas Polri</h3>
+                        <button wire:click="closeImportEriModal" class="text-gray-400 hover:text-gray-600">✕</button>
+                    </div>
+
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nomor Polisi (NOPOL) <span class="text-red-500">*</span></label>
+                            <input type="text" wire:model="eriImportNopol" placeholder="Contoh: L 1234 XY" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 uppercase">
+                            @error('eriImportNopol') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nomor Seri BPKB</label>
+                            <input type="text" wire:model="eriImportBpkb" placeholder="Contoh: MU998811" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nomor Seri STNK</label>
+                            <input type="text" wire:model="eriImportStnk" placeholder="Contoh: 04992100" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                        <button wire:click="closeImportEriModal" type="button" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">Batal</button>
+                        <button wire:click="processImportEri" type="button" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Simpan & Sinkronkan</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @else
 
     @if($isPolres && $polresDashboardData)
         <!-- ========================================================================= -->
@@ -442,19 +509,24 @@
             </div>
         </div>
 
-        <!-- Target vs Pencapaian Chart -->
+        <!-- Grafik Fluktuasi Harian Realisasi PNBP & Gunmat (Polda) -->
         <div class="rounded-2xl border border-blue-100 bg-white p-6 shadow-lg">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900">Grafik Target dan Pencapaian</h3>
-                    <p class="text-sm text-gray-500">Berdasarkan target dan material usage per lokasi</p>
+                    <h3 class="text-lg font-bold text-gray-900">Grafik Fluktuasi Harian Realisasi PNBP & Gunmat (Tingkat Polda)</h3>
+                    <p class="text-sm text-gray-500">Pergerakan harian pertanggal bulan <span class="font-semibold text-blue-600">{{ $dailyPnbpGunmatChart['month_name'] }}</span></p>
                 </div>
-                <div class="text-sm text-gray-500">
-                    Lokasi: <span id="targetAchievementLocation" class="font-semibold text-blue-600">-</span>
+                <div class="flex items-center gap-2 text-xs flex-wrap">
+                    <span class="flex items-center gap-1.5 font-semibold text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-200 shadow-sm">
+                        <span class="h-2.5 w-2.5 rounded-full bg-purple-600"></span> Realisasi PNBP (Rp)
+                    </span>
+                    <span class="flex items-center gap-1.5 font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 shadow-sm">
+                        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Realisasi Gunmat (Unit)
+                    </span>
                 </div>
             </div>
             <div style="height: 320px; position: relative;">
-                <canvas id="targetAchievementChart"></canvas>
+                <canvas id="dailyPnbpGunmatChartCanvas"></canvas>
             </div>
         </div>
     </div>
@@ -468,7 +540,7 @@
             <h2 class="text-xl font-bold text-gray-900">Inventori Warehouse & Rak Penyimpanan</h2>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-6">
             <!-- Stock Polda -->
             <div
                 class="relative overflow-hidden rounded-2xl bg-amber-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
@@ -499,28 +571,44 @@
                 <div class="relative z-10">
                     <p class="text-sm font-medium text-violet-100 italic">Total Penerimaan</p>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($totalReceptions) }}</p>
+                    <div class="mt-2">
+                        <span class="text-xs text-violet-100">Seluruh Transaksi</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Penerimaan Hari Ini -->
             <div
-                class="relative overflow-hidden rounded-2xl bg-rose-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
+                class="relative overflow-hidden rounded-2xl bg-emerald-600 p-5 shadow-lg transition-transform hover:scale-[1.02]">
                 <div class="relative z-10">
-                    <p class="text-sm font-medium text-rose-100 italic">Penerimaan Hari ini</p>
+                    <p class="text-sm font-medium text-emerald-100 italic">Penerimaan Hari ini</p>
                     <p class="mt-2 text-2xl font-bold text-white">{{ $receptionsToday }}</p>
+                    <div class="mt-2">
+                        <span class="text-xs text-emerald-100">Batch Hari Ini</span>
+                    </div>
                 </div>
             </div>
+
+            <!-- Material Rusak (NEW) -->
+            <a href="{{ route('menu-polda.material-damage') }}"
+                class="relative overflow-hidden rounded-2xl bg-rose-600 p-5 shadow-lg transition-transform hover:scale-[1.02] block">
+                <div class="relative z-10">
+                    <p class="text-sm font-medium text-rose-100 italic">Material Rusak</p>
+                    <p class="mt-2 text-2xl font-bold text-white">{{ number_format($totalMaterialDamage) }}</p>
+                    <div class="mt-2">
+                        <span class="text-xs text-rose-100">Total Rusak / Afkir</span>
+                    </div>
+                </div>
+            </a>
 
             <!-- Subsidi Material -->
             <a href="{{ route('menu-polda.material-subsidy') }}"
                 class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 p-5 shadow-lg transition-transform hover:scale-[1.02] block">
-                <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10"></div>
-                <div class="absolute -right-2 bottom-0 h-12 w-12 rounded-full bg-white/10"></div>
                 <div class="relative z-10">
                     <p class="text-sm font-medium text-orange-100 italic">Subsidi Material</p>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($totalSubsidies) }}</p>
-                    <div class="mt-2 flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white">
+                    <div class="mt-2">
+                        <span class="text-xs text-white bg-white/20 px-2 py-0.5 rounded-full font-semibold">
                             {{ $totalSubsidiesConfirmed }} Dikonfirmasi
                         </span>
                     </div>
@@ -533,7 +621,7 @@
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900">Visualisasi Rak Penyimpanan (Polda Warehouse)</h3>
-                    <p class="text-sm text-gray-500">Menampilkan isi material dan sisa stok pada masing-masing rak penyimpanan Polda.</p>
+                    <p class="text-sm text-gray-500">Menampilkan isi material, sisa stok, dan prediksi ketersediaan pada masing-masing rak penyimpanan Polda.</p>
                 </div>
                 <div class="flex gap-2">
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
@@ -551,69 +639,81 @@
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @foreach($warehouseRacks as $rack)
                     @php $hasStock = count($rack['items']) > 0; @endphp
-                    <div class="group relative overflow-hidden rounded-2xl border {{ $hasStock ? 'border-blue-100 bg-gradient-to-b from-white to-blue-50/10' : 'border-dashed border-gray-200 bg-gray-50/30' }} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+                    <div class="group relative overflow-hidden rounded-2xl border {{ $hasStock ? 'border-blue-100 bg-gradient-to-b from-white to-blue-50/10' : 'border-dashed border-gray-200 bg-gray-50/30' }} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex flex-col justify-between">
                         <!-- Top Accent Bar -->
                         <div class="absolute top-0 inset-x-0 h-1.5 {{ $hasStock ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 'bg-gray-300' }}"></div>
                         
-                        <div class="mb-4 flex items-start justify-between">
-                            <div>
-                                <h4 class="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-sm truncate max-w-[150px]" title="{{ $rack['name'] }}">{{ $rack['name'] }}</h4>
-                                <p class="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wider font-semibold">{{ $rack['description'] ?? 'Rak Penyimpanan' }}</p>
-                            </div>
-                            <span class="rounded-lg p-1.5 {{ $hasStock ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400' }}">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                </svg>
-                            </span>
-                        </div>
-
-                        <!-- Items List inside the Rack -->
-                        <div class="space-y-3 min-h-[110px]">
-                            @forelse($rack['items'] as $item)
-                                @php
-                                    // Make progress percentage relative to a reasonable default cap
-                                    $percentage = min(100, ($item['quantity'] / 150) * 100);
-                                    
-                                    // Different colored progress bars depending on material type
-                                    $colorClass = 'bg-blue-500';
-                                    if (str_contains(strtolower($item['name']), 'bpkb')) {
-                                        $colorClass = 'bg-indigo-600';
-                                    } elseif (str_contains(strtolower($item['name']), 'stnk')) {
-                                        $colorClass = 'bg-emerald-500';
-                                    } elseif (str_contains(strtolower($item['name']), 'tnkb')) {
-                                        $colorClass = 'bg-amber-500';
-                                    } elseif (str_contains(strtolower($item['name']), 'sim')) {
-                                        $colorClass = 'bg-cyan-500';
-                                    }
-                                @endphp
-                                <div class="space-y-1">
-                                    <div class="flex items-center justify-between text-xs font-semibold">
-                                        <span class="text-gray-600 truncate max-w-[70%]" title="{{ $item['name'] }}">{{ $item['name'] }}</span>
-                                        <span class="text-gray-900 font-bold">{{ number_format($item['quantity']) }} unit</span>
-                                    </div>
-                                    <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-full rounded-full {{ $colorClass }} transition-all duration-500" style="width: {{ $percentage }}%"></div>
-                                    </div>
+                        <div>
+                            <div class="mb-4 flex items-start justify-between">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-sm truncate max-w-[150px]" title="{{ $rack['name'] }}">{{ $rack['name'] }}</h4>
+                                    <p class="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wider font-semibold">{{ $rack['description'] ?? 'Rak Penyimpanan' }}</p>
                                 </div>
-                            @empty
-                                <div class="flex flex-col items-center justify-center h-[110px] text-gray-400">
-                                    <svg class="h-8 w-8 stroke-1 mb-1 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                <span class="rounded-lg p-1.5 {{ $hasStock ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400' }}">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                     </svg>
-                                    <span class="text-[11px] font-medium tracking-wide">Rak Kosong</span>
-                                </div>
-                            @endforelse
+                                </span>
+                            </div>
+
+                            <!-- Items List inside the Rack -->
+                            <div class="space-y-3 min-h-[100px]">
+                                @forelse($rack['items'] as $item)
+                                    @php
+                                        $percentage = min(100, ($item['quantity'] / 150) * 100);
+                                        $colorClass = 'bg-blue-500';
+                                        if (str_contains(strtolower($item['name']), 'bpkb')) {
+                                            $colorClass = 'bg-indigo-600';
+                                        } elseif (str_contains(strtolower($item['name']), 'stnk')) {
+                                            $colorClass = 'bg-emerald-500';
+                                        } elseif (str_contains(strtolower($item['name']), 'tnkb')) {
+                                            $colorClass = 'bg-amber-500';
+                                        } elseif (str_contains(strtolower($item['name']), 'sim')) {
+                                            $colorClass = 'bg-cyan-500';
+                                        }
+                                    @endphp
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between text-xs font-semibold">
+                                            <span class="text-gray-600 truncate max-w-[70%]" title="{{ $item['name'] }}">{{ $item['name'] }}</span>
+                                            <span class="text-gray-900 font-bold">{{ number_format($item['quantity']) }} unit</span>
+                                        </div>
+                                        <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                            <div class="h-full rounded-full {{ $colorClass }} transition-all duration-500" style="width: {{ $percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="flex flex-col items-center justify-center h-[100px] text-gray-400">
+                                        <svg class="h-8 w-8 stroke-1 mb-1 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                        <span class="text-[11px] font-medium tracking-wide">Rak Kosong</span>
+                                    </div>
+                                @endforelse
+                            </div>
                         </div>
 
-                        <!-- Card Footer -->
-                        @if($hasStock)
-                            <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500">
-                                <span>Total Stok</span>
-                                <span class="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">{{ number_format($rack['total_quantity']) }} unit</span>
+                        <!-- Card Footer: Total Stok & Prediksi Habis (Page 3) -->
+                        <div class="mt-4 pt-3 border-t border-gray-100 space-y-2">
+                            @if($hasStock)
+                                <div class="flex items-center justify-between text-[11px] font-semibold text-gray-500">
+                                    <span>Total Stok</span>
+                                    <span class="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">{{ number_format($rack['total_quantity']) }} unit</span>
+                                </div>
+                            @endif
+                            <!-- Indikator Prediksi Habis -->
+                            <div class="flex items-center justify-between text-[10px] font-semibold {{ $hasStock ? 'text-amber-800 bg-amber-50/80 border-amber-200' : 'text-gray-400 bg-gray-50 border-gray-200' }} px-2 py-1.5 rounded-lg border">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Prediksi Habis:
+                                </span>
+                                <span class="font-bold {{ $hasStock ? 'text-amber-900' : 'text-gray-400' }}">{{ $rack['prediksi_habis'] }}</span>
                             </div>
-                        @endif
+                        </div>
                     </div>
                 @endforeach
+            </div>
+        </div>
+    </div>
             </div>
         </div>
     </div>
@@ -898,7 +998,7 @@
                     </table>
                 </div>
             </div>
-        </div>
+    @endif
     @endif
     @endif
 </div>
@@ -930,15 +1030,105 @@
                 return `rgba(${r}, ${g}, ${b}, ${alpha})`;
             };
 
+            // Daily PNBP & Gunmat Fluctuation Chart (Polda)
+            const dailyChartCtx = document.getElementById('dailyPnbpGunmatChartCanvas');
+            if (dailyChartCtx) {
+                const dailyData = @json($dailyPnbpGunmatChart);
+                new Chart(dailyChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dailyData.labels,
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Realisasi PNBP (Rp)',
+                                data: dailyData.pnbp,
+                                borderColor: '#9333ea',
+                                backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                                borderWidth: 3,
+                                yAxisID: 'yPnbp',
+                                tension: 0.35,
+                                fill: true,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#9333ea',
+                            },
+                            {
+                                type: 'bar',
+                                label: 'Realisasi Gunmat (Unit)',
+                                data: dailyData.gunmat,
+                                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                                borderColor: '#10b981',
+                                borderWidth: 1,
+                                borderRadius: 4,
+                                yAxisID: 'yGunmat',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.dataset.yAxisID === 'yPnbp') {
+                                            return 'Realisasi PNBP: Rp ' + context.parsed.y.toLocaleString('id-ID');
+                                        }
+                                        return 'Penggunaan Material: ' + context.parsed.y.toLocaleString('id-ID') + ' unit';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            yPnbp: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                grid: { color: '#f1f5f9' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'Rp ' + (value >= 1000000 ? (value/1000000) + ' Jt' : value.toLocaleString('id-ID'));
+                                    }
+                                }
+                            },
+                            yGunmat: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('id-ID') + ' unit';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
             const targetAchievementCtx = document.getElementById('targetAchievementChart');
             const targetAchievementLocation = document.getElementById('targetAchievementLocation');
             let targetAchievementChart = null;
             let targetAchievementIndex = 0;
 
-            if (targetAchievementCtx && targetAchievementData.locations.length > 0) {
+            if (targetAchievementCtx && targetAchievementData.locations && targetAchievementData.locations.length > 0) {
                 const initialLocation = targetAchievementData.locations[0];
 
-                targetAchievementLocation.textContent = initialLocation.label;
+                if (targetAchievementLocation) {
+                    targetAchievementLocation.textContent = initialLocation.label;
+                }
 
                 const targetColors = targetAchievementData.types.map((_, index) =>
                     targetAchievementPalette[index % targetAchievementPalette.length]
@@ -1012,7 +1202,9 @@
                     targetAchievementIndex = (targetAchievementIndex + 1) % targetAchievementData.locations.length;
                     const location = targetAchievementData.locations[targetAchievementIndex];
 
-                    targetAchievementLocation.textContent = location.label;
+                    if (targetAchievementLocation) {
+                        targetAchievementLocation.textContent = location.label;
+                    }
                     targetAchievementChart.data.datasets[0].data = location.target;
                     targetAchievementChart.data.datasets[1].data = location.actual;
                     targetAchievementChart.update();

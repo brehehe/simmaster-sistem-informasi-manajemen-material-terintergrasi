@@ -314,13 +314,33 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         $parts = explode('.', $key);
         $index = $parts[0] ?? null;
         $field = $parts[1] ?? null;
+
+        if ($index !== null && in_array($field, ['number_serial_first', 'number_serial_second'])) {
+            $sn1 = trim($this->details[$index]['number_serial_first'] ?? '');
+            $sn2 = trim($this->details[$index]['number_serial_second'] ?? '');
+
+            if (!empty($sn1) && !empty($sn2)) {
+                // Extract trailing digits from serial numbers
+                preg_match('/(\d+)$/', $sn1, $match1);
+                preg_match('/(\d+)$/', $sn2, $match2);
+
+                if (!empty($match1[1]) && !empty($match2[1])) {
+                    $num1 = (int)$match1[1];
+                    $num2 = (int)$match2[1];
+                    if ($num2 >= $num1) {
+                        $this->details[$index]['quantity'] = ($num2 - $num1) + 1;
+                    }
+                }
+            }
+        }
     }
+
     public function addDetail()
     {
         $this->details[] = [
             'id' => null,
             'type_detail_id' => '', 
-            'service_id' => '', 
+            'service_id' => 'MAIN_MATERIAL', // Default to Main Material!
             'service_detail_id' => '', 
             'quantity' => 0, 
             'code' => '', 
@@ -447,7 +467,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
 
             // Flat array validation structure
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
-            'details.*.service_id' => 'nullable|exists:services,id',
+            'details.*.service_id' => 'nullable|string',
             'details.*.service_detail_id' => 'nullable|exists:service_details,id',
             'details.*.quantity' => 'nullable|numeric|min:0',
             'details.*.code' => 'nullable|string|max:255',
@@ -509,9 +529,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         $this->validate();
 
         try {
-            DB::beginTransaction();
-
-            $data = [
+            $headerData = [
+                'code' => $this->code,
                 'name' => $this->name,
                 'date' => $this->date,
                 'sppm_date' => $this->sppm_date ?: null,
@@ -549,113 +568,18 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                 'ordonatur_rank' => $this->ordonatur_rank ?: null,
             ];
 
-            if ($this->isEditMode) {
-                // Update existing record
-                $reception = Reception::findOrFail($this->receptionId);
-                $data['code'] = $this->code;
-                $reception->update($data);
-
-                // Delete existing details and let StockService revert stocks
-                $stockService = new StockService();
-                $stockService->deleteReceptionStock($reception);
-                
-                $reception->receptionDetails()->delete();
-            } else {
-                // Create new record
-                $data['code'] = $this->code;
-                $reception = Reception::create($data);
-            }
-
-            // Create a single ReceptionDetail parent for this reception
-            $totalQuantity = collect($this->details)->sum('quantity') + collect($this->supportingMaterials)->sum('quantity');
-            $receptionDetail = ReceptionDetail::create([
-                'reception_id' => $reception->id,
-                'type_id' => $this->typeId ?: null,
-                'type_detail_id' => null, 
-                'code' => null,
-                'number_serial_first' => null,
-                'number_serial_second' => null,
-                'quantity' => $totalQuantity,
-                'description' => $this->description ?? '',
-                'is_active' => true,
-            ]);
-
-            // Create main detail items
-            foreach ($this->details as $payload) {
-                if (($payload['quantity'] ?? 0) > 0) {
-                    $payload['type_id'] = $this->typeId;
-                    $this->createDetailItemAndHistory($reception, $receptionDetail, $payload);
-                }
-            }
-
-            // Create supporting detail items
-            foreach ($this->supportingMaterials as $payload) {
-                if (($payload['quantity'] ?? 0) > 0) {
-                    $this->createDetailItemAndHistory($reception, $receptionDetail, $payload);
-                }
-            }
-
-            // Process stock updates and history
-            $stockService = new StockService();
-            $reception->load('receptionDetails.receptionDetailItems'); // Reload to get fresh details
-            $stockService->processReception($reception);
-
-            DB::commit();
+            \App\Actions\MenuPolda\CreateReceptionAction::run(
+                $headerData,
+                $this->details,
+                $this->supportingMaterials,
+                $this->receptionId
+            );
 
             session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
             return $this->redirect(route('menu-polda.reception'), navigate: true);
         } catch (\Exception $e) {
-            DB::rollBack();
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-    }
-
-    protected function createDetailItemAndHistory($reception, $receptionDetail, $payload)
-    {
-        $quantity = $payload['quantity'] ?? 0;
-        if ($quantity <= 0) return;
-
-        $typeId = !empty($payload['type_id']) ? $payload['type_id'] : $this->typeId;
-        $typeDetailId = !empty($payload['type_detail_id']) ? $payload['type_detail_id'] : null;
-        $serviceId = !empty($payload['service_id']) ? $payload['service_id'] : null;
-        $serviceDetailId = !empty($payload['service_detail_id']) ? $payload['service_detail_id'] : null;
-        $code = $payload['code'] ?? null;
-        $sn1 = $payload['number_serial_first'] ?? null;
-        $sn2 = $payload['number_serial_second'] ?? null;
-
-        $detailItem = ReceptionDetailItem::create([
-            'reception_id' => $reception->id,
-            'reception_detail_id' => $receptionDetail->id,
-            'service_id' => $serviceId,
-            'service_detail_id' => $serviceDetailId,
-            'type_id' => $typeId ?: null,
-            'type_detail_id' => $typeDetailId,
-            'item_code' => $code,
-            'number_serial_first' => $sn1,
-            'number_serial_second' => $sn2,
-            'quantity' => $quantity,
-            'description' => $receptionDetail->description ?? '',
-            'is_active' => true,
-        ]);
-
-        $serialText = trim(implode(' ', array_filter([$code, $sn1, $sn2])));
-
-        HistoryStockDetail::create([
-            'code' => $reception->code . '-' . uniqid(),
-            'reception_detail_item_id' => $detailItem->id,
-            'type_id' => $typeId ?: null,
-            'type_detail_id' => $typeDetailId,
-            'service_id' => $serviceId,
-            'service_detail_id' => $serviceDetailId,
-            'regional_police_id' => $reception->regional_police_id,
-            'police_station_id' => $reception->police_station_id,
-            'date' => $reception->date,
-            'serial_number' => $serialText ?: null,
-            'status_type' => 'in',
-            'quantity' => $quantity,
-            'description' => $receptionDetail->description ?? '',
-            'is_active' => true,
-        ]);
     }
 
     public function render()

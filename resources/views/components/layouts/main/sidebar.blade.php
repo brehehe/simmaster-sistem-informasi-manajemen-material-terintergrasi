@@ -35,11 +35,11 @@
         </a>
 
         @if (Auth::user()->hasRole(['Admin', 'Polda', 'Warehouse']))
-            <!-- Warehouse & Serah Terima Section -->
-            <div class="pt-2" x-data="{ open: {{ request()->routeIs('warehouse.*') ? 'true' : 'true' }} }">
+            <!-- Warehouse Section -->
+            <div class="pt-2" x-data="{ open: {{ request()->routeIs('warehouse.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-blue-300">
-                    <span>Gudang & Serah Terima</span>
+                    <span>Warehouse</span>
                     <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -47,17 +47,13 @@
                 </button>
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('warehouse.scan') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 {{ request()->routeIs('warehouse.scan') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
-                        <svg class="h-4 w-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 {{ request()->routeIs('warehouse.scan') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('warehouse.scan') ? 'bg-white' : 'bg-blue-400' }}"></span>
                         Scan QR SPPM Gudang
                     </a>
                     <a href="{{ route('warehouse.display') }}" target="_blank"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 text-blue-200 hover:bg-blue-700/50 hover:text-white">
-                        <svg class="h-4 w-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
+                        <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
                         Live Monitor Gudang (TV)
                     </a>
                 </div>

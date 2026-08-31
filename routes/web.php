@@ -13,8 +13,9 @@ use Laravel\Fortify\Features;
 //     ->middleware(['auth', 'verified'])
 //     ->name('dashboard');
 
-Route::get('/', MainDashboardIndex::class)
-    ->name('main');
+Route::get('/', function () {
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
+})->name('main');
 
 Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewire\\Admin'], function () {
     Route::get('dashboard', 'Dashboard\\AdminDashboardIndex')

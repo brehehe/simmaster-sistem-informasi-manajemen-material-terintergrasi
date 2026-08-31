@@ -301,72 +301,24 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
         ]);
 
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($ship) {
-                if ($this->isEditMode) {
-                    $shipment = MaterialShipment::findOrFail($this->shipmentId);
-                    if ($shipment->status !== 'draft') {
-                        throw new \Exception('Hanya pengiriman dengan status draft yang bisa diedit');
-                    }
-                    $shipment->update([
-                        'shipment_date' => $this->shipment_date,
-                        'receiver_police_station_id' => $this->receiver_police_station_id,
-                        'notes' => $this->notes,
-                    ]);
-                    $shipment->materialShipmentDetails()->delete();
-                } else {
-                    $shipment = MaterialShipment::create([
-                        'code' => $this->code,
-                        'shipment_date' => $this->shipment_date,
-                        'status' => 'draft',
-                        'sender_regional_police_id' => $this->regional_police_id ?: auth()->user()->regional_police_id,
-                        'receiver_police_station_id' => $this->receiver_police_station_id,
-                        'notes' => $this->notes,
-                        'is_active' => true,
-                    ]);
-                }
+            $headerData = [
+                'code' => $this->code,
+                'shipment_date' => $this->shipment_date,
+                'status' => 'draft',
+                'sender_regional_police_id' => $this->regional_police_id ?: auth()->user()?->regional_police_id,
+                'receiver_police_station_id' => $this->receiver_police_station_id,
+                'notes' => $this->notes,
+                'is_active' => true,
+            ];
 
-                foreach ($this->details as $index => $detail) {
-                    $stockDetail = StockDetail::find($detail['stock_detail_id']);
-                    if (!$stockDetail) throw new \Exception("Stock detail pada baris " . ($index + 1) . " tidak ditemukan");
+            \App\Actions\MenuPolda\CreateMaterialShipmentAction::run(
+                $headerData,
+                $this->details,
+                $ship,
+                $this->shipmentId
+            );
 
-                    if ($detail['quantity'] > $detail['available_quantity']) {
-                        throw new \Exception("Quantity melebihi stock tersedia pada baris " . ($index + 1));
-                    }
-
-                    MaterialShipmentDetail::create([
-                        'material_shipment_id' => $shipment->id,
-                        'stock_detail_id' => $stockDetail->id,
-                        'rack_id' => $stockDetail->rack_id,
-                        'type_id' => $detail['type_id'],
-                        'type_detail_id' => $detail['type_detail_id'] ?: null,
-                        'code' => $stockDetail->code ?? '',
-                        'number_serial_first' => $stockDetail->number_serial_first ?? '',
-                        'number_serial_second' => $stockDetail->number_serial_second ?? '',
-                        'quantity' => $detail['quantity'],
-                        'notes' => $detail['notes'] ?? '',
-                        'is_active' => true,
-                    ]);
-                }
-
-                if ($ship) {
-                    $shipment->markAsShipped();
-                    session()->flash('success', 'Pengiriman berhasil dikirim.');
-                } else {
-                    session()->flash('success', 'Pengiriman berhasil disimpan.');
-                }
-                // Kirim notifikasi ke semua user Admin Polres di police station tujuan
-                if (!$this->isEditMode) {
-                    $receiverPoliceStationId = $this->receiver_police_station_id;
-                    $polresAdmins = User::whereHas('roles', fn($q) => $q->whereIn('name', ['Admin', 'Polres']))
-                        ->where('police_station_id', $receiverPoliceStationId)
-                        ->get();
-                    foreach ($polresAdmins as $admin) {
-                        try { $admin->notify(new SppmCreatedNotification($shipment->fresh())); } catch (\Exception) {}
-                    }
-                }
-
-            });
-
+            session()->flash('success', $ship ? 'Pengiriman berhasil dikirim.' : 'Pengiriman berhasil disimpan.');
             return $this->redirect(route('menu-polda.material-shipment'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());

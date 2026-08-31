@@ -2,12 +2,9 @@
 
 namespace App\Models\Models\MenuPolda\MaterialDamage;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail as BaseMaterialDamageDetail;
 
-class MaterialDamageDetail extends Model
+class MaterialDamageDetail extends BaseMaterialDamageDetail
 {
-    use HasUuids, SoftDeletes;
-    protected $guarded = ['id'];
+    // Backward compatibility alias class
 }

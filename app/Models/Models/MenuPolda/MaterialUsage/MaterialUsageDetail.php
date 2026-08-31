@@ -2,12 +2,9 @@
 
 namespace App\Models\Models\MenuPolda\MaterialUsage;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail as BaseMaterialUsageDetail;
 
-class MaterialUsageDetail extends Model
+class MaterialUsageDetail extends BaseMaterialUsageDetail
 {
-    use HasUuids, SoftDeletes;
-    protected $guarded = ['id'];
+    // Backward compatibility alias class
 }

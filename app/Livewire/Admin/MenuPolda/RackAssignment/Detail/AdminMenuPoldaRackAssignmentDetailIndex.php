@@ -196,8 +196,13 @@ class AdminMenuPoldaRackAssignmentDetailIndex extends Component
 
         try {
             DB::transaction(function () {
+                $codeToUse = $this->code;
+                if (!$this->isEditMode && RackAssignment::withTrashed()->where('code', $codeToUse)->exists()) {
+                    $codeToUse = RackAssignment::generateCode();
+                }
+
                 $headerData = [
-                    'code' => $this->code,
+                    'code' => $codeToUse,
                     'date' => $this->date,
                     'regional_police_id' => $this->regionalPoliceId,
                     'police_station_id' => $this->policeStationId,

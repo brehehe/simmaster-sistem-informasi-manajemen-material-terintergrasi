@@ -2,12 +2,9 @@
 
 namespace App\Models\Models\MenuPolda\RackAssignment;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\MenuPolda\RackAssignment\RackAssignmentDetail as BaseRackAssignmentDetail;
 
-class RackAssignmentDetail extends Model
+class RackAssignmentDetail extends BaseRackAssignmentDetail
 {
-    use HasUuids, SoftDeletes;
-    protected $guarded = ['id'];
+    // Backward compatibility alias class
 }

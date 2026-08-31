@@ -386,8 +386,10 @@
                                     
                                     <td class="px-3 py-3 align-top">
                                         <select wire:model.live="details.{{ $index }}.service_id" @disabled($receptionId)
-                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
-                                            <option value="">-- Pilih Service --</option>
+                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500 font-medium">
+                                            <option value="MAIN_MATERIAL" class="font-bold text-blue-700 bg-blue-50">
+                                                📦 Material Utama (Blangko Utama)
+                                            </option>
                                             @foreach($filteredServices as $svc)
                                                 <option value="{{ data_get($svc, 'id') }}">{{ data_get($svc, 'name') }}</option>
                                             @endforeach
@@ -395,13 +397,19 @@
                                     </td>
 
                                     <td class="px-3 py-3 align-top">
-                                        <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($receptionId)
-                                            class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
-                                            <option value="">-- Pilih Detail --</option>
-                                            @foreach($filteredServiceDetails as $sdt)
-                                                <option value="{{ data_get($sdt, 'id') }}">{{ data_get($sdt, 'name') }}</option>
-                                            @endforeach
-                                        </select>
+                                        @if(($detail['service_id'] ?? '') === 'MAIN_MATERIAL' || empty($filteredServiceDetails))
+                                            <div class="px-2 py-2 text-[11px] text-gray-400 bg-gray-50 border border-gray-200 rounded italic text-center">
+                                                - Material Utama -
+                                            </div>
+                                        @else
+                                            <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($receptionId)
+                                                class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                                <option value="">-- Pilih Detail --</option>
+                                                @foreach($filteredServiceDetails as $sdt)
+                                                    <option value="{{ data_get($sdt, 'id') }}">{{ data_get($sdt, 'name') }}</option>
+                                                @endforeach
+                                            </select>
+                                        @endif
                                     </td>
 
                                     @if($is_with_serial_number)
@@ -409,10 +417,10 @@
                                             <input type="text" wire:model.blur="details.{{ $index }}.code" placeholder="Kode Barang" @disabled($receptionId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
                                         </td>
                                         <td class="px-3 py-3 align-top">
-                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_first" placeholder="SN 1" @disabled($receptionId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_first" placeholder="SN Awal (cth: 0001)" @disabled($receptionId) class="w-full px-2 py-2 text-xs font-mono rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
                                         </td>
                                         <td class="px-3 py-3 align-top">
-                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_second" placeholder="SN 2" @disabled($receptionId) class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_second" placeholder="SN Akhir (cth: 0500)" @disabled($receptionId) class="w-full px-2 py-2 text-xs font-mono rounded border border-gray-300 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-400">
                                         </td>
                                     @endif
 

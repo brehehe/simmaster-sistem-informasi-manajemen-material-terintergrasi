@@ -61,17 +61,26 @@ class RackAssignment extends Model
     public static function generateCode()
     {
         $date = now()->format('Ymd');
-        $lastRecord = self::whereDate('created_at', '=', now()->toDateString())
-            ->latest('created_at')
+        $prefix = 'RA-' . $date . '-';
+
+        $lastRecord = self::withTrashed()
+            ->where('code', 'LIKE', $prefix . '%')
+            ->orderBy('code', 'DESC')
             ->first();
 
-        if ($lastRecord) {
-            $lastNumber = (int) substr($lastRecord->code, -4);
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '0001';
+        $nextNumber = 1;
+        if ($lastRecord && preg_match('/-(\d+)$/', $lastRecord->code, $matches)) {
+            $nextNumber = (int) $matches[1] + 1;
         }
 
-        return 'RA-' . $date . '-' . $newNumber;
+        $code = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        // Safeguard collision loop to guarantee absolute uniqueness
+        while (self::withTrashed()->where('code', $code)->exists()) {
+            $nextNumber++;
+            $code = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $code;
     }
 }

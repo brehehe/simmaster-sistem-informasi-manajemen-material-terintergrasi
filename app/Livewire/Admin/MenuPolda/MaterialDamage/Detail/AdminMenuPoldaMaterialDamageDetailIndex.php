@@ -465,53 +465,25 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
         }
 
         try {
-            DB::transaction(function () use ($mappedStockIds) {
-                $headerData = [
-                    'code' => $this->code,
-                    'date' => $this->date,
-                    'regional_police_id' => $this->regionalPoliceId,
-                    'police_station_id' => $this->policeStationId,
-                    'status' => $this->status,
-                    'description' => $this->description,
-                    'is_active' => true,
-                ];
+            $headerData = [
+                'code' => $this->code,
+                'date' => $this->date,
+                'regional_police_id' => $this->regionalPoliceId,
+                'police_station_id' => $this->policeStationId,
+                'status' => $this->status,
+                'description' => $this->description,
+                'is_active' => true,
+            ];
 
-                if ($this->isEditMode) {
-                    $materialDamage = MaterialDamage::findOrFail($this->materialDamageId);
-                    $materialDamage->update($headerData);
-                    $materialDamage->materialDamageDetails()->delete();
-                } else {
-                    $materialDamage = MaterialDamage::create($headerData);
-                }
+            \App\Actions\MenuPolda\CreateMaterialDamageAction::run(
+                $headerData,
+                $this->details,
+                $mappedStockIds,
+                $this->typeId,
+                $this->materialDamageId
+            );
 
-                foreach ($this->details as $index => $detail) {
-                    $materialDamage->materialDamageDetails()->create([
-                        'stock_detail_id' => $mappedStockIds[$index],
-                        'type_id' => $this->typeId,
-                        'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
-                        'rack_id' => null, // Assuming rack is inherently mapped by stock_detail_id, so we ignore it here
-                        'item_code' => !empty($detail['item_code']) ? $detail['item_code'] : null,
-                        'number_serial_first' => !empty($detail['number_serial_first']) ? $detail['number_serial_first'] : null,
-                        'number_serial_second' => !empty($detail['number_serial_second']) ? $detail['number_serial_second'] : null,
-                        'quantity' => $detail['quantity'],
-                        'damage_type' => $detail['damage_type'],
-                        'reason' => $detail['reason'],
-                        'description' => $detail['description'] ?? '',
-                        'is_active' => true,
-                    ]);
-                }
-
-                if ($this->isEditMode) {
-                    // In edit mode, we'd need to restore old stocks and subtract new. 
-                    // To keep it simple, processMaterialDamage handles it cleanly if written defensively, or we do it here.
-                    // The stockService->processMaterialDamage might need to know old sums vs new sums.
-                }
-
-                $this->stockService->processMaterialDamage($materialDamage);
-
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
-            });
-
+            session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
             return $this->redirect(route('menu-polda.material-damage'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
