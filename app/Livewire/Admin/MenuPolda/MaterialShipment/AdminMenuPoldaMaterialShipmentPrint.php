@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\MenuPolda\MaterialShipment;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use Livewire\Component;
 
 class AdminMenuPoldaMaterialShipmentPrint extends Component

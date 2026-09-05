@@ -3,7 +3,7 @@
 namespace App\Livewire\Admin\MenuPolres\RackAssignment\Detail;
 
 use App\Models\MenuPolda\RackAssignment\RackAssignment;
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Police\PoliceStation;
 use App\Models\Rack\Rack;
 use App\Models\Stock\StockDetail;
@@ -406,48 +406,22 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
         ]);
 
         try {
-            DB::transaction(function () {
-                $headerData = [
-                    'code' => $this->code,
-                    'date' => $this->date,
-                    'police_station_id' => $this->policeStationId,
-                    'description' => $this->description,
-                    'is_active' => true,
-                ];
+            $headerData = [
+                'code' => $this->code,
+                'date' => $this->date,
+                'police_station_id' => $this->policeStationId,
+                'description' => $this->description,
+                'is_active' => true,
+            ];
 
-                if ($this->isEditMode) {
-                    $rackAssignment = RackAssignment::findOrFail($this->rackAssignmentId);
-                    $rackAssignment->update($headerData);
-                    $rackAssignment->rackAssignmentDetails()->delete();
-                } else {
-                    $rackAssignment = RackAssignment::create($headerData);
-                }
+            \App\Actions\MenuPolda\CreateRackAssignmentAction::run(
+                $headerData,
+                $this->details,
+                $this->typeId,
+                $this->isEditMode ? $this->rackAssignmentId : null
+            );
 
-                foreach ($this->details as $detail) {
-                    $stockDetail = StockDetail::findOrFail($detail['stock_detail_id']);
-                    if ($detail['quantity'] > $detail['available_quantity']) {
-                        throw new \Exception('Quantity melebihi stok tersedia.');
-                    }
-
-                    $rackAssignment->rackAssignmentDetails()->create([
-                        'stock_detail_id' => $stockDetail->id,
-                        'type_id' => $this->typeId,
-                        'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
-                        'from_rack_id' => !empty($detail['from_rack_id']) ? $detail['from_rack_id'] : null,
-                        'to_rack_id' => !empty($detail['to_rack_id']) ? $detail['to_rack_id'] : null,
-                        'item_code' => $detail['item_code'] ?? '',
-                        'number_serial_first' => $detail['number_serial_first'] ?? '',
-                        'number_serial_second' => $detail['number_serial_second'] ?? '',
-                        'quantity' => $detail['quantity'],
-                        'description' => $detail['notes'] ?? '',
-                        'is_active' => true,
-                    ]);
-                }
-
-                $this->stockService->processRackAssignment($rackAssignment);
-
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Penugasan rak berhasil disimpan! Stok rak Polres otomatis bertambah.');
-            });
+            session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Penugasan rak berhasil disimpan! Stok rak Polres otomatis bertambah.');
 
             return $this->redirect(route('menu-polres.rack-assignment'), navigate: true);
         } catch (\Exception $e) {

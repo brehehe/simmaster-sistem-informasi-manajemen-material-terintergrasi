@@ -413,10 +413,13 @@
                     <tr style="{{ $i % 2 == 0 ? 'background:#fff' : 'background:#fff7f7' }}">
                         <td style="border: 1px solid #fca5a5; padding: 5px; text-align: center;">{{ $i + 1 }}</td>
                         <td style="border: 1px solid #fca5a5; padding: 5px;">
-                            @php $typeName = \App\Models\Type\Type::find($typeId)?->name ?? '-'; @endphp
+                            @php
+                                $typeName = collect($types)->firstWhere('id', $typeId)?->name ?? '-';
+                                $typeDetailName = !empty($d['type_detail_id']) ? (collect($typeDetails)->firstWhere('id', $d['type_detail_id'])?->name ?? '') : '';
+                            @endphp
                             {{ $typeName }}
-                            @if(!empty($d['type_detail_id']))
-                                / {{ \App\Models\Type\TypeDetail::find($d['type_detail_id'])?->name ?? '' }}
+                            @if($typeDetailName)
+                                / {{ $typeDetailName }}
                             @endif
                         </td>
                         <td style="border: 1px solid #fca5a5; padding: 5px; text-align: center; font-family: monospace; color: #1d4ed8;">{{ $d['number_serial_first'] ?: ($d['item_code'] ?: '-') }}</td>

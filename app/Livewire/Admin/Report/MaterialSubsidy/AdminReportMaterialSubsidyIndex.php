@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\Report\MaterialSubsidy;
 
-use App\Models\Models\MenuPolda\MaterialSubsidy\MaterialSubsidyDetail;
+use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidyDetail;
 use App\Models\Police\RegionalPolice;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;

@@ -50,9 +50,9 @@ class DatabaseSeeder extends Seeder
             // Demo SPPM shipments (Part 2) for Kediri, Blitar, Trenggalek, Tulungagung
             DemoSppmShipmentPartTwoSeeder::class,
             // Stock Polda Seeder berdasarkan data fisik Stock Opname 4 September 2026
-            StockPoldaSeeder::class,
+            // StockPoldaSeeder::class,
             // Stock Polres Seeder berdasarkan data Renbut Materiel Excel 2026
-            StockPolresSeeder::class,
+            // StockPolresSeeder::class,
         ]);
     }
 }

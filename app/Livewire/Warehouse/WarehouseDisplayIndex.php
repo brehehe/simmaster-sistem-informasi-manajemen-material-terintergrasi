@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Warehouse;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\MenuPolda\RackAssignment\RackAssignment;
 use App\Models\Police\PoliceStation;
 use App\Models\Rack\Rack;

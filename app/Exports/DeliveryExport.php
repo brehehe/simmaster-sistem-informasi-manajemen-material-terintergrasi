@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;

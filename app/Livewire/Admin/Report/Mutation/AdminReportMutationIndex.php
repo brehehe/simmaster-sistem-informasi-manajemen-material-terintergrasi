@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\Report\Mutation;
 
-use App\Models\Models\MenuPolda\MutationStock\MutationStock;
+use App\Models\MenuPolda\MutationStock\MutationStock;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use Livewire\Component;

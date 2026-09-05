@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Polres\MenuPolres\MutationStock;
 
-use App\Models\Models\MenuPolda\MutationStock\MutationStock;
+use App\Models\MenuPolda\MutationStock\MutationStock;
 use Livewire\Component;
 
 class PolresMenuPolresMutationStockReceiveDetail extends Component

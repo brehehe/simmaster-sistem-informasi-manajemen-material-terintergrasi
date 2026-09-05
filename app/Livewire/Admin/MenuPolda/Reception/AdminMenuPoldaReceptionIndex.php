@@ -229,7 +229,8 @@ class AdminMenuPoldaReceptionIndex extends Component
 
         $receptions = Reception::query()
             ->select('receptions.*')
-            ->with(['regionalPolice', 'policeStation', 'typeMaterial', 'receptionDetails'])
+            ->with(['regionalPolice', 'policeStation', 'typeMaterial'])
+            ->withSum('receptionDetails', 'quantity')
             // Role-based filtering
             ->when($user->hasRole('Polda'), function ($query) use ($user) {
                 $query->where('receptions.regional_police_id', $user->regional_police_id);

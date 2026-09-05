@@ -327,81 +327,22 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         ]);
 
         try {
-            DB::transaction(function () {
-                $headerData = [
-                    'code' => $this->code,
-                    'date' => $this->date,
-                    'police_station_id' => $this->policeStationId,
-                    'description' => $this->description,
-                    'is_active' => true,
-                ];
+            $headerData = [
+                'code' => $this->code,
+                'date' => $this->date,
+                'police_station_id' => $this->policeStationId,
+                'description' => $this->description,
+                'is_active' => true,
+            ];
 
-                if ($this->isEditMode) {
-                    $materialUsage = MaterialUsage::findOrFail($this->materialUsageId);
-                    $materialUsage->update($headerData);
-                    foreach ($materialUsage->materialUsageDetails as $oldDetail) {
-                        $oldDetail->materialUsageDetailItems()->delete();
-                    }
-                    $materialUsage->materialUsageDetails()->delete();
-                } else {
-                    $materialUsage = MaterialUsage::create($headerData);
-                }
+            \App\Actions\MenuPolda\CreateMaterialUsageAction::run(
+                $headerData,
+                $this->details,
+                $this->typeId,
+                $this->materialUsageId
+            );
 
-                foreach ($this->details as $detail) {
-                    $stockDetail = StockDetail::findOrFail($detail['stock_detail_id']);
-                    if ($detail['quantity'] > $detail['available_quantity']) {
-                        throw new \Exception('Jumlah melebihi stok tersedia.');
-                    }
-
-                    $usageDetail = $materialUsage->materialUsageDetails()->create([
-                        'stock_detail_id' => $stockDetail->id,
-                        'type_id' => $this->typeId,
-                        'type_detail_id' => $detail['type_detail_id'] ?: null,
-                        'rack_id' => $stockDetail->rack_id,
-                        'item_code' => $detail['item_code'] ?? '',
-                        'number_serial_first' => $detail['number_serial_first'] ?? '',
-                        'number_serial_second' => $detail['number_serial_second'] ?? '',
-                        'quantity' => $detail['quantity'],
-                        'usage_type' => $detail['usage_type'],
-                        'description' => $detail['description'] ?? '',
-                        'is_active' => true,
-                    ]);
-
-                    // Create flattened item
-                    $detailItem = MaterialUsageDetailItem::create([
-                        'material_usage_id' => $materialUsage->id,
-                        'material_usage_detail_id' => $usageDetail->id,
-                        'stock_detail_id' => $stockDetail->id,
-                        'service_id' => $detail['service_id'] ?: null,
-                        'service_detail_id' => $detail['service_detail_id'] ?: null,
-                        'type_id' => $this->typeId,
-                        'type_detail_id' => $detail['type_detail_id'] ?: null,
-                        'rack_id' => $stockDetail->rack_id,
-                        'item_code' => $detail['item_code'] ?? '',
-                        'number_serial_first' => $detail['number_serial_first'] ?? '',
-                        'number_serial_second' => $detail['number_serial_second'] ?? '',
-                        'quantity' => $detail['quantity'],
-                        'usage_type' => $detail['usage_type'],
-                        'description' => $detail['description'] ?? '',
-                        'is_active' => true,
-                    ]);
-
-                    // Note: StockService::processMaterialUsage will handle history_stocks automatically 
-                    // based on its original implementation which iterates over materialUsageDetails.
-                    // However, some implementations might also use materialUsageDetailItems.
-                    // The old code was manually creating HistoryStockDetail.
-                    // We'll trust the StockService if it's centralized, but let's re-verify the old code's manual step.
-                    // The old code did: $this->stockService->processMaterialUsage($materialUsage);
-                    // AND manual HistoryStockDetail::create. 
-                    // This suggests processMaterialUsage might NOT handle HistoryStockDetail or maybe it does.
-                    // If I look at the old code, it explicitly creates HistoryStockDetail.
-                    // I'll keep the process call and if it's missing history, it's a service issue.
-                }
-
-                $this->stockService->processMaterialUsage($materialUsage);
-
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data material digunakan berhasil disimpan. PNBP & Gunmat di Dashboard Polda otomatis bertambah.');
-            });
+            session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data material digunakan berhasil disimpan. PNBP & Gunmat di Dashboard Polda otomatis bertambah.');
 
             return $this->redirect(route('menu-polres.material-usage.create'), navigate: true);
         } catch (\Exception $e) {

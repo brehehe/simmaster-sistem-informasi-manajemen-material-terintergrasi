@@ -50,7 +50,8 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
         // Load dropdown data
         $this->regionalPolices = RegionalPolice::where('is_active', true)->orderBy('name')->get();
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
-        $this->types = Type::where('is_active', true)->orderBy('name')->get();
+        $this->types = Type::with(['typeDetails' => fn($q) => $q->where('is_active', true)->orderBy('name')])
+            ->where('is_active', true)->orderBy('name')->get();
         // Type details and racks will be loaded dynamically
 
         if ($this->isEditMode) {

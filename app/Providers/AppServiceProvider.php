@@ -26,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
         // Prevent lazy loading in development to detect accidental N+1 queries
         \Illuminate\Database\Eloquent\Model::preventLazyLoading(! $this->app->isProduction());
 
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\MenuPolda\MaterialShipment\MaterialShipment::class, \App\Policies\MaterialShipmentPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\StockOpname\StockOpname::class, \App\Policies\StockOpnamePolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\MenuPolda\MaterialUsage\MaterialUsage::class, \App\Policies\MaterialUsagePolicy::class);
+
         Event::listen('eloquent.booted: *', function ($eventName, array $data) {
             $model = $data[0];
             $modelClass = get_class($model);

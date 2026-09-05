@@ -311,7 +311,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-600 mb-2">Tipe Material</label>
                                     <input type="text"
-                                        value="{{ $detail['type_id'] ? \App\Models\Type\Type::find($detail['type_id'])->name ?? '-' : '-' }}"
+                                        value="{{ (!empty($detail['type_id']) && isset($typesMap[$detail['type_id']])) ? $typesMap[$detail['type_id']] : '-' }}"
                                         readonly
                                         class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 text-sm">
                                 </div>
@@ -319,7 +319,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-600 mb-2">Detail Tipe</label>
                                     <input type="text"
-                                        value="{{ $detail['type_detail_id'] ? \App\Models\Type\TypeDetail::find($detail['type_detail_id'])->name ?? '-' : '-' }}"
+                                        value="{{ (!empty($detail['type_detail_id']) && isset($typeDetailsMap[$detail['type_detail_id']])) ? $typeDetailsMap[$detail['type_detail_id']] : '-' }}"
                                         readonly
                                         class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 text-sm">
                                 </div>

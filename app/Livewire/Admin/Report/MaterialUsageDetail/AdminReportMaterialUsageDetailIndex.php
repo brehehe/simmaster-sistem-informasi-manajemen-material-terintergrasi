@@ -143,7 +143,7 @@ class AdminReportMaterialUsageDetailIndex extends Component
             $query->where('id', $this->typeId);
         }
 
-        $types = $query->get();
+        $types = $query->with(['services.details'])->withExists('typeDetails')->get();
         $reportData = [];
 
         foreach ($types as $type) {
@@ -179,8 +179,8 @@ class AdminReportMaterialUsageDetailIndex extends Component
                 continue;
             }
 
-            $services = $type->services()->with(['details'])->orderBy('name')->get();
-            $hasTypeDetails = $type->typeDetails()->exists();
+            $services = $type->services;
+            $hasTypeDetails = (bool) $type->type_details_exists;
 
             // --- Build Headers ---
             // Row 1
@@ -337,7 +337,7 @@ class AdminReportMaterialUsageDetailIndex extends Component
             $query->where('id', $this->typeId);
         }
 
-        $types = $query->get();
+        $types = $query->with(['services.details'])->withExists('typeDetails')->get();
         $typeGroups = [];
 
         // Load filter options
@@ -400,13 +400,9 @@ class AdminReportMaterialUsageDetailIndex extends Component
                 ->where('type_id', $type->id)
                 ->paginate(5, ['*'], 'page_'.$type->id);
 
-            // Fetch services for this specific type
-            $services = \App\Models\Service\Service::with(['details'])
-                ->where('type_id', $type->id)
-                ->get();
-
-            // Check if type has type details
-            $hasTypeDetails = $type->typeDetails()->exists();
+            // Services and typeDetails already eager loaded
+            $services = $type->services;
+            $hasTypeDetails = (bool) $type->type_details_exists;
 
             // Only include types that have details
             if ($details->isNotEmpty()) {

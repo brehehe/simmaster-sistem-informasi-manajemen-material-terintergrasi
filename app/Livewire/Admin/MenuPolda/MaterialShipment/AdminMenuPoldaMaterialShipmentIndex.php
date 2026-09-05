@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\MenuPolda\MaterialShipment;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Police\PoliceStation;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -54,13 +54,9 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
         $query = MaterialShipment::with([
             'senderRegionalPolice', 
             'receiverPoliceStation', 
-            'materialShipmentDetails',
-            'materialShipmentDetails.stockDetail',
-            'materialShipmentDetails.stockDetail.service',
-            'materialShipmentDetails.stockDetail.serviceDetail',
-            'materialShipmentDetails.type',
-            'materialShipmentDetails.typeDetail'
         ])
+            ->withCount('materialShipmentDetails')
+            ->withSum('materialShipmentDetails', 'quantity')
             ->where('is_active', true);
 
         // Role-based: Polda only sees their own shipments

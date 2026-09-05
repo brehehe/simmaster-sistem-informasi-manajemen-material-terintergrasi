@@ -187,10 +187,10 @@
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <div class="flex flex-col">
-                                    <span class="font-medium">{{ $shipment->materialShipmentDetails->count() }}
+                                    <span class="font-medium">{{ $shipment->material_shipment_details_count ?? $shipment->materialShipmentDetails->count() }}
                                         Items</span>
                                     <span class="text-xs text-gray-500">Total:
-                                        {{ number_format($shipment->materialShipmentDetails->sum('quantity'), 0) }}
+                                        {{ number_format($shipment->material_shipment_details_sum_quantity ?? ($shipment->relationLoaded('materialShipmentDetails') ? $shipment->materialShipmentDetails->sum('quantity') : 0), 0) }}
                                         unit</span>
                                 </div>
                             </td>

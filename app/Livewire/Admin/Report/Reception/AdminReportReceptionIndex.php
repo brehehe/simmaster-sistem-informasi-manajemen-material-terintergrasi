@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Admin\Report\Reception;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;

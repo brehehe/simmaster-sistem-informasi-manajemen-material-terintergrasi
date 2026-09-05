@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Admin\MenuPolda\MaterialShipment\Detail;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipmentDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use App\Models\Stock\StockDetail;

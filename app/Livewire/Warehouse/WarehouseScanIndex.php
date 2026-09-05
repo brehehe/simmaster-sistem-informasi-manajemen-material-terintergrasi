@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Warehouse;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;

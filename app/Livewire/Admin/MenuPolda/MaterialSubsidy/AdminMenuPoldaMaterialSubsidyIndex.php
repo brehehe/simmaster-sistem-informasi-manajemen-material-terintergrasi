@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\MenuPolda\MaterialSubsidy;
 
-use App\Models\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
+use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
 use App\Models\Police\RegionalPolice;
 use Livewire\Component;
 use Livewire\WithPagination;

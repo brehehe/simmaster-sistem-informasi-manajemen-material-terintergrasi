@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\MenuPolda\MutationStock\Receive;
 
-use App\Models\Models\MenuPolda\MutationStock\MutationStock;
+use App\Models\MenuPolda\MutationStock\MutationStock;
 use Livewire\Component;
 use Livewire\WithPagination;
 

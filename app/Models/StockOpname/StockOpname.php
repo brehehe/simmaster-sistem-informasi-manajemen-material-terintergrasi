@@ -139,7 +139,15 @@ class StockOpname extends Model
      */
     public function getTotalDifferenceAttribute()
     {
-        return $this->stockOpnameDetails->sum('difference');
+        if (isset($this->attributes['stock_opname_details_sum_difference'])) {
+            return (int) $this->attributes['stock_opname_details_sum_difference'];
+        }
+
+        if ($this->relationLoaded('stockOpnameDetails')) {
+            return (int) $this->stockOpnameDetails->sum('difference');
+        }
+
+        return (int) $this->stockOpnameDetails()->sum('difference');
     }
 
     /**

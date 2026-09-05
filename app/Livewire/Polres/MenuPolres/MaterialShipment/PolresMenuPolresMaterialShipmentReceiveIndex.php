@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Polres\MenuPolres\MaterialShipment;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use Livewire\Component;
 use Livewire\WithPagination;
 

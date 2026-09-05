@@ -36,9 +36,12 @@ class DashboardStatsService
         $pnbpData = [];
         $gunmatData = [];
 
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $dayExpr = $isSqlite ? "CAST(strftime('%d', material_usages.date) AS INTEGER)" : "EXTRACT(DAY FROM material_usages.date)";
+
         $usages = MaterialUsageDetail::query()
             ->select(
-                DB::raw('EXTRACT(DAY FROM material_usages.date) as day_num'),
+                DB::raw("{$dayExpr} as day_num"),
                 DB::raw('SUM(material_usage_details.quantity * COALESCE(types.price, 0)) as total_pnbp'),
                 DB::raw('SUM(material_usage_details.quantity) as total_gunmat')
             )
@@ -46,7 +49,7 @@ class DashboardStatsService
             ->leftJoin('types', 'material_usage_details.type_id', '=', 'types.id')
             ->whereYear('material_usages.date', $year)
             ->whereMonth('material_usages.date', $month)
-            ->groupBy(DB::raw('EXTRACT(DAY FROM material_usages.date)'))
+            ->groupBy(DB::raw($dayExpr))
             ->get()
             ->keyBy(fn($item) => (int)$item->day_num);
 
@@ -76,15 +79,18 @@ class DashboardStatsService
     public function getHistoryStockTrend(): array
     {
         $startDate = now()->subMonths(11)->startOfMonth();
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : "EXTRACT(YEAR FROM date)";
+        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : "EXTRACT(MONTH FROM date)";
 
         $rows = HistoryStock::query()
             ->select(
-                DB::raw('EXTRACT(YEAR FROM date) as yr'),
-                DB::raw('EXTRACT(MONTH FROM date) as mo'),
+                DB::raw("{$yrExpr} as yr"),
+                DB::raw("{$moExpr} as mo"),
                 DB::raw('SUM(ABS(quantity)) as total_qty')
             )
             ->where('date', '>=', $startDate)
-            ->groupBy(DB::raw('EXTRACT(YEAR FROM date)'), DB::raw('EXTRACT(MONTH FROM date)'))
+            ->groupBy(DB::raw($yrExpr), DB::raw($moExpr))
             ->get()
             ->keyBy(fn($r) => ((int)$r->yr) . '-' . ((int)$r->mo));
 
@@ -110,17 +116,20 @@ class DashboardStatsService
     public function getMaterialMovement(): array
     {
         $startDate = now()->subMonths(5)->startOfMonth();
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : "EXTRACT(YEAR FROM date)";
+        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : "EXTRACT(MONTH FROM date)";
 
         $rows = HistoryStock::query()
             ->select(
-                DB::raw('EXTRACT(YEAR FROM date) as yr'),
-                DB::raw('EXTRACT(MONTH FROM date) as mo'),
+                DB::raw("{$yrExpr} as yr"),
+                DB::raw("{$moExpr} as mo"),
                 'status_type',
                 DB::raw('SUM(quantity) as total_qty')
             )
             ->where('date', '>=', $startDate)
             ->whereIn('status_type', ['in', 'out'])
-            ->groupBy(DB::raw('EXTRACT(YEAR FROM date)'), DB::raw('EXTRACT(MONTH FROM date)'), 'status_type')
+            ->groupBy(DB::raw($yrExpr), DB::raw($moExpr), 'status_type')
             ->get()
             ->groupBy(fn($r) => ((int)$r->yr) . '-' . ((int)$r->mo));
 

@@ -341,10 +341,10 @@
                             Tunggu Sebentar
                         </span>
                     </button>
-                    <a href="{{ route('main') }}"
+                    {{-- <a href="{{ route('main') }}"
                         class="w-full py-3.5 px-6 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
                         Home
-                    </a>
+                    </a> --}}
                 </div>
             </form>
 

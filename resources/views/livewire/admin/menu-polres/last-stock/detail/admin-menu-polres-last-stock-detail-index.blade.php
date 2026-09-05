@@ -237,9 +237,14 @@
                                             " wire:model="details.{{ $index }}.service_detail_id">
                                                 <option value="">-- Semua --</option>
                                                 @if (!empty($detail['service_id']))
-                                                    @foreach (\App\Models\Service\ServiceDetail::where('service_id', $detail['service_id'])->where('is_active', true)->orderBy('name')->get() as $sd)
-                                                        <option value="{{ $sd->id }}">{{ $sd->name }}</option>
-                                                    @endforeach
+                                                    @php
+                                                        $selectedService = collect($services)->firstWhere('id', $detail['service_id']);
+                                                    @endphp
+                                                    @if ($selectedService && $selectedService->details)
+                                                        @foreach ($selectedService->details as $sd)
+                                                            <option value="{{ $sd->id }}">{{ $sd->name }}</option>
+                                                        @endforeach
+                                                    @endif
                                                 @endif
                                             </select>
                                         </div>

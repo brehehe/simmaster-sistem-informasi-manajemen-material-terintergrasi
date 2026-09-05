@@ -204,7 +204,7 @@
                                 {{ $reception?->date->format('d M Y') ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-center font-bold">
-                                {{ number_format($reception->receptionDetails->sum('quantity'),0,',','.') }}
+                                {{ number_format($reception->reception_details_sum_quantity ?? ($reception->relationLoaded('receptionDetails') ? $reception->receptionDetails->sum('quantity') : 0), 0, ',', '.') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                                 <div class="flex items-center justify-center gap-2">

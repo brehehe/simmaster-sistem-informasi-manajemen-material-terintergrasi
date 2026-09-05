@@ -51,7 +51,7 @@ class MainDashboardIndex extends Component
         }
     }
 
-    public function render()
+    public function render(\App\Services\DashboardStatsService $statsService)
     {
         // Statistics
         $totalReceptions = Reception::count();
@@ -59,8 +59,8 @@ class MainDashboardIndex extends Component
         $totalStockPolres = Stock::polres()->sum('quantity') ?? 0;
         $receptionsToday = Reception::whereDate('date', today()->toDateString())->count();
 
-        // Monthly History Stock Trend (last 12 months)
-        $historyStockTrend = $this->getHistoryStockTrend();
+        // Monthly History Stock Trend (single optimized query)
+        $historyStockTrend = $statsService->getHistoryStockTrend();
 
         // Stock Distribution (Polda vs Polres)
         $stockDistribution = $this->getStockDistribution();
@@ -92,8 +92,11 @@ class MainDashboardIndex extends Component
             ? round((($currentMonthReceptions - $lastMonthReceptions) / $lastMonthReceptions) * 100, 1)
             : 0;
 
-        // NEW: StockOpname Statistics
-        $stockOpnameStats = $this->getStockOpnameStats();
+        // Delegated to DashboardStatsService
+        $stockOpnameStats = $statsService->getStockOpnameStats();
+        $typeDistribution = $statsService->getTypeDistribution();
+        $regionalStats = $statsService->getRegionalStats();
+        $materialMovement = $statsService->getMaterialMovement();
 
         // NEW: LastStock Data
         $recentLastStock = LastStock::with(['regionalPolice', 'policeStation'])
@@ -110,15 +113,6 @@ class MainDashboardIndex extends Component
             ->latest('date')
             ->take(5)
             ->get();
-
-        // NEW: Type Distribution
-        $typeDistribution = $this->getTypeDistribution();
-
-        // NEW: Regional Statistics
-        $regionalStats = $this->getRegionalStats();
-
-        // NEW: Monthly Material Movement
-        $materialMovement = $this->getMaterialMovement();
 
         // NEW: Target vs Pencapaian (rotating per lokasi)
         $targetAchievementChart = $this->getTargetAchievementChart();

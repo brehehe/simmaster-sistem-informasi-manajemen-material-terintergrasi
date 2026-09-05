@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Admin\MenuPolda\MutationStock\Detail;
 
-use App\Models\Models\MenuPolda\MutationStock\MutationStock;
-use App\Models\Models\MenuPolda\MutationStock\MutationStockDetail;
+use App\Models\MenuPolda\MutationStock\MutationStock;
+use App\Models\MenuPolda\MutationStock\MutationStockDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use App\Models\Stock\StockDetail;
@@ -205,75 +205,28 @@ class AdminMenuPoldaMutationStockDetailIndex extends Component
         }
 
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($send) {
-                // Create or update mutation
-                if ($this->isEditMode) {
-                    $mutation = MutationStock::findOrFail($this->mutationId);
+            $headerData = [
+                'code' => $this->code,
+                'mutation_date' => $this->mutation_date,
+                'sender_regional_police_id' => $this->sender_type === 'polda' ? $this->sender_regional_police_id : null,
+                'sender_police_station_id' => $this->sender_type === 'polres' ? $this->sender_police_station_id : null,
+                'receiver_regional_police_id' => $this->receiver_type === 'polda' ? $this->receiver_regional_police_id : null,
+                'receiver_police_station_id' => $this->receiver_type === 'polres' ? $this->receiver_police_station_id : null,
+                'notes' => $this->notes,
+            ];
 
-                    if ($mutation->status !== 'draft') {
-                        throw new \Exception('Hanya mutasi dengan status draft yang bisa diedit');
-                    }
+            \App\Actions\MenuPolda\CreateMutationStockAction::run(
+                $headerData,
+                $this->details,
+                $send,
+                $this->isEditMode ? $this->mutationId : null
+            );
 
-                    $mutation->update([
-                        'mutation_date' => $this->mutation_date,
-                        'sender_regional_police_id' => $this->sender_type === 'polda' ? $this->sender_regional_police_id : null,
-                        'sender_police_station_id' => $this->sender_type === 'polres' ? $this->sender_police_station_id : null,
-                        'receiver_regional_police_id' => $this->receiver_type === 'polda' ? $this->receiver_regional_police_id : null,
-                        'receiver_police_station_id' => $this->receiver_type === 'polres' ? $this->receiver_police_station_id : null,
-                        'notes' => $this->notes,
-                    ]);
-
-                    // Delete old details
-                    $mutation->mutationStockDetails()->delete();
-                } else {
-                    $mutation = MutationStock::create([
-                        'code' => $this->code,
-                        'mutation_date' => $this->mutation_date,
-                        'status' => 'draft',
-                        'sender_regional_police_id' => $this->sender_type === 'polda' ? $this->sender_regional_police_id : null,
-                        'sender_police_station_id' => $this->sender_type === 'polres' ? $this->sender_police_station_id : null,
-                        'receiver_regional_police_id' => $this->receiver_type === 'polda' ? $this->receiver_regional_police_id : null,
-                        'receiver_police_station_id' => $this->receiver_type === 'polres' ? $this->receiver_police_station_id : null,
-                        'notes' => $this->notes,
-                        'is_active' => true,
-                    ]);
-                }
-
-                // Create details
-                foreach ($this->details as $detail) {
-                    $stockDetail = StockDetail::with(['type', 'typeDetail'])->find($detail['stock_detail_id']);
-
-                    if (!$stockDetail) {
-                        throw new \Exception("Stock detail tidak ditemukan");
-                    }
-
-                    // Validate quantity
-                    if ($detail['quantity'] > $stockDetail->quantity) {
-                        throw new \Exception("Quantity untuk {$stockDetail->code} melebihi stock tersedia");
-                    }
-
-                    MutationStockDetail::create([
-                        'mutation_stock_id' => $mutation->id,
-                        'stock_detail_id' => $detail['stock_detail_id'],
-                        'type_id' => $stockDetail->type_id,
-                        'type_detail_id' => $stockDetail->type_detail_id,
-                        'code' => $stockDetail->code ?? '',
-                        'number_serial_first' => $stockDetail->number_serial_first ?? '',
-                        'number_serial_second' => $stockDetail->number_serial_second ?? '',
-                        'quantity' => $detail['quantity'],
-                        'notes' => $detail['notes'] ?? '',
-                        'is_active' => true,
-                    ]);
-                }
-
-                // If send, mark as sent
-                if ($send) {
-                    $mutation->markAsSent();
-                    session()->flash('success', 'Mutasi stock berhasil dikirim. Stock akan dikurangi setelah penerima mengkonfirmasi.');
-                } else {
-                    session()->flash('success', $this->isEditMode ? 'Mutasi stock berhasil diupdate.' : 'Mutasi stock berhasil disimpan sebagai draft.');
-                }
-            });
+            if ($send) {
+                session()->flash('success', 'Mutasi stock berhasil dikirim. Stock akan dikurangi setelah penerima mengkonfirmasi.');
+            } else {
+                session()->flash('success', $this->isEditMode ? 'Mutasi stock berhasil diupdate.' : 'Mutasi stock berhasil disimpan sebagai draft.');
+            }
 
             return $this->redirect(route('menu-polda.mutation-stock'), navigate: true);
         } catch (\Exception $e) {
@@ -348,6 +301,8 @@ class AdminMenuPoldaMutationStockDetailIndex extends Component
             'policeStations' => $policeStations,
             'stockDetails' => $stockDetails,
             'mutation' => $mutation,
+            'typesMap' => Type::pluck('name', 'id')->all(),
+            'typeDetailsMap' => TypeDetail::pluck('name', 'id')->all(),
         ])->layout('components.layouts.main.app');
     }
 }

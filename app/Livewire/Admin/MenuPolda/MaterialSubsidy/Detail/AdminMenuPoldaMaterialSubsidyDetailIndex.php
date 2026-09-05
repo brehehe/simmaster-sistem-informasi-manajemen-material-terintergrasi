@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Admin\MenuPolda\MaterialSubsidy\Detail;
 
-use App\Models\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
-use App\Models\Models\MenuPolda\MaterialSubsidy\MaterialSubsidyDetail;
+use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
+use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidyDetail;
 use App\Models\Stock\Stock;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;

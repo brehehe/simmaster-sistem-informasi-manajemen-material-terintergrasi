@@ -251,12 +251,17 @@
                                                 wire:model="details.{{ $index }}.type_detail_id">
                                                 <option value="">-- Pilih --</option>
                                                 @if (!empty($detail['type_id']))
-                                                    @foreach (\App\Models\Type\TypeDetail::where('type_id', $detail['type_id'])->where('is_active', true)->orderBy('name')->get() as $td)
-                                                        <option value="{{ $td->id }}"
-                                                            {{ $detail['type_detail_id'] == $td->id ? 'selected' : '' }}>
-                                                            {{ $td->name }}
-                                                        </option>
-                                                    @endforeach
+                                                    @php
+                                                        $selectedType = collect($types)->firstWhere('id', $detail['type_id']);
+                                                    @endphp
+                                                    @if ($selectedType && $selectedType->typeDetails)
+                                                        @foreach ($selectedType->typeDetails as $td)
+                                                            <option value="{{ $td->id }}"
+                                                                {{ $detail['type_detail_id'] == $td->id ? 'selected' : '' }}>
+                                                                {{ $td->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
                                                 @endif
                                             </select>
                                         </div>

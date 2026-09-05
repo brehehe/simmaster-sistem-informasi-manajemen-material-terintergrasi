@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
