@@ -33,10 +33,16 @@ class TargetSeeder extends Seeder
         TargetDetail::where('target_id', $target->id)->delete();
 
         // Check for Excel file
-        $excelPath = public_path('excel/TARGET PNBP DAN MATREG PER POLRES 2026 (1).xlsx');
+        $excelPath = public_path('TARGET PNBP DAN MATREG PER POLRES 2026 (1).xlsx');
         if (! file_exists($excelPath)) {
-            // Check any matching file in public/excel
-            $files = glob(public_path('excel/*TARGET*.xlsx'));
+            $excelPath = public_path('excel/TARGET PNBP DAN MATREG PER POLRES 2026 (1).xlsx');
+        }
+        if (! file_exists($excelPath)) {
+            // Check any matching file in public or public/excel
+            $files = array_merge(
+                glob(public_path('*TARGET*.xlsx')) ?: [],
+                glob(public_path('excel/*TARGET*.xlsx')) ?: []
+            );
             if (! empty($files)) {
                 $excelPath = $files[0];
             }
