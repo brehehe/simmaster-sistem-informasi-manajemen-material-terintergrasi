@@ -77,6 +77,7 @@ class AdminReportStockIndex extends Component
     public function getTotalUnitsProperty()
     {
         return Stock::where('is_active', true)
+            ->whereNull('type_detail_id')
             ->sum('quantity');
     }
 

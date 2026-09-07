@@ -156,10 +156,11 @@ class AdminStockPolresIndex extends Component
                 return $item->police_station_id . '-' . $item->type_id;
             })
             ->map(function ($items) {
+                $pnbpQty = $items->whereNull('type_detail_id')->sum('total_quantity');
                 return [
                     'policeStation'  => $items->first()->policeStation,
                     'type'           => $items->first()->type,
-                    'total_quantity' => $items->sum('total_quantity'),
+                    'total_quantity' => $this->typeDetailId ? $items->sum('total_quantity') : ($pnbpQty > 0 ? $pnbpQty : $items->sum('total_quantity')),
                     'details'        => $items,
                 ];
             })

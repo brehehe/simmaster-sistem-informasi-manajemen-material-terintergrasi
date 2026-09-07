@@ -153,7 +153,8 @@ class AdminMenuPolresStockIndex extends Component
             ->get();
 
         // ================= SUMMARY VARS =================
-        $totalStock     = $stockDetails->sum('total_quantity');
+        $totalPnbpStock = $stockDetails->whereNull('type_detail_id')->sum('total_quantity');
+        $totalStock     = $this->typeDetailId ? $stockDetails->sum('total_quantity') : ($totalPnbpStock > 0 ? $totalPnbpStock : $stockDetails->sum('total_quantity'));
         $serializedCount = $stockDetails->filter(fn($d) => $d->number_serial_first || $d->number_serial_second)->count();
         $totalDetailRows = $stockDetails->count();
 
@@ -163,10 +164,11 @@ class AdminMenuPolresStockIndex extends Component
                 return $item->police_station_id . '-' . $item->type_id;
             })
             ->map(function ($items) {
+                $pnbpQty = $items->whereNull('type_detail_id')->sum('total_quantity');
                 return [
                     'policeStation'  => $items->first()->policeStation,
                     'type'           => $items->first()->type,
-                    'total_quantity' => $items->sum('total_quantity'),
+                    'total_quantity' => $this->typeDetailId ? $items->sum('total_quantity') : ($pnbpQty > 0 ? $pnbpQty : $items->sum('total_quantity')),
                     'details'        => $items,
                 ];
             })

@@ -38,8 +38,7 @@ class WarehouseDisplayIndex extends Component
         $racksQuery = Rack::with([
             'policeStation',
             'regionalPolice',
-            'stockDetails.type',
-            'stockDetails.typeDetail'
+            'stockDetails' => fn($q) => $q->whereNull('type_detail_id')->with(['type', 'typeDetail']),
         ])->where('is_active', true);
 
         if ($user && $user->hasRole('Polres')) {

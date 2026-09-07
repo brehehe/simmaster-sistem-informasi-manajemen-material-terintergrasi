@@ -166,7 +166,7 @@ class DashboardStatsService
             ->whereNotNull('regional_police_id')
             ->whereNull('police_station_id')
             ->where('is_active', true)
-            ->with(['stockDetails.type'])
+            ->with(['stockDetails' => fn($q) => $q->whereNull('type_detail_id')->with('type')])
             ->orderBy('name')
             ->get()
             ->map(function ($rack) {
@@ -259,14 +259,19 @@ class DashboardStatsService
      */
     public function getTypeDistribution(): array
     {
-        $types = Type::withCount('stocks')
-            ->orderBy('stocks_count', 'DESC')
+        $types = Type::query()
+            ->select('types.id', 'types.name')
+            ->join('stocks', 'types.id', '=', 'stocks.type_id')
+            ->whereNull('stocks.type_detail_id')
+            ->groupBy('types.id', 'types.name')
+            ->selectRaw('SUM(stocks.quantity) as total_stock')
+            ->orderByDesc('total_stock')
             ->take(5)
             ->get();
 
         return [
             'labels' => $types->pluck('name')->toArray(),
-            'data' => $types->pluck('stocks_count')->toArray(),
+            'data' => $types->pluck('total_stock')->map(fn($v) => (float)$v)->toArray(),
         ];
     }
 
@@ -276,7 +281,10 @@ class DashboardStatsService
     public function getRegionalStats(): array
     {
         $regionals = RegionalPolice::select('regional_police.id', 'regional_police.name')
-            ->leftJoin('stocks', 'regional_police.id', '=', 'stocks.regional_police_id')
+            ->leftJoin('stocks', function ($join) {
+                $join->on('regional_police.id', '=', 'stocks.regional_police_id')
+                    ->whereNull('stocks.type_detail_id');
+            })
             ->groupBy('regional_police.id', 'regional_police.name')
             ->selectRaw('COALESCE(SUM(stocks.quantity), 0) as total_stock')
             ->orderBy('total_stock', 'DESC')
@@ -314,6 +322,7 @@ class DashboardStatsService
         return Stock::query()
             ->select('police_station_id', DB::raw('SUM(quantity) as total_stock'))
             ->whereNotNull('police_station_id')
+            ->whereNull('type_detail_id')
             ->with(['policeStation:id,name'])
             ->groupBy('police_station_id')
             ->orderByDesc('total_stock')

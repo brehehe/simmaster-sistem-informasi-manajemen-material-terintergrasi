@@ -156,10 +156,11 @@ class AdminStockPoldaIndex extends Component
                 return $item->regional_police_id . '-' . $item->type_id;
             })
             ->map(function ($items) {
+                $pnbpQty = $items->whereNull('type_detail_id')->sum('total_quantity');
                 return [
                     'regionalPolice'  => $items->first()->regionalPolice,
                     'type'           => $items->first()->type,
-                    'total_quantity' => $items->sum('total_quantity'),
+                    'total_quantity' => $this->typeDetailId ? $items->sum('total_quantity') : ($pnbpQty > 0 ? $pnbpQty : $items->sum('total_quantity')),
                     'details'        => $items,
                 ];
             })

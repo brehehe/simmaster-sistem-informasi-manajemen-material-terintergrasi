@@ -232,7 +232,7 @@ class AdminDashboardIndex extends Component
             $stationId = $user->police_station_id;
 
             $polresRacks = Rack::where('police_station_id', $stationId)
-                ->with(['stockDetails.type'])
+                ->with(['stockDetails' => fn($q) => $q->whereNull('type_detail_id')->with('type')])
                 ->get()
                 ->map(function ($rack) {
                     $items = $rack->stockDetails->groupBy('type_id')->map(function ($details) {
@@ -252,6 +252,7 @@ class AdminDashboardIndex extends Component
                 });
 
             $stockByMaterial = Stock::where('police_station_id', $stationId)
+                ->whereNull('type_detail_id')
                 ->with('type')
                 ->get()
                 ->groupBy('type_id')

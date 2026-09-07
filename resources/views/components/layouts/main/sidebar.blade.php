@@ -214,6 +214,7 @@
                         Input Stok Awal
                     </a>
                 </div>
+                @if (!Auth::user()?->hasRole('Polres') && empty(Auth::user()?->police_station_id))
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('warehouse.display') }}" target="_blank"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 text-cyan-300 hover:bg-cyan-600/30 hover:text-white border border-cyan-500/20">
@@ -226,6 +227,7 @@
                         📷 Scan QR Serah Terima
                     </a>
                 </div>
+                @endif
             </div>
         @endif
         @if (Auth::user()->hasRole('Admin'))

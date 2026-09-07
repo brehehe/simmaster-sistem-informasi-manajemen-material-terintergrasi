@@ -74,6 +74,7 @@ class MainDashboardIndex extends Component
         // Stock per Location (Top 5 Polres)
         $stockPerLocation = Stock::select('police_station_id', DB::raw('SUM(quantity) as total_stock'))
             ->whereNotNull('police_station_id')
+            ->whereNull('type_detail_id')
             ->groupBy('police_station_id')
             ->orderBy('total_stock', 'DESC')
             ->take(5)
