@@ -866,14 +866,14 @@ class UjiCobaFullSeeder extends Seeder
         // 2. Akun-akun di Tingkat Polda (Menggunakan upsertUser yang kebal terhadap unique violation PostgreSQL)
         if ($polda) {
             // Admin SIMMASTER
-            $admin = $this->upsertUser('admin@gmail.com', [
+            $admin = $this->upsertUser('admin@armaster.net', [
                 'name' => 'Admin ARMASTER',
                 'password' => $password,
                 'level_menu' => 1,
             ], ['Admin']);
 
             // Polda Jatim Induk
-            $poldaUser = $this->upsertUser('polda-jatim@sbst.test', [
+            $poldaUser = $this->upsertUser('polda-jatim@armaster.net', [
                 'name' => 'Polda Jatim',
                 'password' => $password,
                 'regional_police_id' => $polda->id,
@@ -882,9 +882,9 @@ class UjiCobaFullSeeder extends Seeder
                 'level_menu' => 1,
             ], ['Polda']);
 
-            // BAMAT Polda Jatim
-            $bamatPolda = $this->upsertUser('bamat-polda-jatim@sbst.test', [
-                'name' => 'BAMAT Polda Jatim',
+            // BAMAT Polda Jatim (Gudang)
+            $bamatPolda = $this->upsertUser('bamat-polda-jatim@armaster.net', [
+                'name' => 'BAMAT Polda Jatim (Gudang)',
                 'password' => $password,
                 'regional_police_id' => $polda->id,
                 'police_station_id' => null,
@@ -892,8 +892,26 @@ class UjiCobaFullSeeder extends Seeder
                 'level_menu' => 2,
             ], ['Polda']);
 
-            // SAMSAT Polda Jatim
-            $samsatPolda = $this->upsertUser('samsat-polda-jatim@sbst.test', [
+            // 4 Akun BAMAT SAMSAT POLDA
+            $samsatPoldaList = [
+                'bamat-samsat-timur@armaster.net' => 'BAMAT SAMSAT Surabaya Timur',
+                'bamat-samsat-barat@armaster.net' => 'BAMAT SAMSAT Surabaya Barat',
+                'bamat-samsat-selatan@armaster.net' => 'BAMAT SAMSAT Surabaya Selatan',
+                'bamat-samsat-utara@armaster.net' => 'BAMAT SAMSAT Surabaya Utara',
+            ];
+            foreach ($samsatPoldaList as $samsatEmail => $samsatName) {
+                $this->upsertUser($samsatEmail, [
+                    'name' => $samsatName,
+                    'password' => $password,
+                    'regional_police_id' => $polda->id,
+                    'police_station_id' => null,
+                    'user_type_id' => $userTypeModels['SAMSAT POLDA']->id,
+                    'level_menu' => 2,
+                ], ['Polda']);
+            }
+
+            // SAMSAT Polda Jatim Umum
+            $samsatPolda = $this->upsertUser('samsat-polda-jatim@armaster.net', [
                 'name' => 'SAMSAT Polda Jatim',
                 'password' => $password,
                 'regional_police_id' => $polda->id,
@@ -902,18 +920,18 @@ class UjiCobaFullSeeder extends Seeder
                 'level_menu' => 2,
             ], ['Polda']);
 
-            // Seksi-seksi di Polda (Sie Fasmat, Sie STNK, Sie BPKB, Sie SIM, Sie TNKB)
+            // 3 Akun BAMAT Pelayanan Polda (SIM, STNK, BPKB) + Fasmat & TNKB
             $sieList = [
-                'SIE FASMAT' => 'sie-fasmat-polda-jatim@sbst.test',
-                'SIE STNK' => 'sie-stnk-polda-jatim@sbst.test',
-                'SIE BPKB' => 'sie-bpkb-polda-jatim@sbst.test',
-                'SIE SIM' => 'sie-sim-polda-jatim@sbst.test',
-                'SIE TNKB' => 'sie-tnkb-polda-jatim@sbst.test',
+                'SIE SIM' => ['bamat-sim@armaster.net', 'BAMAT SIM Polda Jatim'],
+                'SIE STNK' => ['bamat-stnk@armaster.net', 'BAMAT STNK Polda Jatim'],
+                'SIE BPKB' => ['bamat-bpkb@armaster.net', 'BAMAT BPKB Polda Jatim'],
+                'SIE FASMAT' => ['bamat-fasmat@armaster.net', 'BAMAT FASMAT Polda Jatim'],
+                'SIE TNKB' => ['bamat-tnkb@armaster.net', 'BAMAT TNKB Polda Jatim'],
             ];
 
-            foreach ($sieList as $sieName => $sieEmail) {
+            foreach ($sieList as $sieName => [$sieEmail, $sieAccountName]) {
                 $this->upsertUser($sieEmail, [
-                    'name' => "{$sieName} Polda Jatim",
+                    'name' => $sieAccountName,
                     'password' => $password,
                     'regional_police_id' => $polda->id,
                     'police_station_id' => null,
@@ -931,7 +949,7 @@ class UjiCobaFullSeeder extends Seeder
             $stationSlug = Str::slug($station->name);
 
             // Akun BAMAT Polres
-            $bamatEmail = "bamat-{$stationSlug}@sbst.test";
+            $bamatEmail = "bamat-{$stationSlug}@armaster.net";
             $this->upsertUser($bamatEmail, [
                 'name' => "BAMAT {$station->name}",
                 'password' => $password,
@@ -942,7 +960,7 @@ class UjiCobaFullSeeder extends Seeder
             ], ['Polres']);
 
             // Akun Induk Polres
-            $stationEmail = "{$stationSlug}@sbst.test";
+            $stationEmail = "{$stationSlug}@armaster.net";
             $this->upsertUser($stationEmail, [
                 'name' => $station->name,
                 'password' => $password,
