@@ -6,7 +6,6 @@ use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem;
 use App\Models\Police\PoliceStation;
 use App\Models\Rack\Rack;
-use App\Models\Stock\HistoryStockDetail;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
@@ -53,11 +52,6 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->stockService = $stockService;
     }
 
-    public function toJSON()
-    {
-        return [];
-    }
-
     public function mount($id = null)
     {
         $this->materialUsageId = $id;
@@ -91,7 +85,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
         $typeRef = Type::find($typeId);
         $this->is_type_detail = $typeRef ? $typeRef->typeDetails->isNotEmpty() : false;
-        $this->is_with_serial_number = $typeRef ? $typeRef->is_with_serial_number : false;
+        $this->is_with_serial_number = $typeRef ? (bool) $typeRef->is_with_serial_number : false;
 
         $this->typeDetails = TypeDetail::where('type_id', $typeId)->where('is_active', true)->orderBy('name')->get();
         $this->services = Service::with('details')
@@ -136,16 +130,9 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
         foreach ($materialUsage->materialUsageDetails as $index => $detail) {
             $stockDetail = $detail->stockDetail;
-            
-            // Material Usage might have multiple items per detail, but we flatten it for parity
-            // We take the first item's service/detail if it exists
             $firstItem = $detail->materialUsageDetailItems->first();
 
-            $stockKey = $this->generateStockKey([
-                'code' => $detail->item_code,
-                'number_serial_first' => $detail->number_serial_first,
-                'number_serial_second' => $detail->number_serial_second,
-            ]);
+            $availQty = $stockDetail ? (float) $stockDetail->quantity + (float) $detail->quantity : (float) $detail->quantity;
 
             $this->details[] = [
                 'stock_detail_id' => $detail->stock_detail_id ?? '',
@@ -153,12 +140,11 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 'type_detail_id' => $detail->type_detail_id ?? '',
                 'service_id' => $firstItem?->service_id ?? '',
                 'service_detail_id' => $firstItem?->service_detail_id ?? '',
-                'selected_stock_key' => $stockKey,
-                'item_code' => $detail->item_code ?? '',
-                'number_serial_first' => $detail->number_serial_first ?? '',
-                'number_serial_second' => $detail->number_serial_second ?? '',
+                'item_code' => $detail->item_code ?? ($stockDetail->code ?? ''),
+                'number_serial_first' => $detail->number_serial_first ?? ($stockDetail->number_serial_first ?? ''),
+                'number_serial_second' => $detail->number_serial_second ?? ($stockDetail->number_serial_second ?? ''),
                 'quantity' => (float) $detail->quantity,
-                'available_quantity' => $stockDetail ? $stockDetail->quantity + (float) $detail->quantity : 0,
+                'available_quantity' => $availQty,
                 'usage_type' => $detail->usage_type ?? 'Material Digunakan',
                 'description' => $detail->description ?? '',
             ];
@@ -178,11 +164,10 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             'type_detail_id' => '',
             'service_id' => '',
             'service_detail_id' => '',
-            'selected_stock_key' => '',
             'item_code' => '',
             'number_serial_first' => '',
             'number_serial_second' => '',
-            'quantity' => 0,
+            'quantity' => 1,
             'available_quantity' => 0,
             'usage_type' => 'Material Digunakan',
             'description' => '',
@@ -215,6 +200,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 $this->details[$index]['type_detail_id'] = $typeDetailId;
             }
             $this->details[$index]['service_detail_id'] = '';
+            $this->loadStockOptions($index);
         }
 
         // Clear service if type_detail changes
@@ -228,27 +214,24 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                     $this->details[$index]['service_detail_id'] = '';
                 }
             }
-        }
-
-        // Reset and reload stock options
-        if (in_array($field, ['type_detail_id', 'service_id', 'service_detail_id'])) {
-            $this->details[$index]['selected_stock_key'] = '';
-            $this->details[$index]['stock_detail_id'] = '';
-            $this->details[$index]['available_quantity'] = 0;
             $this->loadStockOptions($index);
         }
 
-        // Handle stock key selection
-        if ($field === 'selected_stock_key') {
-            $option = collect($this->stockOptions[$index] ?? [])->where('key', $value)->first();
+        // Handle stock_detail_id selection
+        if ($field === 'stock_detail_id') {
+            $option = collect($this->stockOptions[$index] ?? [])->firstWhere('stock_detail_id', $value);
             if ($option) {
-                $this->details[$index]['stock_detail_id'] = $option['stock_detail_id'];
-                $this->details[$index]['available_quantity'] = (int) $option['quantity'];
+                $this->details[$index]['available_quantity'] = (float) $option['quantity'];
                 $this->details[$index]['item_code'] = $option['item_code'] ?? '';
                 $this->details[$index]['number_serial_first'] = $option['number_serial_first'] ?? '';
                 $this->details[$index]['number_serial_second'] = $option['number_serial_second'] ?? '';
+                if (!empty($option['type_detail_id']) && empty($this->details[$index]['type_detail_id'])) {
+                    $this->details[$index]['type_detail_id'] = $option['type_detail_id'];
+                }
+                if (!empty($option['service_id']) && empty($this->details[$index]['service_id'])) {
+                    $this->details[$index]['service_id'] = $option['service_id'];
+                }
             } else {
-                $this->details[$index]['stock_detail_id'] = '';
                 $this->details[$index]['available_quantity'] = 0;
             }
         }
@@ -263,7 +246,8 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
         $detail = $this->details[$index];
 
-        $query = StockDetail::where('police_station_id', $this->policeStationId)
+        $query = StockDetail::with(['rack', 'typeDetail'])
+            ->where('police_station_id', $this->policeStationId)
             ->where('type_id', $this->typeId)
             ->where('is_active', true)
             ->where('quantity', '>', 0);
@@ -272,7 +256,6 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             $query->where('type_detail_id', $detail['type_detail_id']);
         }
 
-        // The old code check services too, we'll keep that if selected
         if (!empty($detail['service_id'])) {
             $query->where('service_id', $detail['service_id']);
             if (empty($detail['service_detail_id'])) {
@@ -282,49 +265,115 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             }
         }
 
-        $stocks = $query->get();
+        $stocks = $query->orderBy('created_at', 'desc')->get();
 
         $this->stockOptions[$index] = $stocks->map(function ($s) {
+            $rackName = $s->rack ? $s->rack->name : 'Tanpa Rak';
+            $serialPart = '';
+            if ($s->number_serial_first && $s->number_serial_second) {
+                $serialPart = "{$s->number_serial_first} s/d {$s->number_serial_second}";
+            } elseif ($s->number_serial_first) {
+                $serialPart = $s->number_serial_first;
+            } elseif ($s->code) {
+                $serialPart = "Kode: {$s->code}";
+            } else {
+                $serialPart = "Batch " . substr($s->id, 0, 6);
+            }
+
+            $label = "{$serialPart} (Stok: " . (int)$s->quantity . " | {$rackName})";
+
             return [
-                'key' => $this->generateStockKey($s),
                 'stock_detail_id' => $s->id,
-                'quantity' => (int) $s->quantity,
+                'quantity' => (float) $s->quantity,
                 'item_code' => $s->code ?? '',
                 'number_serial_first' => $s->number_serial_first ?? '',
                 'number_serial_second' => $s->number_serial_second ?? '',
+                'type_detail_id' => $s->type_detail_id,
+                'service_id' => $s->service_id,
+                'rack_name' => $rackName,
+                'label' => $label,
             ];
         })->values()->toArray();
 
-        if (!$this->is_with_serial_number) {
-            $totalQty = (int) $stocks->sum('quantity');
-            $this->details[$index]['available_quantity'] = $totalQty;
-            if ($stocks->count() === 1) {
-                $this->details[$index]['stock_detail_id'] = $stocks->first()->id;
-            }
+        // Auto-select if only 1 stock option available or non-serial item
+        if (count($this->stockOptions[$index]) > 0 && empty($this->details[$index]['stock_detail_id'])) {
+            $first = $this->stockOptions[$index][0];
+            $this->details[$index]['stock_detail_id'] = $first['stock_detail_id'];
+            $this->details[$index]['available_quantity'] = (float) $first['quantity'];
+            $this->details[$index]['item_code'] = $first['item_code'];
+            $this->details[$index]['number_serial_first'] = $first['number_serial_first'];
+            $this->details[$index]['number_serial_second'] = $first['number_serial_second'];
         }
     }
 
-    protected function generateStockKey($item)
+    protected function rules(): array
     {
-        $code = !empty(data_get($item, 'code')) ? data_get($item, 'code') : '-';
-        $sn1 = !empty(data_get($item, 'number_serial_first')) ? data_get($item, 'number_serial_first') : '-';
-        $sn2 = !empty(data_get($item, 'number_serial_second')) ? data_get($item, 'number_serial_second') : '-';
-        return "{$code} | {$sn1} | {$sn2}";
-    }
-
-    public function save()
-    {
-        $this->validate([
+        return [
             'date' => 'required|date',
             'policeStationId' => 'required|exists:police_stations,id',
             'typeId' => 'required|exists:types,id',
             'details' => 'required|array|min:1',
+            'details.*.stock_detail_id' => 'required|exists:stock_details,id',
             'details.*.quantity' => 'required|numeric|min:1',
             'details.*.usage_type' => 'required|string',
-        ], [
-            'typeId.required' => 'Material utama harus dipilih',
-            'details.*.quantity.min' => 'Jumlah minimal 1',
-        ]);
+            'details.*.description' => 'nullable|string|max:500',
+        ];
+    }
+
+    protected $messages = [
+        'date.required' => 'Tanggal penggunaan wajib diisi.',
+        'date.date' => 'Format tanggal penggunaan tidak valid.',
+        'policeStationId.required' => 'Polres wajib dipilih.',
+        'policeStationId.exists' => 'Polres yang dipilih tidak valid.',
+        'typeId.required' => 'Material utama wajib dipilih.',
+        'typeId.exists' => 'Material yang dipilih tidak valid.',
+        'details.required' => 'Minimal harus ada 1 detail item material.',
+        'details.min' => 'Minimal harus ada 1 detail item material.',
+        'details.*.stock_detail_id.required' => 'Stok barang / nomor seri wajib dipilih dari daftar stok yang tersedia.',
+        'details.*.stock_detail_id.exists' => 'Stok barang tidak valid atau sudah habis.',
+        'details.*.quantity.required' => 'Jumlah material wajib diisi.',
+        'details.*.quantity.numeric' => 'Jumlah harus berupa angka.',
+        'details.*.quantity.min' => 'Jumlah minimal 1 unit.',
+        'details.*.usage_type.required' => 'Jenis penggunaan wajib dipilih.',
+        'details.*.description.max' => 'Catatan maksimal 500 karakter.',
+    ];
+
+    public function save()
+    {
+        $this->validate();
+
+        // Custom validation for quantities against available stock
+        $stockUsedCounts = [];
+        $hasError = false;
+
+        foreach ($this->details as $index => $detail) {
+            $stockId = $detail['stock_detail_id'] ?? null;
+            $qty = (float)($detail['quantity'] ?? 0);
+            $avail = (float)($detail['available_quantity'] ?? 0);
+
+            if ($qty <= 0) {
+                $this->addError("details.{$index}.quantity", "Jumlah harus minimal 1.");
+                $hasError = true;
+            }
+
+            if ($avail > 0 && $qty > $avail) {
+                $this->addError("details.{$index}.quantity", "Jumlah ({$qty}) melebihi stok tersedia ({$avail}).");
+                $hasError = true;
+            }
+
+            if ($stockId) {
+                $stockUsedCounts[$stockId] = ($stockUsedCounts[$stockId] ?? 0) + $qty;
+                if ($avail > 0 && $stockUsedCounts[$stockId] > $avail) {
+                    $this->addError("details.{$index}.stock_detail_id", "Total jumlah untuk stok ini ({$stockUsedCounts[$stockId]}) melebihi stok yang ada ({$avail}).");
+                    $hasError = true;
+                }
+            }
+        }
+
+        if ($hasError) {
+            session()->flash('error', 'Silakan periksa kembali isian formulir. Ada data yang belum sesuai.');
+            return;
+        }
 
         try {
             $headerData = [
@@ -342,9 +391,9 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 $this->materialUsageId
             );
 
-            session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data material digunakan berhasil disimpan. PNBP & Gunmat di Dashboard Polda otomatis bertambah.');
+            session()->flash('success', $this->isEditMode ? 'Data penggunaan material berhasil diperbarui.' : 'Data penggunaan material berhasil disimpan dan stok telah otomatis terpotong.');
 
-            return $this->redirect(route('menu-polres.material-usage.create'), navigate: true);
+            return $this->redirect(route('menu-polres.material-usage-detail'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

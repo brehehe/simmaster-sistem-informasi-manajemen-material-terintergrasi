@@ -17,6 +17,7 @@ class CreateMaterialDamageAction
     ): MaterialDamage {
         return DB::transaction(function () use ($headerData, $details, $mappedStockIds, $typeId, $materialDamageId) {
             $stockService = new StockService();
+            $isEditMode = !empty($materialDamageId);
 
             if ($isEditMode) {
                 $materialDamage = MaterialDamage::with('materialDamageDetails')->findOrFail($materialDamageId);

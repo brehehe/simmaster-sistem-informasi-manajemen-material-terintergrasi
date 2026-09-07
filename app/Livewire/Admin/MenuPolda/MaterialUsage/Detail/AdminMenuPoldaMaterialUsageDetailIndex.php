@@ -206,7 +206,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         $this->racks = $query->orderBy('name')->get();
     }
 
-    protected function rules()
+    protected function rules(): array
     {
         return [
             'code' => 'required|string|max:255',
@@ -214,14 +214,70 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             'regionalPoliceId' => 'required|exists:regional_police,id',
             'details' => 'required|array|min:1',
             'details.*.stock_detail_id' => 'required|exists:stock_details,id',
-            'details.*.quantity' => 'required|numeric|min:0',
+            'details.*.quantity' => 'required|numeric|min:1',
             'details.*.usage_type' => 'required|string',
+            'details.*.description' => 'nullable|string|max:500',
         ];
     }
+
+    protected $messages = [
+        'code.required' => 'Kode penggunaan wajib diisi.',
+        'date.required' => 'Tanggal penggunaan wajib diisi.',
+        'date.date' => 'Format tanggal penggunaan tidak valid.',
+        'regionalPoliceId.required' => 'Polda wajib dipilih.',
+        'regionalPoliceId.exists' => 'Polda yang dipilih tidak valid.',
+        'details.required' => 'Minimal harus ada 1 detail item material.',
+        'details.min' => 'Minimal harus ada 1 detail item material.',
+        'details.*.stock_detail_id.required' => 'Stok barang wajib dipilih dari daftar stok yang tersedia.',
+        'details.*.stock_detail_id.exists' => 'Stok barang tidak valid atau sudah habis.',
+        'details.*.quantity.required' => 'Jumlah material wajib diisi.',
+        'details.*.quantity.numeric' => 'Jumlah harus berupa angka.',
+        'details.*.quantity.min' => 'Jumlah minimal 1 unit.',
+        'details.*.usage_type.required' => 'Jenis penggunaan wajib dipilih.',
+    ];
 
     public function save()
     {
         $this->validate();
+
+        // Validate stock availability for each item
+        $hasError = false;
+        $stockCounts = [];
+
+        foreach ($this->details as $index => $detail) {
+            $stockId = $detail['stock_detail_id'] ?? null;
+            $qty = (float)($detail['quantity'] ?? 0);
+            $stockDetail = StockDetail::find($stockId);
+            $available = $stockDetail ? (float)$stockDetail->quantity : 0;
+
+            if ($this->isEditMode) {
+                // In edit mode, add back currently saved quantity if modifying same record
+                $available = (float)($detail['available_quantity'] ?? $available);
+            }
+
+            if ($qty <= 0) {
+                $this->addError("details.{$index}.quantity", "Jumlah minimal 1 unit.");
+                $hasError = true;
+            }
+
+            if ($qty > $available) {
+                $this->addError("details.{$index}.quantity", "Jumlah ({$qty}) melebihi stok tersedia ({$available}).");
+                $hasError = true;
+            }
+
+            if ($stockId) {
+                $stockCounts[$stockId] = ($stockCounts[$stockId] ?? 0) + $qty;
+                if ($stockCounts[$stockId] > $available) {
+                    $this->addError("details.{$index}.stock_detail_id", "Total penggunaan stok ini ({$stockCounts[$stockId]}) melebihi sisa stok ({$available}).");
+                    $hasError = true;
+                }
+            }
+        }
+
+        if ($hasError) {
+            session()->flash('error', 'Silakan periksa kembali isian formulir. Ada data yang belum sesuai.');
+            return;
+        }
 
         try {
             DB::transaction(function () {
@@ -236,7 +292,11 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
                 if ($this->isEditMode) {
                     $materialUsage = MaterialUsage::findOrFail($this->materialUsageId);
+                    $this->stockService->deleteMaterialUsage($materialUsage);
                     $materialUsage->update($headerData);
+                    foreach ($materialUsage->materialUsageDetails as $oldDetail) {
+                        $oldDetail->materialUsageDetailItems()->delete();
+                    }
                     $materialUsage->materialUsageDetails()->delete();
                 } else {
                     $materialUsage = MaterialUsage::create($headerData);
@@ -251,7 +311,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                         'item_code' => $detail['item_code'],
                         'number_serial_first' => $detail['number_serial_first'],
                         'number_serial_second' => $detail['number_serial_second'],
-                        'quantity' => $detail['quantity'],
+                        'quantity' => (float)$detail['quantity'],
                         'usage_type' => $detail['usage_type'],
                         'description' => $detail['description'] ?? '',
                         'is_active' => true,
@@ -263,9 +323,10 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                     }
                 }
 
+                $materialUsage->load('materialUsageDetails');
                 $this->stockService->processMaterialUsage($materialUsage);
 
-                session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
+                session()->flash('success', $this->isEditMode ? 'Data penggunaan material berhasil diperbarui.' : 'Data penggunaan material berhasil disimpan dan stok telah otomatis terpotong.');
             });
 
             return $this->redirect(route('menu-polda.material-usage'), navigate: true);

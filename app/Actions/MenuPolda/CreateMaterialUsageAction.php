@@ -22,6 +22,7 @@ class CreateMaterialUsageAction
     ): MaterialUsage {
         return DB::transaction(function () use ($headerData, $details, $typeId, $materialUsageId) {
             $stockService = app(StockService::class);
+            $isEditMode = !empty($materialUsageId);
 
             if ($isEditMode) {
                 $materialUsage = MaterialUsage::with('materialUsageDetails')->findOrFail($materialUsageId);
@@ -39,15 +40,24 @@ class CreateMaterialUsageAction
                 $materialUsage = MaterialUsage::create($headerData);
             }
 
+            $validDetailsCount = 0;
+
             foreach ($details as $detail) {
                 if (empty($detail['stock_detail_id'])) {
                     continue;
                 }
 
                 $stockDetail = StockDetail::findOrFail($detail['stock_detail_id']);
+                $qty = (float)($detail['quantity'] ?? 0);
 
-                if (isset($detail['available_quantity']) && $detail['quantity'] > $detail['available_quantity']) {
-                    throw new \Exception('Jumlah melebihi stok tersedia.');
+                if ($qty <= 0) {
+                    throw new \Exception('Jumlah material yang digunakan harus lebih dari 0.');
+                }
+
+                if ($qty > $stockDetail->quantity) {
+                    $itemLabel = $stockDetail->code ? $stockDetail->code . ' ' : '';
+                    $itemLabel .= $stockDetail->number_serial_first ?: ($stockDetail->type?->name ?? 'Material');
+                    throw new \Exception("Jumlah ({$qty}) melebihi stok yang tersedia ({$stockDetail->quantity}) untuk {$itemLabel}.");
                 }
 
                 $currentTypeId = $detail['type_id'] ?? $typeId;
@@ -57,11 +67,11 @@ class CreateMaterialUsageAction
                     'type_id' => $currentTypeId,
                     'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
                     'rack_id' => $stockDetail->rack_id,
-                    'item_code' => $detail['item_code'] ?? '',
-                    'number_serial_first' => $detail['number_serial_first'] ?? '',
-                    'number_serial_second' => $detail['number_serial_second'] ?? '',
-                    'quantity' => (float)$detail['quantity'],
-                    'usage_type' => $detail['usage_type'] ?? 'usage',
+                    'item_code' => $detail['item_code'] ?? ($stockDetail->code ?? ''),
+                    'number_serial_first' => $detail['number_serial_first'] ?? ($stockDetail->number_serial_first ?? ''),
+                    'number_serial_second' => $detail['number_serial_second'] ?? ($stockDetail->number_serial_second ?? ''),
+                    'quantity' => $qty,
+                    'usage_type' => $detail['usage_type'] ?? 'Material Digunakan',
                     'description' => $detail['description'] ?? '',
                     'is_active' => true,
                 ]);
@@ -76,18 +86,24 @@ class CreateMaterialUsageAction
                     'type_id' => $currentTypeId,
                     'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
                     'rack_id' => $stockDetail->rack_id,
-                    'item_code' => $detail['item_code'] ?? '',
-                    'number_serial_first' => $detail['number_serial_first'] ?? '',
-                    'number_serial_second' => $detail['number_serial_second'] ?? '',
-                    'quantity' => (float)$detail['quantity'],
-                    'usage_type' => $detail['usage_type'] ?? 'usage',
+                    'item_code' => $detail['item_code'] ?? ($stockDetail->code ?? ''),
+                    'number_serial_first' => $detail['number_serial_first'] ?? ($stockDetail->number_serial_first ?? ''),
+                    'number_serial_second' => $detail['number_serial_second'] ?? ($stockDetail->number_serial_second ?? ''),
+                    'quantity' => $qty,
+                    'usage_type' => $detail['usage_type'] ?? 'Material Digunakan',
                     'description' => $detail['description'] ?? '',
                     'is_active' => true,
                 ]);
+
+                $validDetailsCount++;
+            }
+
+            if ($validDetailsCount === 0) {
+                throw new \Exception('Tidak ada detail item material yang valid untuk disimpan.');
             }
 
             // Sync stock reduction and stock history
-            $stockService = app(StockService::class);
+            $materialUsage->load('materialUsageDetails');
             $stockService->processMaterialUsage($materialUsage);
 
             return $materialUsage;

@@ -444,15 +444,22 @@ class StockService
                     $stock->save();
                 }
 
+                // Determine owner safely
+                $regId = $stock ? $stock->regional_police_id : $stockDetail->regional_police_id;
+                $polId = $stock ? $stock->police_station_id : $stockDetail->police_station_id;
+                if ($polId) {
+                    $regId = null;
+                }
+
                 // Create history record
                 HistoryStock::create([
                     'code' => HistoryStock::generateCode(),
                     'material_usage_id' => $materialUsage->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $stock->regional_police_id,
+                    'regional_police_id' => $regId,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
-                    'police_station_id' => $stock->police_station_id,
+                    'police_station_id' => $polId,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialUsage->date,
                     'status_type' => 'out',
@@ -482,6 +489,13 @@ class StockService
                     $stock->save();
                 }
 
+                // Determine owner safely
+                $regId = $stock ? $stock->regional_police_id : $stockDetail->regional_police_id;
+                $polId = $stock ? $stock->police_station_id : $stockDetail->police_station_id;
+                if ($polId) {
+                    $regId = null;
+                }
+
                 // Create history record
                 $damageTypeLabel = $detail->damage_type === 'damaged' ? 'Rusak' : 'Hilang';
                 HistoryStock::create([
@@ -489,9 +503,9 @@ class StockService
                     'material_damage_id' => $materialDamage->id,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $stock->regional_police_id,
+                    'regional_police_id' => $regId,
                     'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
-                    'police_station_id' => $stock->police_station_id,
+                    'police_station_id' => $polId,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialDamage->date,
                     'status_type'=>'out',
