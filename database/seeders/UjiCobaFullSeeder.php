@@ -191,15 +191,25 @@ class UjiCobaFullSeeder extends Seeder
     protected function seedTarget2026(): void
     {
         $year = 2026;
-        $target = Target::updateOrCreate(
-            ['year' => $year],
-            [
+        $target = Target::withTrashed()->where('year', $year)->first();
+        if ($target) {
+            if ($target->trashed()) {
+                $target->restore();
+            }
+            $target->update([
+                'name' => "Target Ditlantas {$year}",
+                'description' => "Target Renbut Materiel dan PNBP Ditlantas & Polres Jajaran TA {$year}",
+                'is_active' => true,
+            ]);
+        } else {
+            $target = Target::create([
+                'id' => Str::uuid()->toString(),
                 'name' => "Target Ditlantas {$year}",
                 'year' => $year,
                 'description' => "Target Renbut Materiel dan PNBP Ditlantas & Polres Jajaran TA {$year}",
                 'is_active' => true,
-            ]
-        );
+            ]);
+        }
 
         TargetDetail::where('target_id', $target->id)->delete();
 
@@ -226,18 +236,18 @@ class UjiCobaFullSeeder extends Seeder
         $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
         $stations = PoliceStation::all();
 
-        // Siapkan Type models
-        $typeSim = Type::firstOrCreate(['name' => 'SIM CARD'], ['is_with_serial_number' => true, 'price' => 86732.29, 'is_active' => true]);
-        $typeStnk = Type::firstOrCreate(['name' => 'STNK'], ['is_with_serial_number' => true, 'price' => 121218.32, 'is_active' => true]);
-        $typeBpkb = Type::firstOrCreate(['name' => 'BPKB'], ['is_with_serial_number' => true, 'price' => 253238.13, 'is_active' => true]);
-        $typeStck = Type::firstOrCreate(['name' => 'STCK'], ['is_with_serial_number' => true, 'price' => 29241.17, 'is_active' => true]);
-        $typeMutasi = Type::firstOrCreate(['name' => 'MUTASI'], ['is_with_serial_number' => false, 'price' => 201348.80, 'is_active' => true]);
-        $typeTnkbR2 = Type::firstOrCreate(['name' => 'TNKB R2 PUTIH'], ['is_with_serial_number' => false, 'price' => 60000.00, 'is_active' => true]);
-        $typeTnkbR4 = Type::firstOrCreate(['name' => 'TNKB R4 PUTIH'], ['is_with_serial_number' => false, 'price' => 100000.00, 'is_active' => true]);
-        $typeTckbR2 = Type::firstOrCreate(['name' => 'TCKB R2'], ['is_with_serial_number' => false, 'price' => 60000.00, 'is_active' => true]);
-        $typeTckbR4 = Type::firstOrCreate(['name' => 'TCKB R4'], ['is_with_serial_number' => false, 'price' => 100000.00, 'is_active' => true]);
-        $typeNrkb = Type::firstOrCreate(['name' => 'NRKB NOPIL'], ['is_with_serial_number' => false, 'price' => 8291666.67, 'is_active' => true]);
-        $typeSkukp = Type::firstOrCreate(['name' => 'SKUKP'], ['is_with_serial_number' => false, 'price' => 50000.00, 'is_active' => true]);
+        // Siapkan Type models (aman dari soft deletes & unique constraint)
+        $typeSim = $this->getOrCreateType('SIM CARD', ['is_with_serial_number' => true, 'price' => 86732.29, 'is_active' => true]);
+        $typeStnk = $this->getOrCreateType('STNK', ['is_with_serial_number' => true, 'price' => 121218.32, 'is_active' => true]);
+        $typeBpkb = $this->getOrCreateType('BPKB', ['is_with_serial_number' => true, 'price' => 253238.13, 'is_active' => true]);
+        $typeStck = $this->getOrCreateType('STCK', ['is_with_serial_number' => true, 'price' => 29241.17, 'is_active' => true]);
+        $typeMutasi = $this->getOrCreateType('MUTASI', ['is_with_serial_number' => false, 'price' => 201348.80, 'is_active' => true]);
+        $typeTnkbR2 = $this->getOrCreateType('TNKB R2 PUTIH', ['is_with_serial_number' => false, 'price' => 60000.00, 'is_active' => true]);
+        $typeTnkbR4 = $this->getOrCreateType('TNKB R4 PUTIH', ['is_with_serial_number' => false, 'price' => 100000.00, 'is_active' => true]);
+        $typeTckbR2 = $this->getOrCreateType('TCKB R2', ['is_with_serial_number' => false, 'price' => 60000.00, 'is_active' => true]);
+        $typeTckbR4 = $this->getOrCreateType('TCKB R4', ['is_with_serial_number' => false, 'price' => 100000.00, 'is_active' => true]);
+        $typeNrkb = $this->getOrCreateType('NRKB NOPIL', ['is_with_serial_number' => false, 'price' => 8291666.67, 'is_active' => true]);
+        $typeSkukp = $this->getOrCreateType('SKUKP', ['is_with_serial_number' => false, 'price' => 50000.00, 'is_active' => true]);
 
         $stationRows = [
             14 => 'Polrestabes Surabaya',
@@ -727,27 +737,19 @@ class UjiCobaFullSeeder extends Seeder
 
         // Petugas Resmi Penandatangan Berita Acara Stock Opname 4 September 2026
         $password = Hash::make('password');
-        $penghitung = User::updateOrCreate(
-            ['email' => 'dio-farizka@sbst.test'],
-            [
-                'name' => 'BRIGADIR DIO FARIZKA HABIBUN HAQ',
-                'password' => $password,
-                'regional_police_id' => $polda->id,
-                'level_menu' => 1,
-            ]
-        );
-        $penghitung->assignRole('Polda');
+        $penghitung = $this->upsertUser('dio-farizka@sbst.test', [
+            'name' => 'BRIGADIR DIO FARIZKA HABIBUN HAQ',
+            'password' => $password,
+            'regional_police_id' => $polda->id,
+            'level_menu' => 1,
+        ], ['Polda']);
 
-        $pamin = User::updateOrCreate(
-            ['email' => 'kukuh-kurniawan@sbst.test'],
-            [
-                'name' => 'IPDA KUKUH KURNIAWAN, S.H.',
-                'password' => $password,
-                'regional_police_id' => $polda->id,
-                'level_menu' => 1,
-            ]
-        );
-        $pamin->assignRole('Polda');
+        $pamin = $this->upsertUser('kukuh-kurniawan@sbst.test', [
+            'name' => 'IPDA KUKUH KURNIAWAN, S.H.',
+            'password' => $password,
+            'regional_police_id' => $polda->id,
+            'level_menu' => 1,
+        ], ['Polda']);
 
         // Catat dokumen resmi Stock Opname
         $soCode = 'SO-POLDAJATIM-20260904-001';
@@ -813,77 +815,74 @@ class UjiCobaFullSeeder extends Seeder
 
         $userTypeModels = [];
         foreach ($userTypeDefinitions as $utName => $utData) {
-            $userTypeModels[$utName] = UserType::updateOrCreate(
-                ['name' => $utName],
-                [
+            $ut = UserType::withTrashed()->where('name', $utName)->first();
+            if ($ut) {
+                if ($ut->trashed()) {
+                    $ut->restore();
+                }
+                $ut->update([
                     'types' => $utData['types'],
                     'level_user' => $utData['level'],
                     'description' => $utData['desc'],
                     'is_active' => true,
-                ]
-            );
+                ]);
+            } else {
+                $ut = UserType::create([
+                    'id' => Str::uuid()->toString(),
+                    'name' => $utName,
+                    'types' => $utData['types'],
+                    'level_user' => $utData['level'],
+                    'description' => $utData['desc'],
+                    'is_active' => true,
+                ]);
+            }
+            $userTypeModels[$utName] = $ut;
         }
 
-        // Hapus akun-akun BAUR Polres yang tidak terpakai
-        $deletedBaurCount = User::where('email', 'like', 'baur%')->delete();
+        // Hapus permanen akun-akun BAUR Polres yang tidak terpakai agar tidak memicu unique violation
+        $deletedBaurCount = User::withTrashed()->where('email', 'like', 'baur%')->forceDelete();
         $this->command->info("-> Menghapus {$deletedBaurCount} akun BAUR yang tidak digunakan.");
 
         $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
 
-        // 2. Akun-akun di Tingkat Polda
+        // 2. Akun-akun di Tingkat Polda (Menggunakan upsertUser yang kebal terhadap unique violation PostgreSQL)
         if ($polda) {
             // Admin SIMMASTER
-            $admin = User::firstOrCreate(
-                ['email' => 'admin@gmail.com'],
-                [
-                    'name' => 'Admin ARMASTER',
-                    'password' => $password,
-                    'level_menu' => 1,
-                ]
-            );
-            $admin->assignRole('Admin');
+            $admin = $this->upsertUser('admin@gmail.com', [
+                'name' => 'Admin ARMASTER',
+                'password' => $password,
+                'level_menu' => 1,
+            ], ['Admin']);
 
             // Polda Jatim Induk
-            $poldaUser = User::updateOrCreate(
-                ['email' => 'polda-jatim@sbst.test'],
-                [
-                    'name' => 'Polda Jatim',
-                    'password' => $password,
-                    'regional_police_id' => $polda->id,
-                    'police_station_id' => null,
-                    'user_type_id' => null,
-                    'level_menu' => 1,
-                ]
-            );
-            $poldaUser->syncRoles(['Polda']);
+            $poldaUser = $this->upsertUser('polda-jatim@sbst.test', [
+                'name' => 'Polda Jatim',
+                'password' => $password,
+                'regional_police_id' => $polda->id,
+                'police_station_id' => null,
+                'user_type_id' => null,
+                'level_menu' => 1,
+            ], ['Polda']);
 
             // BAMAT Polda Jatim
-            $bamatPolda = User::updateOrCreate(
-                ['email' => 'bamat-polda-jatim@sbst.test'],
-                [
-                    'name' => 'BAMAT Polda Jatim',
-                    'password' => $password,
-                    'regional_police_id' => $polda->id,
-                    'police_station_id' => null,
-                    'user_type_id' => $userTypeModels['BAMAT']->id,
-                    'level_menu' => 2,
-                ]
-            );
-            $bamatPolda->syncRoles(['Polda']);
+            $bamatPolda = $this->upsertUser('bamat-polda-jatim@sbst.test', [
+                'name' => 'BAMAT Polda Jatim',
+                'password' => $password,
+                'regional_police_id' => $polda->id,
+                'police_station_id' => null,
+                'user_type_id' => $userTypeModels['BAMAT']->id,
+                'level_menu' => 2,
+            ], ['Polda']);
 
             // SAMSAT Polda Jatim
-            $samsatPolda = User::updateOrCreate(
-                ['email' => 'samsat-polda-jatim@sbst.test'],
-                [
-                    'name' => 'SAMSAT Polda Jatim',
-                    'password' => $password,
-                    'regional_police_id' => $polda->id,
-                    'police_station_id' => null,
-                    'user_type_id' => $userTypeModels['SAMSAT POLDA']->id,
-                    'level_menu' => 2,
-                ]
-            );
-            $samsatPolda->syncRoles(['Polda']);
+            $samsatPolda = $this->upsertUser('samsat-polda-jatim@sbst.test', [
+                'name' => 'SAMSAT Polda Jatim',
+                'password' => $password,
+                'regional_police_id' => $polda->id,
+                'police_station_id' => null,
+                'user_type_id' => $userTypeModels['SAMSAT POLDA']->id,
+                'level_menu' => 2,
+            ], ['Polda']);
 
             // Seksi-seksi di Polda (Sie Fasmat, Sie STNK, Sie BPKB, Sie SIM, Sie TNKB)
             $sieList = [
@@ -895,18 +894,14 @@ class UjiCobaFullSeeder extends Seeder
             ];
 
             foreach ($sieList as $sieName => $sieEmail) {
-                $sieUser = User::updateOrCreate(
-                    ['email' => $sieEmail],
-                    [
-                        'name' => "{$sieName} Polda Jatim",
-                        'password' => $password,
-                        'regional_police_id' => $polda->id,
-                        'police_station_id' => null,
-                        'user_type_id' => $userTypeModels[$sieName]->id,
-                        'level_menu' => 2,
-                    ]
-                );
-                $sieUser->syncRoles(['Polda']);
+                $this->upsertUser($sieEmail, [
+                    'name' => "{$sieName} Polda Jatim",
+                    'password' => $password,
+                    'regional_police_id' => $polda->id,
+                    'police_station_id' => null,
+                    'user_type_id' => $userTypeModels[$sieName]->id,
+                    'level_menu' => 2,
+                ], ['Polda']);
             }
         }
 
@@ -919,38 +914,77 @@ class UjiCobaFullSeeder extends Seeder
 
             // Akun BAMAT Polres
             $bamatEmail = "bamat-{$stationSlug}@sbst.test";
-            $bamatUser = User::updateOrCreate(
-                ['email' => $bamatEmail],
-                [
-                    'name' => "BAMAT {$station->name}",
-                    'password' => $password,
-                    'regional_police_id' => $station->regional_police_id,
-                    'police_station_id' => $station->id,
-                    'user_type_id' => $userTypeModels['BAMAT']->id,
-                    'level_menu' => 2,
-                ]
-            );
-            $bamatUser->syncRoles(['Polres']);
+            $this->upsertUser($bamatEmail, [
+                'name' => "BAMAT {$station->name}",
+                'password' => $password,
+                'regional_police_id' => $station->regional_police_id,
+                'police_station_id' => $station->id,
+                'user_type_id' => $userTypeModels['BAMAT']->id,
+                'level_menu' => 2,
+            ], ['Polres']);
 
             // Akun Induk Polres
             $stationEmail = "{$stationSlug}@sbst.test";
-            $stationUser = User::updateOrCreate(
-                ['email' => $stationEmail],
-                [
-                    'name' => $station->name,
-                    'password' => $password,
-                    'regional_police_id' => $station->regional_police_id,
-                    'police_station_id' => $station->id,
-                    'user_type_id' => null,
-                    'level_menu' => 1,
-                ]
-            );
-            $stationUser->syncRoles(['Polres']);
+            $this->upsertUser($stationEmail, [
+                'name' => $station->name,
+                'password' => $password,
+                'regional_police_id' => $station->regional_police_id,
+                'police_station_id' => $station->id,
+                'user_type_id' => null,
+                'level_menu' => 1,
+            ], ['Polres']);
 
             $bamatPolresCount++;
         }
 
         $this->command->info("-> Berhasil membuat/memperbarui akun BAMAT untuk {$bamatPolresCount} Polres.");
         $this->command->info('-> Akun Polda: BAMAT Polda, SAMSAT Polda Jatim, Sie Fasmat, Sie STNK, Sie BPKB, Sie SIM, Sie TNKB.');
+    }
+
+    /**
+     * Helper upsert user yang aman terhadap unique constraint PostgreSQL & SoftDeletes.
+     */
+    protected function upsertUser(string $email, array $attributes, array $roles = []): User
+    {
+        $user = User::withTrashed()->where('email', $email)->first();
+        if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+            $user->update(array_merge(['email' => $email], $attributes));
+        } else {
+            $user = User::create(array_merge([
+                'id' => Str::uuid()->toString(),
+                'email' => $email,
+            ], $attributes));
+        }
+
+        if (!empty($roles)) {
+            $user->syncRoles($roles);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Helper get or create Type yang aman dari SoftDeletes & unique constraint.
+     */
+    protected function getOrCreateType(string $name, array $attributes = []): Type
+    {
+        $type = Type::withTrashed()->where('name', $name)->first();
+        if ($type) {
+            if ($type->trashed()) {
+                $type->restore();
+            }
+            if (!empty($attributes)) {
+                $type->update($attributes);
+            }
+            return $type;
+        }
+
+        return Type::create(array_merge([
+            'id' => Str::uuid()->toString(),
+            'name' => $name,
+        ], $attributes));
     }
 }
