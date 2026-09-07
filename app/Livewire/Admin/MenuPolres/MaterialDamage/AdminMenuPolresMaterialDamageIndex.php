@@ -9,6 +9,8 @@ use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
 
 class AdminMenuPolresMaterialDamageIndex extends Component
 {
@@ -151,13 +153,26 @@ class AdminMenuPolresMaterialDamageIndex extends Component
         $this->materialDamageId = null;
     }
 
-    public function delete()
+    public function delete(StockService $stockService)
     {
         if ($this->materialDamageId) {
-            $materialDamage = MaterialDamage::find($this->materialDamageId);
-            if ($materialDamage) {
-                $materialDamage->delete();
-                session()->flash('success', 'Data material damage berhasil dihapus.');
+            try {
+                DB::beginTransaction();
+
+                $materialDamage = MaterialDamage::with('materialDamageDetails')->find($this->materialDamageId);
+                if ($materialDamage) {
+                    // Restore stock & delete history
+                    $stockService->deleteMaterialDamage($materialDamage);
+
+                    $materialDamage->materialDamageDetails()->delete();
+                    $materialDamage->delete();
+
+                    DB::commit();
+                    session()->flash('success', 'Data material damage berhasil dihapus.');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
             }
         }
         $this->closeModal();

@@ -21,14 +21,10 @@ class CreateMaterialUsageAction
         ?string $materialUsageId = null
     ): MaterialUsage {
         return DB::transaction(function () use ($headerData, $details, $typeId, $materialUsageId) {
-            $stockService = app(StockService::class);
+            $isEditMode = !empty($materialUsageId);
 
             if ($isEditMode) {
-                $materialUsage = MaterialUsage::with('materialUsageDetails')->findOrFail($materialUsageId);
-
-                // Revert previous stock deduction before re-processing
-                $stockService->deleteMaterialUsage($materialUsage);
-
+                $materialUsage = MaterialUsage::findOrFail($materialUsageId);
                 $materialUsage->update($headerData);
 
                 foreach ($materialUsage->materialUsageDetails as $oldDetail) {

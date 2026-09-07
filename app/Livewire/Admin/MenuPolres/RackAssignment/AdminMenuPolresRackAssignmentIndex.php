@@ -9,6 +9,8 @@ use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
 
 class AdminMenuPolresRackAssignmentIndex extends Component
 {
@@ -146,13 +148,26 @@ class AdminMenuPolresRackAssignmentIndex extends Component
         $this->rackAssignmentId = null;
     }
 
-    public function delete()
+    public function delete(StockService $stockService)
     {
         if ($this->rackAssignmentId) {
-            $rackAssignment = RackAssignment::find($this->rackAssignmentId);
-            if ($rackAssignment) {
-                $rackAssignment->delete();
-                session()->flash('success', 'Data rack assignment berhasil dihapus.');
+            try {
+                DB::beginTransaction();
+
+                $rackAssignment = RackAssignment::with('rackAssignmentDetails')->find($this->rackAssignmentId);
+                if ($rackAssignment) {
+                    // Revert rack movement & delete history
+                    $stockService->deleteRackAssignment($rackAssignment);
+
+                    $rackAssignment->rackAssignmentDetails()->delete();
+                    $rackAssignment->delete();
+
+                    DB::commit();
+                    session()->flash('success', 'Data penataan rak berhasil dihapus.');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
             }
         }
         $this->closeModal();

@@ -565,4 +565,233 @@ class StockService
             }
         }
     }
+
+    /**
+     * Delete last stock and revert stocks and history
+     */
+    public function deleteLastStock(LastStock $lastStock): void
+
+    {
+        // 1. Delete stock history associated with this last stock
+        HistoryStock::where('last_stock_id', $lastStock->id)->delete();
+
+        // Must load relation if not already loaded
+        $lastStock->loadMissing('lastStockDetails');
+
+        $regId = $lastStock->regional_police_id;
+        $polId = $lastStock->police_station_id;
+        if ($polId) {
+            $regId = null;
+        }
+
+        // 2. Reduce stock quantity and delete/update stock details
+        foreach ($lastStock->lastStockDetails as $detail) {
+            $query = StockDetail::where('type_id', $detail->type_id)
+                ->where('regional_police_id', $regId)
+                ->where('police_station_id', $polId);
+
+            if ($detail->type_detail_id === null) {
+                $query->whereNull('type_detail_id');
+            } else {
+                $query->where('type_detail_id', $detail->type_detail_id);
+            }
+
+            if ($detail->service_id === null) {
+                $query->whereNull('service_id');
+            } else {
+                $query->where('service_id', $detail->service_id);
+            }
+
+            if ($detail->service_detail_id === null) {
+                $query->whereNull('service_detail_id');
+            } else {
+                $query->where('service_detail_id', $detail->service_detail_id);
+            }
+
+            if ($detail->code === null || $detail->code === '') {
+                $query->where(function($q) { $q->whereNull('code')->orWhere('code', ''); });
+            } else {
+                $query->where('code', $detail->code);
+            }
+
+            if ($detail->number_serial_first === null || $detail->number_serial_first === '') {
+                $query->where(function($q) { $q->whereNull('number_serial_first')->orWhere('number_serial_first', ''); });
+            } else {
+                $query->where('number_serial_first', $detail->number_serial_first);
+            }
+
+            if ($detail->number_serial_second === null || $detail->number_serial_second === '') {
+                $query->where(function($q) { $q->whereNull('number_serial_second')->orWhere('number_serial_second', ''); });
+            } else {
+                $query->where('number_serial_second', $detail->number_serial_second);
+            }
+
+            $stockDetail = $query->first();
+
+            if ($stockDetail) {
+                if ($stockDetail->quantity <= $detail->quantity) {
+                    $stockDetail->delete();
+                } else {
+                    $stockDetail->quantity -= $detail->quantity;
+                    $stockDetail->save();
+                }
+            }
+
+            // 3. Reduce aggregated stock
+            $stockQuery = Stock::where('type_id', $detail->type_id)
+                ->where('regional_police_id', $regId)
+                ->where('police_station_id', $polId);
+
+            if ($detail->type_detail_id === null) {
+                $stockQuery->whereNull('type_detail_id');
+            } else {
+                $stockQuery->where('type_detail_id', $detail->type_detail_id);
+            }
+
+            if ($detail->service_id === null) {
+                $stockQuery->whereNull('service_id');
+            } else {
+                $stockQuery->where('service_id', $detail->service_id);
+            }
+
+            if ($detail->service_detail_id === null) {
+                $stockQuery->whereNull('service_detail_id');
+            } else {
+                $stockQuery->where('service_detail_id', $detail->service_detail_id);
+            }
+
+            $stock = $stockQuery->first();
+            if ($stock) {
+                $stock->quantity -= $detail->quantity;
+                if ($stock->quantity < 0) {
+                    $stock->quantity = 0;
+                }
+                $stock->save();
+            }
+        }
+    }
+
+    /**
+     * Delete material usage and restore stock quantity and delete history
+     */
+    public function deleteMaterialUsage($materialUsage): void
+    {
+        // 1. Delete stock history associated with this material usage
+        HistoryStock::where('material_usage_id', $materialUsage->id)->delete();
+
+        // Must load relation if not already loaded
+        $materialUsage->loadMissing('materialUsageDetails');
+
+        // 2. Restore stock quantity
+        foreach ($materialUsage->materialUsageDetails as $detail) {
+            $stockDetail = StockDetail::find($detail->stock_detail_id);
+            if ($stockDetail) {
+                $stockDetail->quantity += $detail->quantity;
+                $stockDetail->save();
+
+                $stock = $stockDetail->stock;
+                if ($stock) {
+                    $stock->quantity += $detail->quantity;
+                    $stock->save();
+                }
+            } else {
+                // Fallback: find stock by attributes
+                $regId = $materialUsage->regional_police_id;
+                $polId = $materialUsage->police_station_id;
+                if ($polId) $regId = null;
+
+                $stock = Stock::where('type_id', $detail->type_id)
+                    ->where('type_detail_id', $detail->type_detail_id)
+                    ->where('regional_police_id', $regId)
+                    ->where('police_station_id', $polId)
+                    ->first();
+
+                if ($stock) {
+                    $stock->quantity += $detail->quantity;
+                    $stock->save();
+                }
+            }
+        }
+    }
+
+    /**
+     * Delete material damage and restore stock quantity and delete history
+     */
+    public function deleteMaterialDamage($materialDamage): void
+    {
+        // 1. Delete stock history associated with this material damage
+        HistoryStock::where('material_damage_id', $materialDamage->id)->delete();
+
+        // Must load relation if not already loaded
+        $materialDamage->loadMissing('materialDamageDetails');
+
+        // 2. Restore stock quantity
+        foreach ($materialDamage->materialDamageDetails as $detail) {
+            $stockDetail = StockDetail::find($detail->stock_detail_id);
+            if ($stockDetail) {
+                $stockDetail->quantity += $detail->quantity;
+                $stockDetail->save();
+
+                $stock = $stockDetail->stock;
+                if ($stock) {
+                    $stock->quantity += $detail->quantity;
+                    $stock->save();
+                }
+            } else {
+                // Fallback: find stock by attributes
+                $regId = $materialDamage->regional_police_id;
+                $polId = $materialDamage->police_station_id;
+                if ($polId) $regId = null;
+
+                $stock = Stock::where('type_id', $detail->type_id)
+                    ->where('type_detail_id', $detail->type_detail_id)
+                    ->where('regional_police_id', $regId)
+                    ->where('police_station_id', $polId)
+                    ->first();
+
+                if ($stock) {
+                    $stock->quantity += $detail->quantity;
+                    $stock->save();
+                }
+            }
+        }
+    }
+
+    /**
+     * Delete rack assignment and revert rack movement and delete history
+     */
+    public function deleteRackAssignment($rackAssignment): void
+    {
+        // 1. Delete history
+        HistoryStock::where('rack_assignment_id', $rackAssignment->id)->delete();
+
+        // 2. Revert details rack_id
+        $rackAssignment->loadMissing('rackAssignmentDetails');
+        foreach ($rackAssignment->rackAssignmentDetails as $detail) {
+            $stockDetail = StockDetail::find($detail->stock_detail_id);
+            if ($stockDetail) {
+                $stockDetail->rack_id = $detail->from_rack_id;
+                $stockDetail->save();
+            } else {
+                $regId = $rackAssignment->regional_police_id;
+                $polId = $rackAssignment->police_station_id;
+                if ($polId) $regId = null;
+
+                $stockDetail = StockDetail::where('type_id', $detail->type_id)
+                    ->where('rack_id', $detail->to_rack_id)
+                    ->where('police_station_id', $polId)
+                    ->where('regional_police_id', $regId)
+                    ->where('code', $detail->item_code)
+                    ->where('number_serial_first', $detail->number_serial_first)
+                    ->where('number_serial_second', $detail->number_serial_second)
+                    ->first();
+
+                if ($stockDetail) {
+                    $stockDetail->rack_id = $detail->from_rack_id;
+                    $stockDetail->save();
+                }
+            }
+        }
+    }
 }
+

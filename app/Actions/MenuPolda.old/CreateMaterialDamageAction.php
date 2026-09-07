@@ -16,14 +16,10 @@ class CreateMaterialDamageAction
         ?string $materialDamageId = null
     ): MaterialDamage {
         return DB::transaction(function () use ($headerData, $details, $mappedStockIds, $typeId, $materialDamageId) {
-            $stockService = new StockService();
+            $isEditMode = !empty($materialDamageId);
 
             if ($isEditMode) {
-                $materialDamage = MaterialDamage::with('materialDamageDetails')->findOrFail($materialDamageId);
-
-                // Revert previous stock deduction before re-processing
-                $stockService->deleteMaterialDamage($materialDamage);
-
+                $materialDamage = MaterialDamage::findOrFail($materialDamageId);
                 $materialDamage->update($headerData);
                 $materialDamage->materialDamageDetails()->delete();
             } else {

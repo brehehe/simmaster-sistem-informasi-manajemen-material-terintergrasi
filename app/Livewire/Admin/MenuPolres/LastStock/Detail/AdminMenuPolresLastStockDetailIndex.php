@@ -237,8 +237,14 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                 'is_active' => $this->is_active,
             ];
 
+            $stockService = new StockService();
+
             if ($this->isEditMode) {
-                $lastStock = LastStock::findOrFail($this->lastStockId);
+                $lastStock = LastStock::with('lastStockDetails')->findOrFail($this->lastStockId);
+
+                // Revert previous stock before re-processing
+                $stockService->deleteLastStock($lastStock);
+
                 $lastStock->update($data);
                 $lastStock->lastStockDetails()->delete();
             } else {

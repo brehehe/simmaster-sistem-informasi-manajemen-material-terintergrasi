@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin\MenuPolda\RackAssignment;
 
 use App\Models\MenuPolda\RackAssignment\RackAssignment;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -48,9 +50,6 @@ class AdminMenuPoldaRackAssignmentIndex extends Component
 
         $rackAssignments = $query->latest('date')->paginate($this->perPage);
 
-        // Debug: check if component is rendering
-        // dd('Component rendering', $rackAssignments->count());
-
         return view('livewire.admin.menu-polda.rack-assignment.admin-menu-polda-rack-assignment-index', [
             'rackAssignments' => $rackAssignments
         ])->layout('components.layouts.main.app');
@@ -68,13 +67,26 @@ class AdminMenuPoldaRackAssignmentIndex extends Component
         $this->rackAssignmentId = null;
     }
 
-    public function delete()
+    public function delete(StockService $stockService)
     {
         if ($this->rackAssignmentId) {
-            $rackAssignment = RackAssignment::find($this->rackAssignmentId);
-            if ($rackAssignment) {
-                $rackAssignment->delete();
-                session()->flash('success', 'Data rack assignment berhasil dihapus.');
+            try {
+                DB::beginTransaction();
+
+                $rackAssignment = RackAssignment::with('rackAssignmentDetails')->find($this->rackAssignmentId);
+                if ($rackAssignment) {
+                    // Revert rack movement & delete history
+                    $stockService->deleteRackAssignment($rackAssignment);
+
+                    $rackAssignment->rackAssignmentDetails()->delete();
+                    $rackAssignment->delete();
+
+                    DB::commit();
+                    session()->flash('success', 'Data penataan rak berhasil dihapus.');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
             }
         }
         $this->closeModal();

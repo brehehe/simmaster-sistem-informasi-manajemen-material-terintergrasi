@@ -10,6 +10,8 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Url;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
 
 class AdminMenuPolresLastStockIndex extends Component
 {
@@ -91,10 +93,15 @@ class AdminMenuPolresLastStockIndex extends Component
         $this->lastStockId = null;
     }
 
-    public function delete()
+    public function delete(StockService $stockService)
     {
         try {
-            $lastStock = LastStock::findOrFail($this->lastStockId);
+            DB::beginTransaction();
+
+            $lastStock = LastStock::with('lastStockDetails')->findOrFail($this->lastStockId);
+
+            // Revert stock & history
+            $stockService->deleteLastStock($lastStock);
 
             // Delete all details first
             $lastStock->lastStockDetails()->delete();
@@ -102,9 +109,12 @@ class AdminMenuPolresLastStockIndex extends Component
             // Then delete the main record
             $lastStock->delete();
 
-            session()->flash('success', 'Data stok terakhir berhasil dihapus.');
+            DB::commit();
+
+            session()->flash('success', 'Data stok awal berhasil dihapus.');
             $this->closeModal();
         } catch (\Exception $e) {
+            DB::rollBack();
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }

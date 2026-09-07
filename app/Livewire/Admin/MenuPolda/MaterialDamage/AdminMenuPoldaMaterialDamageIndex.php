@@ -10,6 +10,7 @@ use Livewire\Attributes\Url;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Models\Police\RegionalPolice;
+use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
 
 class AdminMenuPoldaMaterialDamageIndex extends Component
@@ -107,15 +108,26 @@ class AdminMenuPoldaMaterialDamageIndex extends Component
         $this->showDetailModal = true;
     }
 
-    public function delete()
+    public function delete(StockService $stockService)
     {
         if ($this->materialDamageId) {
-            $materialDamage = MaterialDamage::find($this->materialDamageId);
-            if ($materialDamage) {
-                // To be exact, we should revert stock deductions if deleting damage? 
-                // Usually deletion is just soft delete. In ARMASTER, most transactions are soft deleted.
-                $materialDamage->delete();
-                session()->flash('success', 'Data material damage berhasil dihapus.');
+            try {
+                DB::beginTransaction();
+
+                $materialDamage = MaterialDamage::with('materialDamageDetails')->find($this->materialDamageId);
+                if ($materialDamage) {
+                    // Restore stock & delete history
+                    $stockService->deleteMaterialDamage($materialDamage);
+
+                    $materialDamage->materialDamageDetails()->delete();
+                    $materialDamage->delete();
+
+                    DB::commit();
+                    session()->flash('success', 'Data material damage berhasil dihapus.');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
             }
         }
         $this->closeModal();

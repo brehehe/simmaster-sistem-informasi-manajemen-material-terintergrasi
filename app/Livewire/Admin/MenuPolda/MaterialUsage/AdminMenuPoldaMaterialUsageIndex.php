@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin\MenuPolda\MaterialUsage;
 
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -63,13 +65,29 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
         $this->materialUsageId = null;
     }
 
-    public function delete()
+    public function delete(StockService $stockService)
     {
         if ($this->materialUsageId) {
-            $materialUsage = MaterialUsage::find($this->materialUsageId);
-            if ($materialUsage) {
-                $materialUsage->delete();
-                session()->flash('success', 'Data material usage berhasil dihapus.');
+            try {
+                DB::beginTransaction();
+
+                $materialUsage = MaterialUsage::with('materialUsageDetails')->find($this->materialUsageId);
+                if ($materialUsage) {
+                    // Restore stock & delete history
+                    $stockService->deleteMaterialUsage($materialUsage);
+
+                    foreach ($materialUsage->materialUsageDetails as $detail) {
+                        $detail->materialUsageDetailItems()->delete();
+                    }
+                    $materialUsage->materialUsageDetails()->delete();
+                    $materialUsage->delete();
+
+                    DB::commit();
+                    session()->flash('success', 'Data material usage berhasil dihapus.');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
             }
         }
         $this->closeModal();

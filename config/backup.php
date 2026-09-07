@@ -39,6 +39,8 @@ return [
                     base_path('vendor'),
                     base_path('node_modules'),
                     storage_path('framework'),
+                    base_path('storage_old'),
+                    base_path('bootstrap/cache_old'),
                 ],
 
                 /*
@@ -49,7 +51,7 @@ return [
                 /*
                  * Determines if it should avoid unreadable folders.
                  */
-                'ignore_unreadable_directories' => false,
+                'ignore_unreadable_directories' => true,
 
                 /*
                  * This path is used to make directories in resulting zip-file relative
