@@ -753,20 +753,38 @@ class UjiCobaFullSeeder extends Seeder
 
         // Catat dokumen resmi Stock Opname
         $soCode = 'SO-POLDAJATIM-20260904-001';
-
-        $stockOpname = StockOpname::create([
-            'id' => Str::uuid()->toString(),
-            'code' => $soCode,
-            'opname_date' => '2026-09-04',
-            'regional_police_id' => $polda->id,
-            'police_station_id' => null,
-            'status' => 'completed',
-            'notes' => 'Stock Opname Materiel Utama & Pendukung SBST per 4 September 2026 (Penghitung: BRIGADIR DIO FARIZKA HABIBUN HAQ / NRP 95090221, Mengetahui: IPDA KUKUH KURNIAWAN, S.H. / NRP 84051624 - PAMIN SIE FASMAT)',
-            'checked_by' => $penghitung->id,
-            'approved_by' => $pamin->id,
-            'approved_at' => Carbon::parse('2026-09-04 08:30:00'),
-            'is_active' => true,
-        ]);
+        $stockOpname = StockOpname::withTrashed()->where('code', $soCode)->first();
+        if ($stockOpname) {
+            if ($stockOpname->trashed()) {
+                $stockOpname->restore();
+            }
+            $stockOpname->update([
+                'opname_date' => '2026-09-04',
+                'regional_police_id' => $polda->id,
+                'police_station_id' => null,
+                'status' => 'completed',
+                'notes' => 'Stock Opname Materiel Utama & Pendukung SBST per 4 September 2026 (Penghitung: BRIGADIR DIO FARIZKA HABIBUN HAQ / NRP 95090221, Mengetahui: IPDA KUKUH KURNIAWAN, S.H. / NRP 84051624 - PAMIN SIE FASMAT)',
+                'checked_by' => $penghitung->id,
+                'approved_by' => $pamin->id,
+                'approved_at' => Carbon::parse('2026-09-04 08:30:00'),
+                'is_active' => true,
+            ]);
+            StockOpnameDetail::where('stock_opname_id', $stockOpname->id)->delete();
+        } else {
+            $stockOpname = StockOpname::create([
+                'id' => Str::uuid()->toString(),
+                'code' => $soCode,
+                'opname_date' => '2026-09-04',
+                'regional_police_id' => $polda->id,
+                'police_station_id' => null,
+                'status' => 'completed',
+                'notes' => 'Stock Opname Materiel Utama & Pendukung SBST per 4 September 2026 (Penghitung: BRIGADIR DIO FARIZKA HABIBUN HAQ / NRP 95090221, Mengetahui: IPDA KUKUH KURNIAWAN, S.H. / NRP 84051624 - PAMIN SIE FASMAT)',
+                'checked_by' => $penghitung->id,
+                'approved_by' => $pamin->id,
+                'approved_at' => Carbon::parse('2026-09-04 08:30:00'),
+                'is_active' => true,
+            ]);
+        }
 
         $poldaStockDetails = StockDetail::where('regional_police_id', $polda->id)->get();
         foreach ($poldaStockDetails as $sd) {
