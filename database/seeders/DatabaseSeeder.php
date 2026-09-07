@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
             // - Clear material rusak & dummy
             // - Akun BAMAT Polres + SAMSAT Polda & Sie
             UjiCobaFullSeeder::class,
+            BamatUserSeeder::class,
         ]);
     }
 }
