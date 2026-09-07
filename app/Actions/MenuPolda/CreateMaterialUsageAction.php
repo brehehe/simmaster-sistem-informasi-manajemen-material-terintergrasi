@@ -37,6 +37,9 @@ class CreateMaterialUsageAction
                 }
                 $materialUsage->materialUsageDetails()->delete();
             } else {
+                if (empty($headerData['code']) || MaterialUsage::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = MaterialUsage::generateCode();
+                }
                 $materialUsage = MaterialUsage::create($headerData);
             }
 

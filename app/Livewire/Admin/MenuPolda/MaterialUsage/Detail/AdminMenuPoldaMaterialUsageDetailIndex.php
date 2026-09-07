@@ -299,6 +299,9 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                     }
                     $materialUsage->materialUsageDetails()->delete();
                 } else {
+                    if (empty($headerData['code']) || MaterialUsage::withTrashed()->where('code', $headerData['code'])->exists()) {
+                        $headerData['code'] = MaterialUsage::generateCode();
+                    }
                     $materialUsage = MaterialUsage::create($headerData);
                 }
 
@@ -410,13 +413,13 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
         // Create HistoryStockDetail
         HistoryStockDetail::create([
-            'code' => $materialUsage->code . '-' . uniqid(),
+            'code' => HistoryStockDetail::generateCode('MU'),
             'material_usage_detail_item_id' => $detailItem->id,
             'type_id' => $detail['type_id'],
             'type_detail_id' => $detail['type_detail_id'],
             'service_id' => $serviceId,
             'service_detail_id' => $serviceDetailId,
-            'regional_police_id' => $materialUsage->regional_police_id,
+            'regional_police_id' => $materialUsage->police_station_id ? null : $materialUsage->regional_police_id,
             'police_station_id' => $materialUsage->police_station_id,
             'rack_id' => $detail['rack_id'],
             'date' => $materialUsage->date,

@@ -44,21 +44,8 @@ class LastStock extends Model
     /**
      * Generate unique code for LastStock
      */
-    public static function generateCode()
+    public static function generateCode(): string
     {
-        $date = now()->format('Ymd');
-        $lastRecord = self::withTrashed()
-            ->whereDate('created_at', now()->toDateString())
-            ->latest('created_at')
-            ->first();
-
-        if ($lastRecord) {
-            $lastNumber = (int) substr($lastRecord->code, -4);
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '0001';
-        }
-
-        return 'LS-' . $date . '-' . $newNumber;
+        return \App\Services\CodeGeneratorService::generate(self::class, 'LS', 4);
     }
 }

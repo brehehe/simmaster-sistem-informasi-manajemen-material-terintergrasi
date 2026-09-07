@@ -24,6 +24,10 @@ class CreateStockOpnameAction
                 $opname->update($headerData);
                 $opname->stockOpnameDetails()->delete();
             } else {
+                if (empty($headerData['code']) || StockOpname::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $isPolda = !empty($headerData['regional_police_id']) && empty($headerData['police_station_id']);
+                    $headerData['code'] = StockOpname::generateCode($isPolda);
+                }
                 $opname = StockOpname::create(array_merge($headerData, [
                     'status' => $headerData['status'] ?? 'draft',
                     'is_active' => true,
@@ -45,7 +49,7 @@ class CreateStockOpnameAction
                     'type_id' => $detail['type_id'],
                     'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
                     'rack_id' => !empty($detail['rack_id']) ? $detail['rack_id'] : null,
-                    'code' => $detail['code'] ?? '',
+                    'code' => !empty($detail['code']) ? $detail['code'] : '-',
                     'number_serial_first' => $detail['number_serial_first'] ?? null,
                     'number_serial_second' => $detail['number_serial_second'] ?? null,
                     'system_quantity' => $systemQty,

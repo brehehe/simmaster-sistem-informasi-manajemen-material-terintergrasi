@@ -28,6 +28,9 @@ class CreateMaterialDamageAction
                 $materialDamage->update($headerData);
                 $materialDamage->materialDamageDetails()->delete();
             } else {
+                if (empty($headerData['code']) || MaterialDamage::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = MaterialDamage::generateCode();
+                }
                 $materialDamage = MaterialDamage::create($headerData);
             }
 

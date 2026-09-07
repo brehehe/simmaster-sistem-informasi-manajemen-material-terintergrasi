@@ -214,7 +214,6 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
         if (count($parts) !== 2) return;
         [$index, $field] = $parts;
 
-        // Auto-fill type_detail_id when service_id is selected
         if ($field === 'service_id' && $value) {
             $service = collect($this->services)->firstWhere('id', $value);
             $typeDetailId = data_get($service, 'type_detail_id');
@@ -222,9 +221,9 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                 $this->details[$index]['type_detail_id'] = $typeDetailId;
             }
             $this->details[$index]['service_detail_id'] = '';
+            $this->loadStockOptions($index);
         }
 
-        // Clear service if type_detail changes
         if ($field === 'type_detail_id') {
             $serviceId = $this->details[$index]['service_id'] ?? '';
             if ($serviceId) {
@@ -235,27 +234,23 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                     $this->details[$index]['service_detail_id'] = '';
                 }
             }
-        }
-
-        // Reset and reload stock options
-        if (in_array($field, ['type_detail_id', 'service_id', 'service_detail_id'])) {
-            $this->details[$index]['selected_stock_key'] = '';
-            $this->details[$index]['stock_detail_id'] = '';
-            $this->details[$index]['available_quantity'] = 0;
             $this->loadStockOptions($index);
         }
 
-        // Handle stock key selection
-        if ($field === 'selected_stock_key') {
-            $option = collect($this->stockOptions[$index] ?? [])->where('key', $value)->first();
+        if ($field === 'stock_detail_id') {
+            $option = collect($this->stockOptions[$index] ?? [])->firstWhere('stock_detail_id', $value);
             if ($option) {
-                $this->details[$index]['stock_detail_id'] = $option['stock_detail_id'];
-                $this->details[$index]['available_quantity'] = (int) $option['quantity'];
+                $this->details[$index]['available_quantity'] = (float) $option['quantity'];
                 $this->details[$index]['item_code'] = $option['item_code'] ?? '';
                 $this->details[$index]['number_serial_first'] = $option['number_serial_first'] ?? '';
                 $this->details[$index]['number_serial_second'] = $option['number_serial_second'] ?? '';
+                if (!empty($option['type_detail_id']) && empty($this->details[$index]['type_detail_id'])) {
+                    $this->details[$index]['type_detail_id'] = $option['type_detail_id'];
+                }
+                if (!empty($option['service_id']) && empty($this->details[$index]['service_id'])) {
+                    $this->details[$index]['service_id'] = $option['service_id'];
+                }
             } else {
-                $this->details[$index]['stock_detail_id'] = '';
                 $this->details[$index]['available_quantity'] = 0;
             }
         }
@@ -270,7 +265,8 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
         $detail = $this->details[$index];
 
-        $query = StockDetail::where('police_station_id', $this->policeStationId)
+        $query = StockDetail::with(['rack', 'typeDetail'])
+            ->where('police_station_id', $this->policeStationId)
             ->where('type_id', $this->typeId)
             ->where('is_active', true)
             ->where('quantity', '>', 0);
@@ -288,52 +284,113 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             }
         }
 
-        $stocks = $query->get();
+        $stocks = $query->orderBy('created_at', 'desc')->get();
 
         $this->stockOptions[$index] = $stocks->map(function ($s) {
+            $rackName = $s->rack ? $s->rack->name : 'Tanpa Rak';
+            $serialPart = '';
+            if ($s->number_serial_first && $s->number_serial_second) {
+                $serialPart = "{$s->number_serial_first} s/d {$s->number_serial_second}";
+            } elseif ($s->number_serial_first) {
+                $serialPart = $s->number_serial_first;
+            } elseif ($s->code) {
+                $serialPart = "Kode: {$s->code}";
+            } else {
+                $serialPart = "Batch " . substr($s->id, 0, 6);
+            }
+
+            $label = "{$serialPart} (Stok: " . (int)$s->quantity . " | {$rackName})";
+
             return [
-                'key' => $this->generateStockKey($s),
                 'stock_detail_id' => $s->id,
-                'quantity' => (int) $s->quantity,
+                'quantity' => (float) $s->quantity,
                 'item_code' => $s->code ?? '',
                 'number_serial_first' => $s->number_serial_first ?? '',
                 'number_serial_second' => $s->number_serial_second ?? '',
+                'type_detail_id' => $s->type_detail_id,
+                'service_id' => $s->service_id,
+                'rack_name' => $rackName,
+                'label' => $label,
             ];
         })->values()->toArray();
 
-        if (!$this->is_with_serial_number) {
-            $totalQty = (int) $stocks->sum('quantity');
-            $this->details[$index]['available_quantity'] = $totalQty;
-            if ($stocks->count() === 1) {
-                $this->details[$index]['stock_detail_id'] = $stocks->first()->id;
-            }
+        // Auto-select if only 1 stock option available and not selected
+        if (count($this->stockOptions[$index]) > 0 && empty($this->details[$index]['stock_detail_id'])) {
+            $first = $this->stockOptions[$index][0];
+            $this->details[$index]['stock_detail_id'] = $first['stock_detail_id'];
+            $this->details[$index]['available_quantity'] = (float) $first['quantity'];
+            $this->details[$index]['item_code'] = $first['item_code'];
+            $this->details[$index]['number_serial_first'] = $first['number_serial_first'];
+            $this->details[$index]['number_serial_second'] = $first['number_serial_second'];
         }
     }
 
-    protected function generateStockKey($item)
+    protected function rules(): array
     {
-        $code = !empty(data_get($item, 'code')) ? data_get($item, 'code') : '-';
-        $sn1 = !empty(data_get($item, 'number_serial_first')) ? data_get($item, 'number_serial_first') : '-';
-        $sn2 = !empty(data_get($item, 'number_serial_second')) ? data_get($item, 'number_serial_second') : '-';
-        return "{$code} | {$sn1} | {$sn2}";
-    }
-
-    public function save()
-    {
-        $this->validate([
+        return [
             'date' => 'required|date',
             'policeStationId' => 'required|exists:police_stations,id',
             'typeId' => 'required|exists:types,id',
             'status' => 'required|in:reported,under_review,approved,disposed',
             'details' => 'required|array|min:1',
+            'details.*.stock_detail_id' => 'required|exists:stock_details,id',
             'details.*.quantity' => 'required|numeric|min:1',
             'details.*.damage_type' => 'required|in:damaged,lost',
-            'details.*.reason' => 'required|string',
-        ], [
-            'typeId.required' => 'Material utama harus dipilih',
-            'details.*.quantity.min' => 'Jumlah minimal 1',
-            'details.*.reason.required' => 'Keterangan/alasan wajib diisi',
-        ]);
+            'details.*.reason' => 'required|string|max:500',
+        ];
+    }
+
+    protected $messages = [
+        'date.required' => 'Tanggal laporan berita acara wajib diisi.',
+        'policeStationId.required' => 'Polres wajib dipilih.',
+        'typeId.required' => 'Material utama wajib dipilih.',
+        'status.required' => 'Status laporan wajib dipilih.',
+        'details.required' => 'Minimal harus ada 1 item material rusak/hilang.',
+        'details.min' => 'Minimal harus ada 1 item material rusak/hilang.',
+        'details.*.stock_detail_id.required' => 'Stok barang / nomor seri wajib dipilih dari stok yang tersedia.',
+        'details.*.stock_detail_id.exists' => 'Stok barang tidak valid atau sudah habis.',
+        'details.*.quantity.required' => 'Jumlah barang rusak/hilang wajib diisi.',
+        'details.*.quantity.numeric' => 'Jumlah harus berupa angka.',
+        'details.*.quantity.min' => 'Jumlah minimal 1 unit.',
+        'details.*.damage_type.required' => 'Status kondisi (rusak/hilang) wajib dipilih.',
+        'details.*.reason.required' => 'Alasan / kronologi kerusakan wajib diisi.',
+    ];
+
+    public function save()
+    {
+        $this->validate();
+
+        $hasError = false;
+        $stockUsedCounts = [];
+
+        foreach ($this->details as $index => $detail) {
+            $stockId = $detail['stock_detail_id'] ?? null;
+            $qty = (float)($detail['quantity'] ?? 0);
+            $avail = (float)($detail['available_quantity'] ?? 0);
+
+            if ($qty <= 0) {
+                $this->addError("details.{$index}.quantity", "Jumlah harus minimal 1.");
+                $hasError = true;
+            }
+
+            if ($avail > 0 && $qty > $avail) {
+                $this->addError("details.{$index}.quantity", "Jumlah ({$qty}) melebihi stok tersedia ({$avail}).");
+                $hasError = true;
+            }
+
+            if ($stockId) {
+                $stockUsedCounts[$stockId] = ($stockUsedCounts[$stockId] ?? 0) + $qty;
+                if ($avail > 0 && $stockUsedCounts[$stockId] > $avail) {
+                    $this->addError("details.{$index}.stock_detail_id", "Total jumlah untuk stok ini melebihi stok yang ada.");
+                    $hasError = true;
+                }
+            }
+        }
+
+        if ($hasError) {
+            session()->flash('error', 'Silakan periksa kembali isian formulir. Ada data yang belum sesuai.');
+            return;
+        }
 
         try {
             DB::transaction(function () {
@@ -350,37 +407,39 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
                 if ($this->isEditMode) {
                     $materialDamage = MaterialDamage::findOrFail($this->materialDamageId);
+                    $this->stockService->deleteMaterialDamage($materialDamage);
                     $materialDamage->update($headerData);
                     $materialDamage->materialDamageDetails()->delete();
                 } else {
+                    if (empty($headerData['code']) || MaterialDamage::withTrashed()->where('code', $headerData['code'])->exists()) {
+                        $headerData['code'] = MaterialDamage::generateCode();
+                    }
                     $materialDamage = MaterialDamage::create($headerData);
                 }
 
                 foreach ($this->details as $detail) {
                     $stockDetail = StockDetail::findOrFail($detail['stock_detail_id']);
-                    if ($detail['quantity'] > $detail['available_quantity']) {
-                        throw new \Exception('Jumlah melebihi stok tersedia.');
-                    }
 
                     $materialDamage->materialDamageDetails()->create([
                         'stock_detail_id' => $stockDetail->id,
                         'type_id' => $this->typeId,
-                        'type_detail_id' => $detail['type_detail_id'] ?: null,
+                        'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
                         'rack_id' => $stockDetail->rack_id,
-                        'item_code' => $detail['item_code'] ?? '',
-                        'number_serial_first' => $detail['number_serial_first'] ?? '',
-                        'number_serial_second' => $detail['number_serial_second'] ?? '',
-                        'quantity' => $detail['quantity'],
-                        'damage_type' => $detail['damage_type'],
-                        'reason' => $detail['reason'],
-                        'description' => $detail['notes'] ?? '',
+                        'item_code' => $detail['item_code'] ?? ($stockDetail->code ?? ''),
+                        'number_serial_first' => $detail['number_serial_first'] ?? ($stockDetail->number_serial_first ?? ''),
+                        'number_serial_second' => $detail['number_serial_second'] ?? ($stockDetail->number_serial_second ?? ''),
+                        'quantity' => (float)$detail['quantity'],
+                        'damage_type' => $detail['damage_type'] ?? 'damaged',
+                        'reason' => $detail['reason'] ?? '',
+                        'description' => $detail['notes'] ?? ($detail['description'] ?? ''),
                         'is_active' => true,
                     ]);
                 }
 
+                $materialDamage->load('materialDamageDetails');
                 $this->stockService->processMaterialDamage($materialDamage);
 
-                session()->flash('success', $this->isEditMode ? 'Data BA berhasil diperbarui.' : 'BA Material Rusak berhasil disimpan. Stok Polres telah berkurang otomatis.');
+                session()->flash('success', $this->isEditMode ? 'Data BA Material Rusak berhasil diperbarui.' : 'BA Material Rusak berhasil disimpan dan stok telah berkurang otomatis.');
             });
 
             return $this->redirect(route('menu-polres.material-damage'), navigate: true);

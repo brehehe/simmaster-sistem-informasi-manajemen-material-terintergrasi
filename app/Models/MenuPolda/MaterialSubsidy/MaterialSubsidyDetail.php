@@ -7,11 +7,10 @@ use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MaterialSubsidyDetail extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids;
 
     protected $guarded = ['id'];
 

@@ -58,29 +58,8 @@ class RackAssignment extends Model
         return $this->belongsTo(Rack::class, 'to_rack_id');
     }
 
-    public static function generateCode()
+    public static function generateCode(): string
     {
-        $date = now()->format('Ymd');
-        $prefix = 'RA-' . $date . '-';
-
-        $lastRecord = self::withTrashed()
-            ->where('code', 'LIKE', $prefix . '%')
-            ->orderBy('code', 'DESC')
-            ->first();
-
-        $nextNumber = 1;
-        if ($lastRecord && preg_match('/-(\d+)$/', $lastRecord->code, $matches)) {
-            $nextNumber = (int) $matches[1] + 1;
-        }
-
-        $code = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-
-        // Safeguard collision loop to guarantee absolute uniqueness
-        while (self::withTrashed()->where('code', $code)->exists()) {
-            $nextNumber++;
-            $code = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-        }
-
-        return $code;
+        return \App\Services\CodeGeneratorService::generate(self::class, 'RA', 4);
     }
 }

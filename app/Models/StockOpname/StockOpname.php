@@ -39,33 +39,28 @@ class StockOpname extends Model
     {
         $prefix = $isPolda ? 'SO-POLDA' : 'SO-POLRES';
         $date = today()->format('ymd');
+        $fullPrefix = "{$prefix}-{$date}-";
 
         // Get all codes for today to find the highest number
-        $existingCodes = static::where('code', 'like', "{$prefix}-{$date}-%")
+        $existingCodes = static::withTrashed()->where('code', 'like', "{$fullPrefix}%")
             ->pluck('code')
             ->map(function ($code) {
-                // Trim whitespace and extract number
-                $code = trim($code);
-                $parts = explode('-', $code);
-                return isset($parts[3]) ? (int) $parts[3] : 0;
+                if (preg_match('/-(\d+)$/', trim((string)$code), $matches)) {
+                    return (int) $matches[1];
+                }
+                return 0;
             })
             ->filter()
             ->toArray();
 
         // Find next available number
-        $newNumber = 1;
-        if (!empty($existingCodes)) {
-            $newNumber = max($existingCodes) + 1;
-        }
+        $newNumber = !empty($existingCodes) ? max($existingCodes) + 1 : 1;
+        $code = $fullPrefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
-        $code = "{$prefix}-{$date}-" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
-
-        // Double-check uniqueness (safety measure)
-        $counter = 0;
-        while (static::where('code', $code)->exists() && $counter < 100) {
+        // Safeguard uniqueness check
+        while (static::withTrashed()->where('code', $code)->exists()) {
             $newNumber++;
-            $code = "{$prefix}-{$date}-" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
-            $counter++;
+            $code = $fullPrefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
         }
 
         return $code;
@@ -119,7 +114,7 @@ class StockOpname extends Model
                         'last_stock_detail_id' => $stockDetail->id,
                         'type_id' => $detail->type_id,
                         'type_detail_id' => $detail->type_detail_id,
-                        'regional_police_id' => $this->regional_police_id,
+                        'regional_police_id' => $this->police_station_id ? null : $this->regional_police_id,
                         'police_station_id' => $this->police_station_id,
                         'rack_id' => $detail->rack_id,
                         'date' => now(),

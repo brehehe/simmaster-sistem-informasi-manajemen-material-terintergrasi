@@ -31,6 +31,12 @@ class CreateMutationStockAction
                 $mutation->update($headerData);
                 $mutation->mutationStockDetails()->delete();
             } else {
+                if (empty($headerData['code']) || MutationStock::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = MutationStock::generateCode(
+                        $headerData['sender_regional_police_id'] ?? null,
+                        $headerData['sender_police_station_id'] ?? null
+                    );
+                }
                 $mutation = MutationStock::create(array_merge($headerData, [
                     'status' => 'draft',
                     'is_active' => true,

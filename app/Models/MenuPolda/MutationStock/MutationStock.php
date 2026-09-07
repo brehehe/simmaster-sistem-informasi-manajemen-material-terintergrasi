@@ -118,6 +118,9 @@ class MutationStock extends Model
             $this->received_by = $user->id;
             $this->save();
 
+            $senderRegId = $this->sender_police_station_id ? null : $this->sender_regional_police_id;
+            $receiverRegId = $this->receiver_police_station_id ? null : $this->receiver_regional_police_id;
+
             foreach ($this->mutationStockDetails as $detail) {
                 $stockDetail = $detail->stockDetail;
                 if ($stockDetail) {
@@ -136,7 +139,7 @@ class MutationStock extends Model
                         'last_stock_detail_id' => $stockDetail->id,
                         'type_id' => $detail->type_id,
                         'type_detail_id' => $detail->type_detail_id,
-                        'regional_police_id' => $this->sender_regional_police_id,
+                        'regional_police_id' => $senderRegId,
                         'police_station_id' => $this->sender_police_station_id,
                         'rack_id' => $stockDetail->rack_id,
                         'date' => now(),
@@ -152,7 +155,7 @@ class MutationStock extends Model
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
                     'police_station_id' => $this->receiver_police_station_id,
-                    'regional_police_id' => $this->receiver_regional_police_id,
+                    'regional_police_id' => $receiverRegId,
                 ], [
                     'quantity' => 0,
                     'is_active' => true,
@@ -171,7 +174,7 @@ class MutationStock extends Model
                     'quantity' => $detail->quantity,
                     'rack_id' => null,
                     'police_station_id' => $this->receiver_police_station_id,
-                    'regional_police_id' => $this->receiver_regional_police_id,
+                    'regional_police_id' => $receiverRegId,
                     'is_active' => true,
                 ]);
 
@@ -181,7 +184,7 @@ class MutationStock extends Model
                     'last_stock_detail_id' => null,
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
-                    'regional_police_id' => $this->receiver_regional_police_id,
+                    'regional_police_id' => $receiverRegId,
                     'police_station_id' => $this->receiver_police_station_id,
                     'rack_id' => null,
                     'date' => now(),

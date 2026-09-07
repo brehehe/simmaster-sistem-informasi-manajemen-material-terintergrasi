@@ -21,12 +21,17 @@ class CreateRackAssignmentAction
     ): RackAssignment {
         return DB::transaction(function () use ($headerData, $details, $typeId, $rackAssignmentId) {
             $isEditMode = !empty($rackAssignmentId);
+            $stockService = app(StockService::class);
 
             if ($isEditMode) {
-                $rackAssignment = RackAssignment::findOrFail($rackAssignmentId);
+                $rackAssignment = RackAssignment::with('rackAssignmentDetails')->findOrFail($rackAssignmentId);
+                $stockService->deleteRackAssignment($rackAssignment);
                 $rackAssignment->update($headerData);
                 $rackAssignment->rackAssignmentDetails()->delete();
             } else {
+                if (empty($headerData['code']) || RackAssignment::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = RackAssignment::generateCode();
+                }
                 $rackAssignment = RackAssignment::create($headerData);
             }
 

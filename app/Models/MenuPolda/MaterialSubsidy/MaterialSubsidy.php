@@ -137,7 +137,7 @@ class MaterialSubsidy extends Model
                         'last_stock_detail_id' => $stockDetail->id,
                         'type_id'              => $detail->type_id,
                         'type_detail_id'       => $detail->type_detail_id,
-                        'regional_police_id'   => $this->regional_police_id,
+                        'regional_police_id'   => $this->police_station_id ? null : $this->regional_police_id,
                         'police_station_id'    => $this->police_station_id,
                         'rack_id'              => $stockDetail->rack_id ?? null,
                         'date'                 => now(),

@@ -35,21 +35,8 @@ class MaterialUsage extends Model
         return $this->belongsTo(PoliceStation::class);
     }
 
-    public static function generateCode()
+    public static function generateCode(): string
     {
-        $date = now()->format('Ymd');
-        $lastRecord = self::withTrashed()
-            ->whereDate('created_at', '=', now()->toDateString())
-            ->latest('created_at')
-            ->first();
-
-        if ($lastRecord) {
-            $lastNumber = (int) substr($lastRecord->code, -4);
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '0001';
-        }
-
-        return 'MU-' . $date . '-' . $newNumber;
+        return \App\Services\CodeGeneratorService::generate(self::class, 'MU', 4);
     }
 }

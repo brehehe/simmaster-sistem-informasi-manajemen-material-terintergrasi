@@ -204,13 +204,14 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
             'date' => 'required|date',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
-            'details.*.type_id' => 'nullable|exists:types,id',
+            'details' => 'required|array|min:1',
+            'details.*.type_id' => 'required|exists:types,id',
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
             'details.*.rack_id' => 'nullable|exists:racks,id',
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
-            'details.*.quantity' => 'required|numeric|min:0',
+            'details.*.quantity' => 'required|numeric|min:1',
         ];
 
         // Admin can select regional_police_id, Polda uses their own
@@ -232,8 +233,11 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
             'date.required' => 'Tanggal wajib diisi.',
             'regionalPoliceId.required' => 'Polda wajib dipilih.',
             'policeStationId.required' => 'Polres wajib dipilih.',
-            'details.*.quantity.required' => 'Jumlah wajib diisi.',
-            'details.*.quantity.min' => 'Jumlah minimal 0.',
+            'details.required' => 'Minimal harus ada 1 item material.',
+            'details.min' => 'Minimal harus ada 1 item material.',
+            'details.*.type_id.required' => 'Jenis material wajib dipilih.',
+            'details.*.quantity.required' => 'Jumlah material wajib diisi.',
+            'details.*.quantity.min' => 'Jumlah minimal 1 unit.',
         ];
     }
 
@@ -268,6 +272,9 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
                 $lastStock->lastStockDetails()->delete();
             } else {
                 // Create new record
+                if (empty($this->code) || LastStock::withTrashed()->where('code', $this->code)->exists()) {
+                    $this->code = LastStock::generateCode();
+                }
                 $data['code'] = $this->code;
                 $lastStock = LastStock::create($data);
             }

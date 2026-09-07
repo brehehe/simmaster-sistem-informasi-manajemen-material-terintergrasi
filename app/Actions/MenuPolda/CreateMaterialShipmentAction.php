@@ -27,6 +27,9 @@ class CreateMaterialShipmentAction
                 $shipment->update($headerData);
                 $shipment->materialShipmentDetails()->delete();
             } else {
+                if (empty($headerData['code']) || MaterialShipment::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = MaterialShipment::generateCode($headerData['sender_regional_police_id'] ?? null);
+                }
                 $shipment = MaterialShipment::create($headerData);
             }
 

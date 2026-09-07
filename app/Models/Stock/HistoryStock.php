@@ -60,15 +60,15 @@ class HistoryStock extends Model
         return $this->belongsTo(Rack::class);
     }
 
-    /**
-     * Generate unique code for HistoryStock
-     */
-    public static function generateCode()
+    public static function generateCode(): string
     {
-        $date = now()->format('Ymd');
-        $microtime = now()->format('His'); // HHMMSS
-        $random = strtoupper(substr(uniqid(), -6)); // 6 random alphanumeric chars
+        do {
+            $date = now()->format('Ymd');
+            $microtime = now()->format('His');
+            $random = strtoupper(substr(uniqid(), -6));
+            $code = 'HS-' . $date . '-' . $microtime . '-' . $random;
+        } while (self::withTrashed()->where('code', $code)->exists());
 
-        return 'HS-' . $date . '-' . $microtime . '-' . $random;
+        return $code;
     }
 }

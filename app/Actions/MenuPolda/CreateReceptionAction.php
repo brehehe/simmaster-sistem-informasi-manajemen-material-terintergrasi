@@ -32,6 +32,9 @@ class CreateReceptionAction
                 $stockService->deleteReceptionStock($reception);
                 $reception->receptionDetails()->delete();
             } else {
+                if (empty($headerData['code']) || Reception::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = Reception::generateCode();
+                }
                 $reception = Reception::create($headerData);
             }
 
@@ -117,13 +120,13 @@ class CreateReceptionAction
         $serialText = trim(implode(' ', array_filter([$code, $sn1, $sn2])));
 
         HistoryStockDetail::create([
-            'code' => $reception->code . '-' . uniqid(),
+            'code' => HistoryStockDetail::generateCode('RC'),
             'reception_detail_item_id' => $detailItem->id,
             'type_id' => $typeId ?: null,
             'type_detail_id' => $typeDetailId,
             'service_id' => $serviceId,
             'service_detail_id' => $serviceDetailId,
-            'regional_police_id' => $reception->regional_police_id,
+            'regional_police_id' => $reception->police_station_id ? null : $reception->regional_police_id,
             'police_station_id' => $reception->police_station_id,
             'date' => $reception->date,
             'serial_number' => $serialText ?: null,

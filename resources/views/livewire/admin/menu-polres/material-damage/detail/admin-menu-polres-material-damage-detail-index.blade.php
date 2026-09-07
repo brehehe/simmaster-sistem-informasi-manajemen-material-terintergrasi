@@ -240,33 +240,23 @@
                                     </select>
                                 </td>
 
-                                {{-- No Seri A --}}
+                                {{-- Stok Barang / No Seri A --}}
                                 <td class="px-2 py-3 align-top bg-blue-50/30">
-                                    @if($is_with_serial_number)
-                                        <div wire:ignore wire:key="stock-key-{{ $index }}-{{ md5(json_encode($stockOptions[$index] ?? [])) }}">
-                                            <select x-data="{ toJSON() { return {}; } }" x-init="
-                                                const selectize = $($el).selectize({
-                                                    dropdownParent: 'body', allowClear: true,
-                                                    onChange: function(val) { $wire.set('details.{{ $index }}.selected_stock_key', val); }
-                                                })[0].selectize;
-                                            " @disabled($isEditMode)
-                                                class="w-full text-xs rounded border border-blue-300 disabled:bg-gray-100">
-                                                <option value="">-- Pilih S/N --</option>
-                                                @foreach($stockOptions[$index] ?? [] as $opt)
-                                                    <option value="{{ $opt['key'] }}">{{ $opt['number_serial_first'] ?: $opt['item_code'] }} ({{ $opt['quantity'] }})</option>
-                                                @endforeach
-                                            </select>
+                                    <select wire:model.live="details.{{ $index }}.stock_detail_id" @disabled($isEditMode)
+                                        class="w-full px-2 py-2 text-xs rounded-lg border {{ $errors->has("details.{$index}.stock_detail_id") ? 'border-red-500 bg-red-50/50' : 'border-blue-300' }} focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                        <option value="">-- Pilih Stok Barang --</option>
+                                        @foreach($stockOptions[$index] ?? [] as $opt)
+                                            <option value="{{ $opt['stock_detail_id'] }}">{{ $opt['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                    @if(!empty($detail['number_serial_first']))
+                                        <div class="text-[11px] text-blue-700 font-mono mt-1 px-1">
+                                            No Seri Awal: <span class="font-bold">{{ $detail['number_serial_first'] }}</span>
                                         </div>
-                                        @if(!empty($detail['number_serial_first']))
-                                            <div class="text-[10px] text-blue-700 font-mono mt-1">{{ $detail['number_serial_first'] }}</div>
-                                        @endif
-                                    @else
-                                        <input type="text"
-                                            wire:model.live="details.{{ $index }}.number_serial_first"
-                                            placeholder="No Seri Awal..." @disabled($isEditMode)
-                                            class="w-full px-2 py-2 text-xs font-mono rounded border border-blue-300 focus:border-blue-500 bg-white disabled:bg-gray-100">
                                     @endif
-                                    @error("details.{$index}.stock_detail_id") <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
+                                    @error("details.{$index}.stock_detail_id")
+                                        <p class="text-red-500 text-[11px] font-semibold mt-1">{{ $message }}</p>
+                                    @enderror
                                 </td>
 
                                 {{-- No Seri B --}}
@@ -274,44 +264,52 @@
                                     <input type="text"
                                         wire:model.live="details.{{ $index }}.number_serial_second"
                                         placeholder="No Seri Akhir..." @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs font-mono rounded border border-blue-300 focus:border-blue-500 bg-white disabled:bg-gray-100">
+                                        class="w-full px-2 py-2 text-xs font-mono rounded-lg border border-blue-300 focus:border-blue-500 bg-white disabled:bg-gray-100">
+                                    @if(!empty($detail['number_serial_second']))
+                                        <div class="text-[11px] text-blue-700 font-mono mt-1 px-1">
+                                            s/d: <span class="font-bold">{{ $detail['number_serial_second'] }}</span>
+                                        </div>
+                                    @endif
                                 </td>
 
                                 {{-- Status Rusak/Hilang --}}
                                 <td class="px-3 py-3 align-top">
                                     <select wire:model.live="details.{{ $index }}.damage_type" @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded border font-semibold {{ ($detail['damage_type'] ?? '') == 'lost' ? 'border-red-400 bg-red-50 text-red-700' : 'border-orange-400 bg-orange-50 text-orange-700' }} disabled:bg-gray-100 disabled:text-gray-500">
+                                        class="w-full px-2 py-2 text-xs rounded-lg border font-semibold {{ ($detail['damage_type'] ?? '') == 'lost' ? 'border-red-400 bg-red-50 text-red-700' : 'border-orange-400 bg-orange-50 text-orange-700' }} disabled:bg-gray-100 disabled:text-gray-500">
                                         <option value="damaged">🔶 Rusak</option>
                                         <option value="lost">🔴 Hilang</option>
                                     </select>
+                                    @error("details.{$index}.damage_type")
+                                        <p class="text-red-500 text-[11px] font-semibold mt-1">{{ $message }}</p>
+                                    @enderror
                                 </td>
 
                                 <!-- Stok Tersedia -->
                                 <td class="px-3 py-3 align-top bg-red-50/30 text-center">
-                                    <div class="font-bold {{ $detail['available_quantity'] > 0 ? 'text-red-600' : 'text-gray-400' }} text-sm pt-1">
-                                        {{ number_format($detail['available_quantity'], 0, ',', '.') }}
+                                    <div class="font-bold {{ ($detail['available_quantity'] ?? 0) > 0 ? 'text-red-600' : 'text-gray-400' }} text-sm pt-1">
+                                        {{ number_format($detail['available_quantity'] ?? 0, 0, ',', '.') }}
                                     </div>
-                                    <div class="text-[10px] text-gray-400">unit</div>
+                                    <div class="text-[10px] text-gray-500 font-medium">unit</div>
                                 </td>
 
                                 <!-- Jumlah Rusak/Hilang -->
                                 <td class="px-3 py-3 align-top">
-                                    <input type="number" min="1" step="1" max="{{ $detail['available_quantity'] }}"
+                                    <input type="number" min="1" step="1"
                                         wire:model.live="details.{{ $index }}.quantity"
                                         placeholder="Qty" @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs font-bold text-center rounded border border-red-300 focus:border-red-500 bg-red-50 disabled:bg-gray-100 disabled:text-gray-400 text-red-700">
+                                        class="w-full px-2 py-2 text-xs font-bold text-center rounded-lg border {{ $errors->has("details.{$index}.quantity") ? 'border-red-500 bg-red-50 text-red-700' : 'border-red-300 bg-red-50/40 text-red-700' }} focus:border-red-500">
                                     @error("details.{$index}.quantity")
-                                        <p class="text-red-500 text-[10px] mt-1 text-center">{{ $message }}</p>
+                                        <p class="text-red-500 text-[11px] font-semibold mt-1 text-center">{{ $message }}</p>
                                     @enderror
                                 </td>
 
                                 <!-- Alasan / Keterangan -->
                                 <td class="px-3 py-3 align-top">
-                                    <input type="text" wire:model.defer="details.{{ $index }}.reason"
-                                        placeholder="Kondisi fisik, penyebab, keterangan..." @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-red-400 disabled:bg-gray-100 disabled:text-gray-500 mb-1">
+                                    <textarea wire:model.defer="details.{{ $index }}.reason" rows="2"
+                                        placeholder="Alasan kerusakan / kehilangan..." @disabled($isEditMode)
+                                        class="w-full px-2 py-1.5 text-xs rounded-lg border {{ $errors->has("details.{$index}.reason") ? 'border-red-500 bg-red-50' : 'border-gray-300' }} focus:border-red-400 disabled:bg-gray-100 disabled:text-gray-500"></textarea>
                                     @error("details.{$index}.reason")
-                                        <p class="text-red-500 text-[10px] mt-0.5">{{ $message }}</p>
+                                        <p class="text-red-500 text-[11px] font-semibold mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
 

@@ -7,6 +7,8 @@ use App\Models\MenuPolda\MutationStock\MutationStockDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use App\Models\Stock\StockDetail;
+use App\Models\Type\Type;
+use App\Models\Type\TypeDetail;
 use Carbon\Carbon;
 use Livewire\Component;
 

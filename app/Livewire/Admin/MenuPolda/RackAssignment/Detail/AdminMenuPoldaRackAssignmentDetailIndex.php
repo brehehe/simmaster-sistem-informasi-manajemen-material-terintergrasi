@@ -177,7 +177,7 @@ class AdminMenuPoldaRackAssignmentDetailIndex extends Component
         $this->racks = $query->orderBy('name')->get();
     }
 
-    protected function rules()
+    protected function rules(): array
     {
         return [
             'code' => 'required|string|max:255',
@@ -185,14 +185,47 @@ class AdminMenuPoldaRackAssignmentDetailIndex extends Component
             'regionalPoliceId' => 'required|exists:regional_police,id',
             'details' => 'required|array|min:1',
             'details.*.stock_detail_id' => 'required|exists:stock_details,id',
-            'details.*.to_rack_id' => 'nullable|exists:racks,id', // Allow null for "tanpa rak"
-            'details.*.quantity' => 'required|numeric|min:0',
+            'details.*.to_rack_id' => 'nullable|exists:racks,id',
+            'details.*.quantity' => 'required|numeric|min:1',
         ];
     }
+
+    protected $messages = [
+        'code.required' => 'Kode penataan rak wajib diisi.',
+        'date.required' => 'Tanggal penataan rak wajib diisi.',
+        'regionalPoliceId.required' => 'Polda wajib dipilih.',
+        'details.required' => 'Minimal harus ada 1 detail penataan rak.',
+        'details.min' => 'Minimal harus ada 1 detail penataan rak.',
+        'details.*.stock_detail_id.required' => 'Stok barang wajib dipilih.',
+        'details.*.quantity.required' => 'Jumlah barang wajib diisi.',
+        'details.*.quantity.min' => 'Jumlah minimal 1 unit.',
+    ];
 
     public function save()
     {
         $this->validate();
+
+        $hasError = false;
+        foreach ($this->details as $index => $detail) {
+            $qty = (float)($detail['quantity'] ?? 0);
+            $stockDetail = StockDetail::find($detail['stock_detail_id'] ?? null);
+            $available = $stockDetail ? (float)$stockDetail->quantity : 0;
+
+            if ($qty <= 0) {
+                $this->addError("details.{$index}.quantity", "Jumlah minimal 1 unit.");
+                $hasError = true;
+            }
+
+            if ($qty > $available) {
+                $this->addError("details.{$index}.quantity", "Jumlah ({$qty}) melebihi stok tersedia ({$available}).");
+                $hasError = true;
+            }
+        }
+
+        if ($hasError) {
+            session()->flash('error', 'Silakan periksa kembali isian formulir. Ada data yang belum sesuai.');
+            return;
+        }
 
         try {
             DB::transaction(function () {
@@ -212,6 +245,7 @@ class AdminMenuPoldaRackAssignmentDetailIndex extends Component
 
                 if ($this->isEditMode) {
                     $rackAssignment = RackAssignment::findOrFail($this->rackAssignmentId);
+                    $this->stockService->deleteRackAssignment($rackAssignment);
                     $rackAssignment->update($headerData);
                     $rackAssignment->rackAssignmentDetails()->delete();
                 } else {
@@ -229,13 +263,14 @@ class AdminMenuPoldaRackAssignmentDetailIndex extends Component
                         'item_code' => $detail['item_code'] ?? '',
                         'number_serial_first' => $detail['number_serial_first'] ?? '',
                         'number_serial_second' => $detail['number_serial_second'] ?? '',
-                        'quantity' => $detail['quantity'],
+                        'quantity' => (float)$detail['quantity'],
                         'description' => $detail['description'] ?? '',
                         'is_active' => true,
                     ]);
                 }
 
                 // Process via StockService
+                $rackAssignment->load('rackAssignmentDetails');
                 $this->stockService->processRackAssignment($rackAssignment);
 
                 session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');

@@ -205,14 +205,27 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
-            'details.*.quantity' => 'required|numeric|min:0',
+            'details.*.quantity' => 'required|numeric|min:1',
         ];
 
         if (!$user->hasRole('Polres')) {
-            $rules['policeStationId'] = 'nullable|exists:police_stations,id';
+            $rules['policeStationId'] = 'required|exists:police_stations,id';
         }
 
         return $rules;
+    }
+
+    protected function messages()
+    {
+        return [
+            'name.required' => 'Nama/keterangan stok awal wajib diisi.',
+            'date.required' => 'Tanggal stok awal wajib diisi.',
+            'typeId.required' => 'Material utama wajib dipilih.',
+            'policeStationId.required' => 'Polres wajib dipilih.',
+            'details.required' => 'Minimal harus mengisi 1 baris detail stok awal.',
+            'details.*.quantity.required' => 'Jumlah stok awal wajib diisi.',
+            'details.*.quantity.min' => 'Jumlah stok awal minimal 1 unit.',
+        ];
     }
 
     public function save()
@@ -248,6 +261,9 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                 $lastStock->update($data);
                 $lastStock->lastStockDetails()->delete();
             } else {
+                if (empty($this->code) || LastStock::withTrashed()->where('code', $this->code)->exists()) {
+                    $this->code = LastStock::generateCode();
+                }
                 $data['code'] = $this->code;
                 $lastStock = LastStock::create($data);
             }

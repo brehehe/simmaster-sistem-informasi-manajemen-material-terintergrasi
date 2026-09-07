@@ -162,46 +162,29 @@ class AdminMenuPoldaMaterialSubsidyDetailIndex extends Component
         }
 
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($policeId) {
-                if ($this->subsidyId) {
-                    $subsidy = MaterialSubsidy::find($this->subsidyId);
-                    $subsidy->update([
-                        'subsidy_date'          => $this->subsidyDate,
-                        'recipient_name'        => $this->recipientName,
-                        'recipient_description' => $this->recipientDescription ?: null,
-                        'notes'                 => $this->notes ?: null,
-                        'regional_police_id'    => $policeId,
-                    ]);
-                    $subsidy->materialSubsidyDetails()->delete();
-                } else {
-                    $subsidy = MaterialSubsidy::create([
-                        'code'                  => MaterialSubsidy::generateCode($policeId),
-                        'subsidy_date'          => $this->subsidyDate,
-                        'status'                => 'draft',
-                        'regional_police_id'    => $policeId,
-                        'recipient_name'        => $this->recipientName,
-                        'recipient_description' => $this->recipientDescription ?: null,
-                        'notes'                 => $this->notes ?: null,
-                        'is_active'             => true,
-                    ]);
-                }
+            $headerData = [
+                'code'                  => $this->subsidyId ? null : MaterialSubsidy::generateCode($policeId),
+                'subsidy_date'          => $this->subsidyDate,
+                'regional_police_id'    => $policeId,
+                'recipient_name'        => $this->recipientName,
+                'recipient_description' => $this->recipientDescription ?: null,
+                'notes'                 => $this->notes ?: null,
+            ];
 
-                foreach ($this->items as $item) {
-                    MaterialSubsidyDetail::create([
-                        'material_subsidy_id' => $subsidy->id,
-                        'type_id'             => $item['type_id'],
-                        'type_detail_id'      => $item['type_detail_id'] ?: null,
-                        'stock_detail_id'     => $item['stock_detail_id'] ?: null,
-                        'quantity'            => $item['quantity'],
-                        'notes'               => $item['notes'] ?: null,
-                    ]);
-                }
-            });
+            if ($this->subsidyId) {
+                unset($headerData['code']);
+            }
 
-            session()->flash('success', 'Subsidi material berhasil disimpan.');
-            redirect()->route('menu-polda.material-subsidy');
+            \App\Actions\MenuPolda\CreateMaterialSubsidyAction::run(
+                $headerData,
+                $this->items,
+                $this->subsidyId
+            );
+
+            session()->flash('success', $this->subsidyId ? 'Draft subsidi silang berhasil diperbarui.' : 'Draft subsidi silang berhasil disimpan.');
+            $this->redirect(route('menu-polda.material-subsidy'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

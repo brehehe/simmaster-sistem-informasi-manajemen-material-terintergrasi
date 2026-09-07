@@ -24,6 +24,9 @@ class CreateMaterialSubsidyAction
                 $subsidy->update($headerData);
                 $subsidy->materialSubsidyDetails()->delete();
             } else {
+                if (empty($headerData['code']) || MaterialSubsidy::withTrashed()->where('code', $headerData['code'])->exists()) {
+                    $headerData['code'] = MaterialSubsidy::generateCode($headerData['regional_police_id'] ?? null);
+                }
                 $subsidy = MaterialSubsidy::create(array_merge($headerData, [
                     'status' => 'draft',
                     'is_active' => true,

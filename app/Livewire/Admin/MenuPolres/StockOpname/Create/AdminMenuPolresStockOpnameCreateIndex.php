@@ -93,12 +93,10 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
             return;
         }
 
-        DB::transaction(function () {
-            // Generate code
+        try {
             $code = StockOpname::generateCode(false); // false = polres
 
-            // Create stock opname
-            $opname = StockOpname::create([
+            $headerData = [
                 'code' => $code,
                 'opname_date' => $this->opname_date,
                 'regional_police_id' => null,
@@ -107,31 +105,19 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
                 'notes' => $this->notes,
                 'checked_by' => auth()->id(),
                 'is_active' => true,
-            ]);
+            ];
 
-            // Create stock opname details
-            foreach ($this->stockDetails as $detail) {
-                StockOpnameDetail::create([
-                    'stock_opname_id' => $opname->id,
-                    'stock_detail_id' => $detail['stock_detail_id'],
-                    'type_id' => $detail['type_id'],
-                    'type_detail_id' => $detail['type_detail_id'],
-                    'rack_id' => $detail['rack_id'],
-                    'code' => $detail['code'],
-                    'number_serial_first' => $detail['number_serial_first'],
-                    'number_serial_second' => $detail['number_serial_second'],
-                    'system_quantity' => $detail['system_quantity'],
-                    'physical_quantity' => $detail['physical_quantity'],
-                    'difference' => $detail['difference'],
-                    'notes' => $detail['notes'],
-                    'is_active' => true,
-                ]);
-            }
+            $opname = \App\Actions\MenuPolda\CreateStockOpnameAction::run(
+                $headerData,
+                $this->stockDetails
+            );
 
-            session()->flash('success', 'Stock opname berhasil dibuat dengan kode: ' . $code);
-        });
+            session()->flash('success', 'Stock opname berhasil dibuat dengan kode: ' . $opname->code);
 
-        return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
+            return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function render()
