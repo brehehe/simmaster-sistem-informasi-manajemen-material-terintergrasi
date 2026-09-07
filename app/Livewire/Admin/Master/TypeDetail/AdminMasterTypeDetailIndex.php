@@ -28,13 +28,23 @@ class AdminMasterTypeDetailIndex extends Component
 
     protected $queryString = ['search' => ['except' => ''], 'perPage' => ['except' => 10]];
 
-    public function mount() { $this->types = Type::where('is_active', true)->orderBy('name')->get(); }
+    public function mount()
+    {
+        $this->loadTypes();
+    }
+
+    public function loadTypes()
+    {
+        $this->types = Type::where('is_active', true)->orderBy('name')->get();
+    }
+
     public function updatedSearch() { $this->resetPage(); }
     public function updatedPerPage() { $this->resetPage(); }
 
     public function openCreateModal()
     {
         $this->resetForm();
+        $this->loadTypes();
         $this->isEditMode = false;
         $this->showModal = true;
     }
@@ -42,6 +52,7 @@ class AdminMasterTypeDetailIndex extends Component
     public function openEditModal($id)
     {
         $this->resetForm();
+        $this->loadTypes();
         $this->isEditMode = true;
         $this->typeDetailId = $id;
         $detail = TypeDetail::findOrFail($id);

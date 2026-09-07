@@ -23,10 +23,10 @@ class TypeSeeder extends Seeder
         ];
 
         foreach($datas as $name => $is_with_serial_number) {
-            Type::create([
-                'name' => $name,
-                'is_with_serial_number' => $is_with_serial_number,
-            ]);
+            Type::firstOrCreate(
+                ['name' => $name],
+                ['is_with_serial_number' => $is_with_serial_number]
+            );
         }
     }
 }

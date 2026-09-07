@@ -28,7 +28,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tipe <span
                             class="text-red-500">*</span></label>
-                    <div wire:ignore wire:key="select-type-{{ $typeDetailId ?? 'new' }}">
+                    <div wire:ignore wire:key="select-type-{{ rand() }}">
                         <select id="select-type" x-data x-ref="input" x-init="$($refs.input).selectize({
                             dropdownParent: 'body',
                             allowClear: true,
