@@ -187,8 +187,8 @@ class AdminMasterRackIndex extends Component
         $racks = Rack::query()
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('description', 'like', '%' . $this->search . '%');
+                    $q->where('name', 'ilike', '%' . $this->search . '%')
+                      ->orWhere('description', 'ilike', '%' . $this->search . '%');
                 });
             })
             ->orderBy('created_at', 'asc');

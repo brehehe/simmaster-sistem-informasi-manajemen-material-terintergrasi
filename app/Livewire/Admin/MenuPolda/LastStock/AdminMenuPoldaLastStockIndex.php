@@ -103,9 +103,9 @@ class AdminMenuPoldaLastStockIndex extends Component
             // Search
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('code', 'like', '%' . $this->search . '%')
-                      ->orWhere('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('description', 'like', '%' . $this->search . '%');
+                    $q->where('code', 'ilike', '%' . $this->search . '%')
+                      ->orWhere('name', 'ilike', '%' . $this->search . '%')
+                      ->orWhere('description', 'ilike', '%' . $this->search . '%');
                 });
             })
             // Date filter

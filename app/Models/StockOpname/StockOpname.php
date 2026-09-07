@@ -42,7 +42,7 @@ class StockOpname extends Model
         $fullPrefix = "{$prefix}-{$date}-";
 
         // Get all codes for today to find the highest number
-        $existingCodes = static::withTrashed()->where('code', 'like', "{$fullPrefix}%")
+        $existingCodes = static::withTrashed()->where('code', 'ilike', "{$fullPrefix}%")
             ->pluck('code')
             ->map(function ($code) {
                 if (preg_match('/-(\d+)$/', trim((string)$code), $matches)) {

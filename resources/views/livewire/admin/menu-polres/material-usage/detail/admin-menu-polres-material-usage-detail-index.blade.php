@@ -153,7 +153,7 @@
 
         <div class="p-0">
             <div class="overflow-x-auto overflow-y-visible pb-24">
-                <table class="w-full text-sm text-left align-top border-collapse min-w-[1400px] whitespace-nowrap">
+                <table class="w-full text-sm text-left align-top border-collapse min-w-[1400px] break-words" style="overflow-wrap: break-word;">
                     <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
                         <tr>
                             <th class="px-3 py-3 font-semibold w-10 text-center text-xs">No</th>

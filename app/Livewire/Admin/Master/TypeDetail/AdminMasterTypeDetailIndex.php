@@ -150,7 +150,7 @@ class AdminMasterTypeDetailIndex extends Component
         $typeDetails = TypeDetail::query()
             ->with('type')
             ->withCount('services')
-            ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhereHas('type', fn($tq) => $tq->where('name', 'like', '%'.$this->search.'%')))
+            ->when($this->search, fn($q) => $q->where('name', 'ilike', '%'.$this->search.'%')->orWhereHas('type', fn($tq) => $tq->where('name', 'ilike', '%'.$this->search.'%')))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);
 

@@ -101,7 +101,7 @@
 
             @if (count($details) > 0)
                 <div class="overflow-x-auto">
-                    <table class="w-full" style="min-width: 1600px;">
+                    <table class="w-full break-words" style="min-width: 1500px; overflow-wrap: break-word;">
                         <thead>
                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                                 <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase"
@@ -126,7 +126,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @foreach ($details as $index => $detail)
-                                <tr class="hover:bg-gray-50">
+                                <tr wire:key="polda-detail-row-{{ $index }}" class="hover:bg-gray-50">
                                     <td class="px-4 py-3 text-sm text-gray-600">{{ $index + 1 }}</td>
                                     <td class="px-4 py-3">
                                         <select wire:model.live="details.{{ $index }}.stock_detail_id"
@@ -134,10 +134,12 @@
                                             <option value="">-- Pilih Stock --</option>
                                             @foreach ($stockDetails as $stock)
                                                 <option value="{{ $stock->id }}">
-                                                    {{ $stock->type->name ?? '' }} -
-                                                    {{ $stock->typeDetail->name ?? '' }}
-                                                    {{ $stock->rack->name ?? 'Tanpa Rak' }} {{ $stock->code }}
-                                                    ({{ $stock->quantity }})
+                                                    {{ $stock->type->name ?? 'Material' }}
+                                                    @if($stock->typeDetail) - {{ $stock->typeDetail->name }} @endif
+                                                    @if($stock->code) [Kode: {{ $stock->code }}] @endif
+                                                    @if($stock->number_serial_first) (No. Seri: {{ $stock->number_serial_first }}{{ $stock->number_serial_second ? ' s/d ' . $stock->number_serial_second : '' }}) @endif
+                                                    - {{ $stock->rack->name ?? 'Tanpa Rak' }}
+                                                    — Stok: {{ number_format($stock->quantity, 0, ',', '.') }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -175,11 +177,15 @@
                                         @enderror
                                     </td>
                                     <td class="px-4 py-3">
-                                        <input type="number" wire:model="details.{{ $index }}.quantity"
+                                        <input type="number" wire:model.live="details.{{ $index }}.quantity"
                                             max="{{ $details[$index]['available_quantity'] ?? 0 }}"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                                        <small class="text-xs text-gray-500">Max:
-                                            {{ $details[$index]['available_quantity'] ?? 0 }}</small>
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-semibold text-blue-900">
+                                        <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                                            <span>Max: {{ number_format($details[$index]['available_quantity'] ?? 0, 0, ',', '.') }}</span>
+                                            @if ($detail['type_id'] && $this->hasServices($detail['type_id']))
+                                                <span class="text-[10px] text-blue-600 font-medium">(Otomatis/Manual)</span>
+                                            @endif
+                                        </div>
                                         @error("details.{$index}.quantity")
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
@@ -200,33 +206,35 @@
 
                                 {{-- Service Hierarchy Row --}}
                                 @if ($detail['type_id'] && $this->hasServices($detail['type_id']))
-                                    <tr class="bg-blue-50/30">
+                                    <tr wire:key="polda-service-row-{{ $index }}" class="bg-blue-50/40">
                                         <td colspan="9" class="px-4 py-3">
-                                            <div class="border-l-4 border-blue-400 pl-4">
-                                                <h4 class="text-sm font-semibold text-gray-700 mb-2">Breakdown Service/Service Detail:</h4>
+                                            <div class="border-l-4 border-blue-500 pl-4 py-1">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <h4 class="text-sm font-bold text-blue-900">Rincian Layanan / Breakdown Service (Otomatis Menjumlahkan Total Qty):</h4>
+                                                </div>
                                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                                     @foreach ($this->getServicesForType($detail['type_id']) as $service)
                                                         @if ($service->details_count > 0)
                                                             {{-- Service with Details --}}
-                                                            <div class="bg-white p-3 rounded-lg border border-blue-200">
-                                                                <h5 class="text-sm font-semibold text-gray-800 mb-2">{{ $service->name }}</h5>
+                                                            <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm">
+                                                                <h5 class="text-xs font-bold text-gray-800 uppercase tracking-wide mb-2 pb-1 border-b border-gray-100">{{ $service->name }}</h5>
                                                                 @foreach ($service->details as $serviceDetail)
                                                                     <div class="mb-2 last:mb-0">
-                                                                        <label class="block text-xs text-gray-600 mb-1">{{ $serviceDetail->name }}</label>
-                                                                        <input type="number" min="0" step="0.01"
-                                                                            wire:model="details.{{ $index }}.service_items.{{ $service->id }}.{{ $serviceDetail->id }}.quantity"
-                                                                            placeholder="Qty"
+                                                                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ $serviceDetail->name }}</label>
+                                                                        <input type="number" min="0" step="1"
+                                                                            wire:model.live="details.{{ $index }}.service_items.{{ $service->id }}.{{ $serviceDetail->id }}.quantity"
+                                                                            placeholder="0"
                                                                             class="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
                                                                     </div>
                                                                 @endforeach
                                                             </div>
                                                         @else
-                                                            {{-- Service  without Details --}}
-                                                            <div class="bg-white p-3 rounded-lg border border-blue-200">
-                                                                <label class="block text-sm font-semibold text-gray-800 mb-1">{{ $service->name }}</label>
-                                                                <input type="number" min="0" step="0.01"
-                                                                    wire:model="details.{{ $index }}.service_items.{{ $service->id }}.quantity"
-                                                                    placeholder="Qty"
+                                                            {{-- Service without Details --}}
+                                                            <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm flex flex-col justify-between">
+                                                                <label class="block text-xs font-semibold text-gray-700 mb-1">{{ $service->name }}</label>
+                                                                <input type="number" min="0" step="1"
+                                                                    wire:model.live="details.{{ $index }}.service_items.{{ $service->id }}.quantity"
+                                                                    placeholder="0"
                                                                     class="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
                                                             </div>
                                                         @endif

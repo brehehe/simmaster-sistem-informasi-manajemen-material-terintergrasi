@@ -32,7 +32,7 @@ class StockPoldaSeeder extends Seeder
             $this->command->info('Memulai seeding Stock Polda berdasarkan data 4 September 2026...');
 
             // 1. Dapatkan Regional Police (Polda Jatim)
-            $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
+            $polda = RegionalPolice::where('name', 'ilike', '%Polda%')->first() ?? RegionalPolice::first();
             if (!$polda) {
                 $this->command->error('Regional Police (Polda) tidak ditemukan!');
                 return;

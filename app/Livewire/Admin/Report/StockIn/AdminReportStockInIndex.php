@@ -46,11 +46,11 @@ public function paginationView()
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('description', 'like', '%' . $this->search . '%')
-                    ->orWhere('serial_number', 'like', '%' . $this->search . '%')
+                $q->where('code', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('description', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('serial_number', 'ilike', '%' . $this->search . '%')
                     ->orWhereHas('type', function ($type) {
-                        $type->where('name', 'like', '%' . $this->search . '%');
+                        $type->where('name', 'ilike', '%' . $this->search . '%');
                     });
             });
         }

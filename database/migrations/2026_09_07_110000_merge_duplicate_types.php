@@ -111,7 +111,7 @@ return new class extends Migration
 
             // Update JSON types pada user_types
             if (Schema::hasTable('user_types') && Schema::hasColumn('user_types', 'types')) {
-                $userTypes = DB::table('user_types')->where('types', 'like', '%' . $oldId . '%')->get();
+                $userTypes = DB::table('user_types')->where('types', 'ilike', '%' . $oldId . '%')->get();
                 foreach ($userTypes as $ut) {
                     $typesArr = json_decode($ut->types, true) ?: [];
                     $updatedTypes = array_map(fn($tid) => $tid === $oldId ? $newId : $tid, $typesArr);

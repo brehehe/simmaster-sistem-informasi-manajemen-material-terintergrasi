@@ -39,16 +39,16 @@ class AdminReportStockIndex extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('type', function ($type) {
-                        $type->where('name', 'like', '%' . $this->search . '%');
+                        $type->where('name', 'ilike', '%' . $this->search . '%');
                     })
                     ->orWhereHas('type Detail', function ($detail) {
-                        $detail->where('name', 'like', '%' . $this->search . '%');
+                        $detail->where('name', 'ilike', '%' . $this->search . '%');
                     })
                     ->orWhereHas('regionalPolice', function ($polda) {
-                        $polda->where('name', 'like', '%' . $this->search . '%');
+                        $polda->where('name', 'ilike', '%' . $this->search . '%');
                     })
                     ->orWhereHas('policeStation', function ($polres) {
-                        $polres->where('name', 'like', '%' . $this->search . '%');
+                        $polres->where('name', 'ilike', '%' . $this->search . '%');
                     });
             });
         }

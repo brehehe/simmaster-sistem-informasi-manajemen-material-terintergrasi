@@ -143,7 +143,7 @@ class AdminMasterTypeServiceIndex extends Component
         $services = Service::query()
             ->where('type_id', $this->type_id)
             ->withCount('details')
-            ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('description', 'like', '%'.$this->search.'%'))
+            ->when($this->search, fn($q) => $q->where('name', 'ilike', '%'.$this->search.'%')->orWhere('description', 'ilike', '%'.$this->search.'%'))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);
 

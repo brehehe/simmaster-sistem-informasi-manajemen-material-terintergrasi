@@ -272,21 +272,21 @@
 
                                     @if ($is_with_serial_number)
                                         <td class="px-4 py-3">
-                                            <input type="text" wire:model.blur="details.{{ $index }}.code" @disabled($lastStockId)
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.code" @disabled($lastStockId)
                                                 class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="Kode">
                                         </td>
                                         <td class="px-4 py-3">
-                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_first" @disabled($lastStockId)
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_first" @disabled($lastStockId)
                                                 class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="SN1">
                                         </td>
                                         <td class="px-4 py-3">
-                                            <input type="text" wire:model.blur="details.{{ $index }}.number_serial_second" @disabled($lastStockId)
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_second" @disabled($lastStockId)
                                                 class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="SN2">
                                         </td>
                                     @endif
 
                                     <td class="px-4 py-3">
-                                        <input type="number" wire:model.blur="details.{{ $index }}.quantity" @disabled($lastStockId) step="0.01"
+                                        <input type="number" wire:model.live="details.{{ $index }}.quantity" @disabled($lastStockId) step="0.01"
                                             class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="0">
                                     </td>
 

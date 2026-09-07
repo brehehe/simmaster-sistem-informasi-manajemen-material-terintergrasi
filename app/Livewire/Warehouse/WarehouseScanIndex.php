@@ -58,7 +58,7 @@ class WarehouseScanIndex extends Component
             'materialShipmentDetails.typeDetail',
             'materialShipmentDetails.stockDetail.rack',
         ])->where(function ($q) use ($code) {
-            $q->where('code', 'like', '%' . $code . '%')
+            $q->where('code', 'ilike', '%' . $code . '%')
               ->orWhere('code', 'ILIKE', '%' . $code . '%');
             if (\Illuminate\Support\Str::isUuid($code)) {
                 $q->orWhere('id', $code);

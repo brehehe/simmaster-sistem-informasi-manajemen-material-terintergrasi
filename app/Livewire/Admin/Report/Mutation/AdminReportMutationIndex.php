@@ -38,19 +38,19 @@ public function paginationView()
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('notes', 'like', '%' . $this->search . '%')
+                $q->where('code', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('notes', 'ilike', '%' . $this->search . '%')
                     ->orWhereHas('senderRegionalPolice', function ($polda) {
-                        $polda->where('name', 'like', '%' . $this->search . '%');
+                        $polda->where('name', 'ilike', '%' . $this->search . '%');
                     })
                     ->orWhereHas('senderPoliceStation', function ($polres) {
-                        $polres->where('name', 'like', '%' . $this->search . '%');
+                        $polres->where('name', 'ilike', '%' . $this->search . '%');
                     })
                     ->orWhereHas('receiverRegionalPolice', function ($polda) {
-                        $polda->where('name', 'like', '%' . $this->search . '%');
+                        $polda->where('name', 'ilike', '%' . $this->search . '%');
                     })
                     ->orWhereHas('receiverPoliceStation', function ($polres) {
-                        $polres->where('name', 'like', '%' . $this->search . '%');
+                        $polres->where('name', 'ilike', '%' . $this->search . '%');
                     });
             });
         }

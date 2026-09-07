@@ -132,7 +132,7 @@ class AdminMasterTypeIndex extends Component
     {
         $types = Type::query()
             ->withCount(['typeDetails', 'services'])
-            ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('description', 'like', '%'.$this->search.'%'))
+            ->when($this->search, fn($q) => $q->where('name', 'ilike', '%'.$this->search.'%')->orWhere('description', 'ilike', '%'.$this->search.'%'))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);
 

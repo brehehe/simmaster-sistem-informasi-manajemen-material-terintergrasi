@@ -146,7 +146,7 @@ class AdminMasterTypeDetailServiceDetailIndex extends Component
         $service = Service::findOrFail($this->service_id);
         $serviceDetails = ServiceDetail::query()
             ->where('service_id', $this->service_id)
-            ->when($this->search, fn($q) => $q->where('name', 'like', '%'.$this->search.'%')->orWhere('description', 'like', '%'.$this->search.'%'))
+            ->when($this->search, fn($q) => $q->where('name', 'ilike', '%'.$this->search.'%')->orWhere('description', 'ilike', '%'.$this->search.'%'))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);
 

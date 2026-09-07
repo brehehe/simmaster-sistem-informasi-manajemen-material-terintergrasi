@@ -176,10 +176,10 @@ class AdminMasterPoliceStationIndex extends Component
             ->with('regionalPolice')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('description', 'like', '%' . $this->search . '%')
+                    $q->where('name', 'ilike', '%' . $this->search . '%')
+                      ->orWhere('description', 'ilike', '%' . $this->search . '%')
                       ->orWhereHas('regionalPolice', function ($rq) {
-                          $rq->where('name', 'like', '%' . $this->search . '%');
+                          $rq->where('name', 'ilike', '%' . $this->search . '%');
                       });
                 });
             })

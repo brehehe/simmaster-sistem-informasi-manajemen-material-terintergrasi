@@ -45,8 +45,8 @@ public function paginationView()
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('notes', 'like', '%' . $this->search . '%');
+                $q->where('code', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('notes', 'ilike', '%' . $this->search . '%');
             });
         }
 

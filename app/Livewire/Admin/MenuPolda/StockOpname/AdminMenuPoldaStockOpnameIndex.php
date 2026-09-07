@@ -79,7 +79,7 @@ class AdminMenuPoldaStockOpnameIndex extends Component
 
         // Search by code
         if ($this->search) {
-            $query->where('code', 'like', '%' . $this->search . '%');
+            $query->where('code', 'ilike', '%' . $this->search . '%');
         }
 
         // Filter by status

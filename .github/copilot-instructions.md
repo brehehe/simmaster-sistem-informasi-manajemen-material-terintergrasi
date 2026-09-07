@@ -388,7 +388,7 @@ use function Livewire\Volt\{state, computed};
 state(['editing' => null, 'search' => '']);
 
 $products = computed(fn() => Product::when($this->search,
-    fn($q) => $q->where('name', 'like', "%{$this->search}%")
+    fn($q) => $q->where('name', 'ilike', "%{$this->search}%")
 )->get());
 
 $edit = fn(Product $product) => $this->editing = $product->id;

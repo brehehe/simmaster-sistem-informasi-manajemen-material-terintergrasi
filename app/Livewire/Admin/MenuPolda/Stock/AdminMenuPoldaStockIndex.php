@@ -105,13 +105,13 @@ class AdminMenuPoldaStockIndex extends Component
 
             $query->where(function ($q) use ($search) {
                 $q->whereHas('type', fn ($t) =>
-                    $t->where('name', 'like', "%{$search}%")
+                    $t->where('name', 'ilike', "%{$search}%")
                 )
                 ->orWhereHas('typeDetail', fn ($td) =>
-                    $td->where('name', 'like', "%{$search}%")
+                    $td->where('name', 'ilike', "%{$search}%")
                 )
                 ->orWhereHas('rack', fn ($r) =>
-                    $r->where('name', 'like', "%{$search}%")
+                    $r->where('name', 'ilike', "%{$search}%")
                 );
             });
         }

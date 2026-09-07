@@ -233,7 +233,7 @@ class UjiCobaFullSeeder extends Seeder
             return;
         }
 
-        $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
+        $polda = RegionalPolice::where('name', 'ilike', '%Polda%')->first() ?? RegionalPolice::first();
         $stations = PoliceStation::all();
 
         // Siapkan Type models (aman dari soft deletes & unique constraint)
@@ -388,7 +388,7 @@ class UjiCobaFullSeeder extends Seeder
      */
     protected function seedStockPolda(): void
     {
-        $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
+        $polda = RegionalPolice::where('name', 'ilike', '%Polda%')->first() ?? RegionalPolice::first();
         if (!$polda) {
             $this->command->error('Regional Police (Polda) tidak ditemukan!');
             return;
@@ -858,10 +858,10 @@ class UjiCobaFullSeeder extends Seeder
         }
 
         // Hapus permanen akun-akun BAUR Polres yang tidak terpakai agar tidak memicu unique violation
-        $deletedBaurCount = User::withTrashed()->where('email', 'like', 'baur%')->forceDelete();
+        $deletedBaurCount = User::withTrashed()->where('email', 'ilike', 'baur%')->forceDelete();
         $this->command->info("-> Menghapus {$deletedBaurCount} akun BAUR yang tidak digunakan.");
 
-        $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
+        $polda = RegionalPolice::where('name', 'ilike', '%Polda%')->first() ?? RegionalPolice::first();
 
         // 2. Akun-akun di Tingkat Polda (Menggunakan upsertUser yang kebal terhadap unique violation PostgreSQL)
         if ($polda) {

@@ -24,7 +24,7 @@ Artisan::command('bamat:create-all {--password=password : Default password untuk
     $this->info('================================================================');
 
     // 0. Update semua email lama @sbst.test menjadi @armaster.net
-    $oldTestUsers = User::withTrashed()->where('email', 'like', '%@sbst.test')->get();
+    $oldTestUsers = User::withTrashed()->where('email', 'ilike', '%@sbst.test')->get();
     foreach ($oldTestUsers as $oldUser) {
         $newEmail = str_replace('@sbst.test', '@armaster.net', $oldUser->email);
         $oldUser->update(['email' => $newEmail]);
@@ -68,7 +68,7 @@ Artisan::command('bamat:create-all {--password=password : Default password untuk
         $userTypeModels[$utName] = $ut;
     }
 
-    $polda = RegionalPolice::where('name', 'like', '%Polda%')->first() ?? RegionalPolice::first();
+    $polda = RegionalPolice::where('name', 'ilike', '%Polda%')->first() ?? RegionalPolice::first();
 
     // Helper upsert user
     $upsertAccount = function (string $email, array $attributes, array $roles = []) use ($hashedPassword) {

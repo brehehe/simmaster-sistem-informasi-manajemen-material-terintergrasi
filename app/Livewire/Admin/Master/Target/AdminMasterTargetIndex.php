@@ -30,9 +30,9 @@ class AdminMasterTargetIndex extends Component
     {
         $targets = Target::query()
             ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('description', 'like', '%'.$this->search.'%')
-                    ->orWhere('year', 'like', '%'.$this->search.'%');
+                $query->where('name', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('description', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('year', 'ilike', '%'.$this->search.'%');
             })
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);

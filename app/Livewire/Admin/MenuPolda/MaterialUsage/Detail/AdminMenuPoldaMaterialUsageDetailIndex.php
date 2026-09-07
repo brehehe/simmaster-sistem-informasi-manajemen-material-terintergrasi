@@ -174,6 +174,41 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                 }
             }
         }
+
+        if ($field === 'service_items') {
+            $this->recalculateDetailQuantity($index);
+        }
+    }
+
+    public function recalculateDetailQuantity($index): void
+    {
+        if (!isset($this->details[$index])) {
+            return;
+        }
+
+        $serviceItems = $this->details[$index]['service_items'] ?? [];
+        $total = 0;
+        $hasServiceInputs = false;
+
+        foreach ($serviceItems as $serviceId => $serviceData) {
+            if (is_array($serviceData)) {
+                if (isset($serviceData['quantity']) && is_numeric($serviceData['quantity'])) {
+                    $hasServiceInputs = true;
+                    $total += (float) $serviceData['quantity'];
+                } else {
+                    foreach ($serviceData as $detailId => $detailData) {
+                        if (is_array($detailData) && isset($detailData['quantity']) && is_numeric($detailData['quantity'])) {
+                            $hasServiceInputs = true;
+                            $total += (float) $detailData['quantity'];
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($hasServiceInputs && $total > 0) {
+            $this->details[$index]['quantity'] = $total;
+        }
     }
 
     public function updatedRegionalPoliceId()
@@ -238,6 +273,11 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     public function save()
     {
+        // Auto-calculate quantity from service breakdown items if filled
+        foreach ($this->details as $index => $detail) {
+            $this->recalculateDetailQuantity($index);
+        }
+
         $this->validate();
 
         // Validate stock availability for each item

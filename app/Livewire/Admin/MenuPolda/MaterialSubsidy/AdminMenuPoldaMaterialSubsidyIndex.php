@@ -64,9 +64,9 @@ class AdminMenuPoldaMaterialSubsidyIndex extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('recipient_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('notes', 'like', '%' . $this->search . '%');
+                $q->where('code', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('recipient_name', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('notes', 'ilike', '%' . $this->search . '%');
             });
         }
 

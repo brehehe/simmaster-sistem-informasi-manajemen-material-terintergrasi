@@ -244,7 +244,7 @@ class AdminMenuPoldaReceptionIndex extends Component
                             $sub->where('receptions.code', 'ilike', "%{$word}%")
                                 ->orWhere('receptions.type', 'ilike', "%{$word}%")
                                 ->orWhereHas('typeMaterial', function($t) use ($word) {
-                                    $t->where('name', 'like', "%{$word}%");
+                                    $t->where('name', 'ilike', "%{$word}%");
                                 })
                                 ->orWhereHas('receptionDetails.receptionDetailItems', function($rdi) use ($word) {
                                     $rdi->where('item_code', 'ilike', "%{$word}%")

@@ -159,7 +159,7 @@ class DemoSppmShipmentSeeder extends Seeder
 
             // 4. Create Inbox Message (Message) for Polres
             $existingMessage = Message::where('receiver_police_station_id', $station->id)
-                ->where('subject', 'like', '%' . $item['sppm_code'] . '%')
+                ->where('subject', 'ilike', '%' . $item['sppm_code'] . '%')
                 ->first();
 
             if (!$existingMessage) {

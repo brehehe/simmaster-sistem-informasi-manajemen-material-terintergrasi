@@ -82,7 +82,7 @@ class CodeGeneratorService
         $query = $usesSoftDeletes ? $modelClass::withTrashed() : $modelClass::query();
 
         $existingCodes = $query
-            ->where('code', 'like', $fullPrefix . '%')
+            ->where('code', 'ilike', $fullPrefix . '%')
             ->pluck('code')
             ->map(function ($c) {
                 if (preg_match('/-(\d+)$/', trim((string)$c), $matches)) {
