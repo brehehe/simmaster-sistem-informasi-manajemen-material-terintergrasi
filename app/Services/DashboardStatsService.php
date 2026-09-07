@@ -294,8 +294,8 @@ class DashboardStatsService
      */
     public function getStockDistribution(): array
     {
-        $stockPolda = (float)(Stock::polda()->sum('quantity') ?? 0);
-        $stockPolres = (float)(Stock::polres()->sum('quantity') ?? 0);
+        $stockPolda = (float)(Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0);
+        $stockPolres = (float)(Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0);
         $total = $stockPolda + $stockPolres;
 
         return [

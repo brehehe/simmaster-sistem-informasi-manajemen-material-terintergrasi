@@ -55,8 +55,8 @@ class MainDashboardIndex extends Component
     {
         // Statistics
         $totalReceptions = Reception::count();
-        $totalStockPolda = Stock::polda()->sum('quantity') ?? 0;
-        $totalStockPolres = Stock::polres()->sum('quantity') ?? 0;
+        $totalStockPolda = Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0;
+        $totalStockPolres = Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0;
         $receptionsToday = Reception::whereDate('date', today()->toDateString())->count();
 
         // Monthly History Stock Trend (single optimized query)
@@ -202,8 +202,8 @@ class MainDashboardIndex extends Component
 
     private function getStockDistribution()
     {
-        $stockPolda = Stock::polda()->sum('quantity') ?? 0;
-        $stockPolres = Stock::polres()->sum('quantity') ?? 0;
+        $stockPolda = Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0;
+        $stockPolres = Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0;
 
         $total = $stockPolda + $stockPolres;
 

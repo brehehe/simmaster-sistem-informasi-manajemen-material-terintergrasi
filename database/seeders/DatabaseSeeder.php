@@ -38,21 +38,14 @@ class DatabaseSeeder extends Seeder
             TypeDetailSeeder::class,
             RegionalPoliceSeeder::class,
             PoliceStationSeeder::class,
-            TargetSeeder::class,
-            UserTypeSeeder::class,
-            UserSeeder::class,
-            // Racks - must run before stock and transactions
             RackSeeder::class,
-            // Connected data seeder that aligns stock, receptions, shipments, usages, etc.
-            ConnectedDataSeeder::class,
-            // Demo SPPM shipments and inbox messages for 5 primary Polres
-            DemoSppmShipmentSeeder::class,
-            // Demo SPPM shipments (Part 2) for Kediri, Blitar, Trenggalek, Tulungagung
-            DemoSppmShipmentPartTwoSeeder::class,
-            // Stock Polda Seeder berdasarkan data fisik Stock Opname 4 September 2026
-            // StockPoldaSeeder::class,
-            // Stock Polres Seeder berdasarkan data Renbut Materiel Excel 2026
-            // StockPolresSeeder::class,
+            // Full master seeder untuk persiapan uji coba:
+            // - Stok Polda fisik 4 Sept 2026 (7.951.000 materiil utama)
+            // - Target 2026 resmi dari Excel
+            // - Stok Polres kosong (0)
+            // - Clear material rusak & dummy
+            // - Akun BAMAT Polres + SAMSAT Polda & Sie
+            UjiCobaFullSeeder::class,
         ]);
     }
 }

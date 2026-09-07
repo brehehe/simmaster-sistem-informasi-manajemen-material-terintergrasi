@@ -171,9 +171,9 @@ class AdminDashboardIndex extends Component
         $user = Auth::user();
         $isPolres = $user?->hasRole('Polres') || !empty($user?->police_station_id);
 
-        // Core Aggregate Metrics
-        $totalStockPolda = Stock::polda()->sum('quantity') ?? 0;
-        $totalStockPolres = Stock::polres()->sum('quantity') ?? 0;
+        // Core Aggregate Metrics (Materiil Utama PNBP)
+        $totalStockPolda = Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0;
+        $totalStockPolres = Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0;
         $totalReceptions = Reception::count();
         $receptionsToday = Reception::whereDate('date', today())->count();
 
