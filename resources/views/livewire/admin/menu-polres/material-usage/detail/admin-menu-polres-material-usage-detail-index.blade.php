@@ -4,13 +4,13 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
-                    <a href="{{ route('menu-polres.material-usage-detail') }}"  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                    <a href="{{ route('menu-polres.material-usage') }}"  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                         </svg>
                     </a>
                     <h1 class="text-3xl font-bold text-blue-600">
-                        {{ $isEditMode ? 'Detail Material Digunakan' : 'Input Material Digunakan' }}
+                        {{ $isEditMode ? 'Edit Penggunaan Material' : 'Input Material Digunakan' }}
                     </h1>
                 </div>
                 <p class="text-gray-500 ml-14">Data penggunaan material di Polres</p>
@@ -44,10 +44,10 @@
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                <!-- Tanggal (auto, no code shown) -->
+                <!-- Tanggal -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="date" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
+                    <input type="date" wire:model="date" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                     @error('date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -78,7 +78,7 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi (Opsional)</label>
-                    <textarea wire:model="description" rows="1" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Catatan penggunaan material..."></textarea>
+                    <textarea wire:model="description" rows="1" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" placeholder="Catatan penggunaan material..."></textarea>
                 </div>
             </div>
 
@@ -140,22 +140,20 @@
                 </svg>
                 Detail Penggunaan Material
             </h2>
-            @if (!$isEditMode)
-                <div class="flex items-center gap-2">
-                    <button wire:click="addDetail" type="button"
-                        class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                        </svg>
-                        Tambah Item
-                    </button>
-                </div>
-            @endif
+            <div class="flex items-center gap-2">
+                <button wire:click="addDetail" type="button"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Tambah Item
+                </button>
+            </div>
         </div>
 
         <div class="p-0">
             <div class="overflow-x-auto overflow-y-visible pb-24">
-                <table class="w-full text-sm text-left align-top border-collapse min-w-[1400px]">
+                <table class="w-full text-sm text-left align-top border-collapse min-w-[1400px] whitespace-nowrap">
                     <thead class="bg-gray-50 border-b border-gray-200 text-gray-700">
                         <tr>
                             <th class="px-3 py-3 font-semibold w-10 text-center text-xs">No</th>
@@ -170,9 +168,7 @@
                             <th class="px-3 py-3 font-semibold text-xs w-24 text-center bg-blue-100">Tersedia</th>
                             <th class="px-3 py-3 font-semibold text-xs w-28 text-center">Jumlah <span class="text-red-500">*</span></th>
                             <th class="px-3 py-3 font-semibold text-xs min-w-[130px]">Catatan</th>
-                            @if (!$isEditMode)
-                                <th class="px-3 py-3 font-semibold w-14 text-center text-xs"></th>
-                            @endif
+                            <th class="px-3 py-3 font-semibold w-14 text-center text-xs"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -192,8 +188,8 @@
 
                                 @if($is_type_detail)
                                     <td class="px-3 py-3 align-top">
-                                        <select wire:model.live="details.{{ $index }}.type_detail_id" @disabled($isEditMode)
-                                            class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                        <select wire:model.live="details.{{ $index }}.type_detail_id"
+                                            class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                             <option value="">-- Semua Detail --</option>
                                             @foreach($this->typeDetails as $td)
                                                 <option value="{{ data_get($td, 'id') }}">{{ data_get($td, 'name') }}</option>
@@ -203,8 +199,8 @@
                                 @endif
 
                                 <td class="px-3 py-3 align-top">
-                                    <select wire:model.live="details.{{ $index }}.service_id" @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                    <select wire:model.live="details.{{ $index }}.service_id"
+                                        class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         <option value="">-- Semua Service --</option>
                                         @foreach($filteredServices as $svc)
                                             <option value="{{ data_get($svc, 'id') }}">{{ data_get($svc, 'name') }}</option>
@@ -213,8 +209,8 @@
                                 </td>
 
                                 <td class="px-3 py-3 align-top">
-                                    <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                    <select wire:model.live="details.{{ $index }}.service_detail_id"
+                                        class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         <option value="">-- Semua --</option>
                                         @foreach($filteredServiceDetails as $sdt)
                                             <option value="{{ data_get($sdt, 'id') }}">{{ data_get($sdt, 'name') }}</option>
@@ -224,8 +220,8 @@
 
                                 {{-- Stok Barang / Nomor Seri A --}}
                                 <td class="px-2 py-3 align-top bg-blue-50/30">
-                                    <select wire:model.live="details.{{ $index }}.stock_detail_id" @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded-lg border {{ $errors->has("details.{$index}.stock_detail_id") ? 'border-red-500 bg-red-50/50' : 'border-blue-300' }} focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                    <select wire:model.live="details.{{ $index }}.stock_detail_id"
+                                        class="w-full px-2 py-2 text-xs rounded-lg border {{ $errors->has("details.{$index}.stock_detail_id") ? 'border-red-500 bg-red-50/50' : 'border-blue-300' }} focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         <option value="">-- Pilih Stok Barang --</option>
                                         @foreach($stockOptions[$index] ?? [] as $opt)
                                             <option value="{{ $opt['stock_detail_id'] }}">{{ $opt['label'] }}</option>
@@ -247,8 +243,8 @@
                                 <td class="px-2 py-3 align-top bg-blue-50/30">
                                     <input type="text"
                                         wire:model.live="details.{{ $index }}.number_serial_second"
-                                        placeholder="No Seri Akhir..." @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs font-mono rounded-lg border border-blue-300 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:text-gray-500">
+                                        placeholder="No Seri Akhir..."
+                                        class="w-full px-2 py-2 text-xs font-mono rounded-lg border border-blue-300 focus:border-blue-500 bg-white">
                                     @if(!empty($detail['number_serial_second']))
                                         <div class="text-[11px] text-blue-700 font-mono mt-1 px-1">
                                             s/d: <span class="font-bold">{{ $detail['number_serial_second'] }}</span>
@@ -258,8 +254,8 @@
 
                                 {{-- Jenis Penggunaan --}}
                                 <td class="px-3 py-3 align-top">
-                                    <select wire:model.live="details.{{ $index }}.usage_type" @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded-lg border {{ $errors->has("details.{$index}.usage_type") ? 'border-red-500 bg-red-50/50' : 'border-gray-300' }} focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                    <select wire:model.live="details.{{ $index }}.usage_type"
+                                        class="w-full px-2 py-2 text-xs rounded-lg border {{ $errors->has("details.{$index}.usage_type") ? 'border-red-500 bg-red-50/50' : 'border-gray-300' }} focus:border-blue-500">
                                         <option value="Material Digunakan">Material Digunakan</option>
                                         <option value="Material Pendukung">Material Pendukung</option>
                                         <option value="Pembangunan">Pembangunan</option>
@@ -283,7 +279,7 @@
                                 <td class="px-3 py-3 align-top">
                                     <input type="number" min="1" step="1"
                                         wire:model.live="details.{{ $index }}.quantity"
-                                        placeholder="Qty" @disabled($isEditMode)
+                                        placeholder="Qty"
                                         class="w-full px-2 py-2 text-xs font-bold text-center rounded-lg border {{ $errors->has("details.{$index}.quantity") ? 'border-red-500 bg-red-50 text-red-700' : 'border-blue-300 bg-blue-50/50 text-blue-700' }} focus:border-blue-500">
                                     @error("details.{$index}.quantity")
                                         <p class="text-red-500 text-[11px] font-semibold mt-1 text-center">{{ $message }}</p>
@@ -291,20 +287,18 @@
                                 </td>
 
                                 <td class="px-3 py-3 align-top">
-                                    <input type="text" wire:model.defer="details.{{ $index }}.description" placeholder="Catatan..." @disabled($isEditMode)
-                                        class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                                    <input type="text" wire:model.defer="details.{{ $index }}.description" placeholder="Catatan..."
+                                        class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500">
                                 </td>
 
-                                @if (!$isEditMode)
-                                    <td class="px-3 py-3 text-center align-top pt-4">
-                                        @if (count($details) > 1)
-                                            <button type="button" wire:click="removeDetail({{ $index }})"
-                                                class="p-1.5 inline-flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                                            </button>
-                                        @endif
-                                    </td>
-                                @endif
+                                <td class="px-3 py-3 text-center align-top pt-4">
+                                    @if (count($details) > 1)
+                                        <button type="button" wire:click="removeDetail({{ $index }})"
+                                            class="p-1.5 inline-flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                        </button>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
@@ -319,14 +313,12 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 mt-4">
-        <a href="{{ route('menu-polres.material-usage-detail') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Lihat Riwayat</a>
-        @if (!$isEditMode)
-            <button wire:click="save" type="button"
-                class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">
-                <span wire:loading.remove wire:target="save">💾 Simpan Data</span>
-                <span wire:loading wire:target="save">Menyimpan...</span>
-            </button>
-        @endif
+        <a href="{{ route('menu-polres.material-usage') }}" class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal / Kembali</a>
+        <button wire:click="save" type="button"
+            class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">
+            <span wire:loading.remove wire:target="save">{{ $isEditMode ? '💾 Update Perubahan' : '💾 Simpan Data' }}</span>
+            <span wire:loading wire:target="save">Menyimpan...</span>
+        </button>
     </div>
 
     <script>

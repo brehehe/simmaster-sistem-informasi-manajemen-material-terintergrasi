@@ -10,6 +10,8 @@ use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
 use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
 use App\Models\Type\TypeDetail;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
 
 class AdminMenuPolresMaterialUsageDetailIndex extends Component
 {
@@ -32,6 +34,50 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
     #[Url]
     public $usageType = '';
+
+    public bool $showDeleteModal = false;
+    public ?string $materialUsageId = null;
+
+    public function openDeleteModal($id = null)
+    {
+        $this->materialUsageId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showDeleteModal = false;
+        $this->materialUsageId = null;
+    }
+
+    public function delete()
+    {
+        if ($this->materialUsageId) {
+            $stockService = app(StockService::class);
+            try {
+                DB::beginTransaction();
+
+                $materialUsage = MaterialUsage::with('materialUsageDetails')->find($this->materialUsageId);
+                if ($materialUsage) {
+                    // Restore stock & delete history
+                    $stockService->deleteMaterialUsage($materialUsage);
+
+                    foreach ($materialUsage->materialUsageDetails as $detail) {
+                        $detail->materialUsageDetailItems()->delete();
+                    }
+                    $materialUsage->materialUsageDetails()->delete();
+                    $materialUsage->delete();
+
+                    DB::commit();
+                    session()->flash('success', 'Data penggunaan material berhasil dihapus dan stok telah dikembalikan.');
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                session()->flash('error', 'Terjadi kesalahan saat menghapus: ' . $e->getMessage());
+            }
+        }
+        $this->closeModal();
+    }
 
     public function mount()
     {

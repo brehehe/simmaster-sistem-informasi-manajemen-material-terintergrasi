@@ -171,7 +171,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full border-collapse">
+                <table class="w-full border-collapse whitespace-nowrap">
                     <thead>
                         {{-- First Header Row: Services --}}
                         <tr class="bg-gray-50 border-b border-gray-200">

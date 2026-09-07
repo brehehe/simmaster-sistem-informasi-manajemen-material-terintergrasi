@@ -76,16 +76,19 @@ class MutationStock extends Model
         }
 
         $fullPrefix = $prefix . '-' . $date . '-';
-        $lastRecord = self::withTrashed()
+        $existingCodes = self::withTrashed()
             ->where('code', 'like', $fullPrefix . '%')
-            ->orderBy('code', 'desc')
-            ->first();
+            ->pluck('code')
+            ->map(function ($c) {
+                if (preg_match('/-(\d+)$/', trim((string)$c), $matches)) {
+                    return (int) $matches[1];
+                }
+                return 0;
+            })
+            ->filter()
+            ->toArray();
 
-        $nextNumber = 1;
-        if ($lastRecord && preg_match('/-(\d+)$/', $lastRecord->code, $matches)) {
-            $nextNumber = (int)$matches[1] + 1;
-        }
-
+        $nextNumber = !empty($existingCodes) ? (max($existingCodes) + 1) : 1;
         $code = $fullPrefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
         while (self::withTrashed()->where('code', $code)->exists()) {
             $nextNumber++;

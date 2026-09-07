@@ -139,7 +139,7 @@
 
         <!-- Table -->
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full whitespace-nowrap">
                 <thead>
                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider whitespace-nowrap">No</th>
@@ -210,7 +210,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center whitespace-nowrap">
+                            <td colspan="9" class="px-6 py-12 text-center whitespace-nowrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"

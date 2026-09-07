@@ -53,9 +53,11 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
         ])->layout('components.layouts.main.app');
     }
 
-    public function openDeleteModal($id)
+    public function openDeleteModal($id = null)
     {
-        $this->materialUsageId = $id;
+        if ($id) {
+            $this->materialUsageId = $id;
+        }
         $this->showDeleteModal = true;
     }
 
@@ -65,9 +67,10 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
         $this->materialUsageId = null;
     }
 
-    public function delete(StockService $stockService)
+    public function delete()
     {
         if ($this->materialUsageId) {
+            $stockService = app(StockService::class);
             try {
                 DB::beginTransaction();
 
@@ -83,7 +86,7 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
                     $materialUsage->delete();
 
                     DB::commit();
-                    session()->flash('success', 'Data material usage berhasil dihapus.');
+                    session()->flash('success', 'Data penggunaan material berhasil dihapus dan stok telah dikembalikan.');
                 }
             } catch (\Exception $e) {
                 DB::rollBack();

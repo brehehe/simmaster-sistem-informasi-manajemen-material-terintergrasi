@@ -168,12 +168,15 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polda.rack-assignment.edit');
 
         // Material Usage
-        Route::get('menu-polda/material-usage', 'MaterialUsage\\AdminMenuPoldaMaterialUsageIndex')
+        Route::get('menu-polda/material-usage', 'MaterialUsage\AdminMenuPoldaMaterialUsageIndex')
             ->name('menu-polda.material-usage');
-        Route::get('menu-polda/material-usage/create', 'MaterialUsage\\Detail\\AdminMenuPoldaMaterialUsageDetailIndex')
+        Route::get('menu-polda/material-usage-detail', 'MaterialUsage\AdminMenuPoldaMaterialUsageIndex')
+            ->name('menu-polda.material-usage-detail');
+        Route::get('menu-polda/material-usage/create', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex')
             ->name('menu-polda.material-usage.create');
-        Route::get('menu-polda/material-usage/edit/{id}', 'MaterialUsage\\Detail\\AdminMenuPoldaMaterialUsageDetailIndex')
+        Route::get('menu-polda/material-usage/{id}/edit', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex')
             ->name('menu-polda.material-usage.edit');
+        Route::get('menu-polda/material-usage/edit/{id}', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex');
 
         // Material Damage
         Route::get('menu-polda/material-damage', 'MaterialDamage\\AdminMenuPoldaMaterialDamageIndex')
@@ -245,15 +248,16 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polres/rack-assignment/edit/{id}', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
             ->name('menu-polres.rack-assignment.edit');
 
-        // Material Usage (Directly opens Input Material Digunakan form)
-        Route::get('menu-polres/material-usage', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
+        // Material Usage
+        Route::get('menu-polres/material-usage', 'MaterialUsage\\AdminMenuPolresMaterialUsageIndex')
             ->name('menu-polres.material-usage');
         Route::get('menu-polres/material-usage-detail', 'MaterialUsageDetail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage-detail');
         Route::get('menu-polres/material-usage/create', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage.create');
-        Route::get('menu-polres/material-usage/edit/{id}', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
+        Route::get('menu-polres/material-usage/{id}/edit', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex')
             ->name('menu-polres.material-usage.edit');
+        Route::get('menu-polres/material-usage/edit/{id}', 'MaterialUsage\\Detail\\AdminMenuPolresMaterialUsageDetailIndex');
 
         // Material Damage
         Route::get('menu-polres/material-damage', 'MaterialDamage\\AdminMenuPolresMaterialDamageIndex')

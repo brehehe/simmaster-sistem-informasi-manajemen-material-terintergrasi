@@ -39,7 +39,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
 
     public function mount()
     {
-        return $this->redirect(route('menu-polres.material-usage.create'), navigate: true);
+        // Display list table
     }
 
     public function render()
@@ -139,9 +139,11 @@ class AdminMenuPolresMaterialUsageIndex extends Component
         ])->layout('components.layouts.main.app');
     }
 
-    public function openDeleteModal($id)
+    public function openDeleteModal($id = null)
     {
-        $this->materialUsageId = $id;
+        if ($id) {
+            $this->materialUsageId = $id;
+        }
         $this->showDeleteModal = true;
     }
 
@@ -151,9 +153,10 @@ class AdminMenuPolresMaterialUsageIndex extends Component
         $this->materialUsageId = null;
     }
 
-    public function delete(StockService $stockService)
+    public function delete()
     {
         if ($this->materialUsageId) {
+            $stockService = app(StockService::class);
             try {
                 DB::beginTransaction();
 
@@ -169,7 +172,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
                     $materialUsage->delete();
 
                     DB::commit();
-                    session()->flash('success', 'Data material usage berhasil dihapus.');
+                    session()->flash('success', 'Data penggunaan material berhasil dihapus dan stok telah dikembalikan.');
                 }
             } catch (\Exception $e) {
                 DB::rollBack();

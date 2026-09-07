@@ -249,8 +249,16 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $query = StockDetail::with(['rack', 'typeDetail'])
             ->where('police_station_id', $this->policeStationId)
             ->where('type_id', $this->typeId)
-            ->where('is_active', true)
-            ->where('quantity', '>', 0);
+            ->where('is_active', true);
+
+        if ($this->isEditMode && !empty($detail['stock_detail_id'])) {
+            $query->where(function ($q) use ($detail) {
+                $q->where('quantity', '>', 0)
+                  ->orWhere('id', $detail['stock_detail_id']);
+            });
+        } else {
+            $query->where('quantity', '>', 0);
+        }
 
         if (!empty($detail['type_detail_id'])) {
             $query->where('type_detail_id', $detail['type_detail_id']);
@@ -267,7 +275,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
         $stocks = $query->orderBy('created_at', 'desc')->get();
 
-        $this->stockOptions[$index] = $stocks->map(function ($s) {
+        $this->stockOptions[$index] = $stocks->map(function ($s) use ($detail) {
             $rackName = $s->rack ? $s->rack->name : 'Tanpa Rak';
             $serialPart = '';
             if ($s->number_serial_first && $s->number_serial_second) {
@@ -280,11 +288,16 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 $serialPart = "Batch " . substr($s->id, 0, 6);
             }
 
-            $label = "{$serialPart} (Stok: " . (int)$s->quantity . " | {$rackName})";
+            $currentStockQty = (float) $s->quantity;
+            if ($this->isEditMode && !empty($detail['stock_detail_id']) && $s->id === $detail['stock_detail_id']) {
+                $currentStockQty += (float) ($detail['quantity'] ?? 0);
+            }
+
+            $label = "{$serialPart} (Stok: " . (int)$currentStockQty . " | {$rackName})";
 
             return [
                 'stock_detail_id' => $s->id,
-                'quantity' => (float) $s->quantity,
+                'quantity' => $currentStockQty,
                 'item_code' => $s->code ?? '',
                 'number_serial_first' => $s->number_serial_first ?? '',
                 'number_serial_second' => $s->number_serial_second ?? '',
@@ -393,7 +406,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
             session()->flash('success', $this->isEditMode ? 'Data penggunaan material berhasil diperbarui.' : 'Data penggunaan material berhasil disimpan dan stok telah otomatis terpotong.');
 
-            return $this->redirect(route('menu-polres.material-usage-detail'), navigate: true);
+            return $this->redirect(route('menu-polres.material-usage'), navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

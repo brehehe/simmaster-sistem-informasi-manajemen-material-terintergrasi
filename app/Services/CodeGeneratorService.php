@@ -78,23 +78,30 @@ class CodeGeneratorService
         $date = now()->format('Ymd');
         $fullPrefix = "{$prefix}-{$date}-";
 
-        /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = method_exists($modelClass, 'withTrashed') ? $modelClass::withTrashed() : $modelClass::query();
+        $usesSoftDeletes = in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($modelClass));
+        $query = $usesSoftDeletes ? $modelClass::withTrashed() : $modelClass::query();
 
-        $lastRecord = $query
+        $existingCodes = $query
             ->where('code', 'like', $fullPrefix . '%')
-            ->orderBy('code', 'desc')
-            ->first();
+            ->pluck('code')
+            ->map(function ($c) {
+                if (preg_match('/-(\d+)$/', trim((string)$c), $matches)) {
+                    return (int) $matches[1];
+                }
+                return 0;
+            })
+            ->filter()
+            ->toArray();
 
-        $nextNumber = 1;
-        if ($lastRecord && preg_match('/-(\d+)$/', (string)$lastRecord->code, $matches)) {
-            $nextNumber = (int)$matches[1] + 1;
-        }
-
+        $nextNumber = !empty($existingCodes) ? (max($existingCodes) + 1) : 1;
         $code = $fullPrefix . str_pad($nextNumber, $padding, '0', STR_PAD_LEFT);
 
         // Safeguard collision loop to guarantee absolute uniqueness with fresh query check
-        $existsQuery = fn($c) => (method_exists($modelClass, 'withTrashed') ? $modelClass::withTrashed() : $modelClass::query())->where('code', $c)->exists();
+        $existsQuery = function($c) use ($modelClass, $usesSoftDeletes) {
+            $q = $usesSoftDeletes ? $modelClass::withTrashed() : $modelClass::query();
+            return $q->where('code', $c)->exists();
+        };
+
         while ($existsQuery($code)) {
             $nextNumber++;
             $code = $fullPrefix . str_pad($nextNumber, $padding, '0', STR_PAD_LEFT);
