@@ -164,7 +164,7 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text"
-                                            value="{{ $detail['rack_id'] ? $racks->firstWhere('id', $detail['rack_id'])->name ?? 'Tanpa Rak' : 'Tanpa Rak' }}"
+                                            value="{{ $detail['rack_name'] ?? ($detail['rack_id'] ? $racks->firstWhere('id', $detail['rack_id'])->name ?? 'Tanpa Rak' : 'Tanpa Rak') }}"
                                             readonly
                                             class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600">
                                     </td>
@@ -179,6 +179,7 @@
                                     <td class="px-4 py-3">
                                         <input type="number" wire:model.live="details.{{ $index }}.quantity"
                                             max="{{ $details[$index]['available_quantity'] ?? 0 }}"
+                                            placeholder="0" min="1"
                                             class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-semibold text-blue-900">
                                         <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
                                             <span>Max: {{ number_format($details[$index]['available_quantity'] ?? 0, 0, ',', '.') }}</span>

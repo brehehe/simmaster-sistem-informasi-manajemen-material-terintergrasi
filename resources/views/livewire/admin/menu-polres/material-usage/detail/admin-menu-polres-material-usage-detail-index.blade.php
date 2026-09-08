@@ -54,7 +54,7 @@
                 @if (Auth::user()->hasRole('Admin'))
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Polres <span class="text-red-500">*</span></label>
-                        <div wire:ignore wire:key="select-police-station-{{ rand() }}">
+                        <div wire:ignore wire:key="select-police-station">
                             <select id="select-police-station" wire:model="policeStationId" @disabled($isEditMode)
                                 x-data x-init="
                                     setTimeout(() => {
@@ -91,7 +91,7 @@
                         </svg>
                         Material Utama <span class="text-red-500">*</span>
                     </label>
-                    <div wire:ignore wire:key="select-type-id-{{ rand() }}">
+                    <div wire:ignore wire:key="select-type-id">
                         <select id="select-type-id" wire:model="typeId" @disabled($isEditMode)
                             x-data x-init="
                                 setTimeout(() => {
@@ -176,12 +176,13 @@
                             @php
                                 $rowTypeDetailId = $detail['type_detail_id'] ?? null;
                                 $rowServiceId = $detail['service_id'] ?? null;
-                                $filteredServices = collect($this->services)->where(
-                                    $rowTypeDetailId ? 'type_detail_id' : 'type_id',
-                                    $rowTypeDetailId ? $rowTypeDetailId : $typeId
-                                );
-                                $selectedSvc = collect($this->services)->firstWhere('id', $rowServiceId);
-                                $filteredServiceDetails = data_get($selectedSvc, 'details', []);
+                                $filteredServices = collect($services)->filter(function($svc) use ($rowTypeDetailId, $typeId) {
+                                    if ($rowTypeDetailId) {
+                                        return $svc->type_detail_id == $rowTypeDetailId;
+                                    }
+                                    return $svc->type_id == $typeId || $svc->type_detail_id === null;
+                                });
+                                $filteredServiceDetails = $rowServiceId ? $this->getServiceDetails($rowServiceId) : [];
                             @endphp
                             <tr wire:key="row-{{ $index }}-{{ $typeId }}" class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-3 py-3 text-center font-medium text-gray-500 align-top text-xs pt-4">{{ $index + 1 }}</td>
@@ -191,7 +192,7 @@
                                         <select wire:model.live="details.{{ $index }}.type_detail_id"
                                             class="w-full px-2 py-2 text-xs rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                             <option value="">-- Semua Detail --</option>
-                                            @foreach($this->typeDetails as $td)
+                                            @foreach($typeDetails as $td)
                                                 <option value="{{ data_get($td, 'id') }}">{{ data_get($td, 'name') }}</option>
                                             @endforeach
                                         </select>

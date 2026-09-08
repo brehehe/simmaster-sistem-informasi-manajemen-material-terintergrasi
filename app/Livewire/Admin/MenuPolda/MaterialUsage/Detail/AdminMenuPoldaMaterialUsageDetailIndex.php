@@ -64,7 +64,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     protected function loadMaterialUsage()
     {
-        $materialUsage = MaterialUsage::with(['materialUsageDetails.materialUsageDetailItems'])->findOrFail($this->materialUsageId);
+        $materialUsage = MaterialUsage::with(['materialUsageDetails.materialUsageDetailItems', 'materialUsageDetails.rack'])->findOrFail($this->materialUsageId);
 
         $this->code = $materialUsage->code;
         $this->date = $materialUsage->date->format('Y-m-d');
@@ -95,6 +95,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                 'type_id' => $detail->type_id,
                 'type_detail_id' => $detail->type_detail_id,
                 'rack_id' => $detail->rack_id,
+                'rack_name' => $detail->rack->name ?? 'Tanpa Rak',
                 'item_code' => $detail->item_code,
                 'number_serial_first' => $detail->number_serial_first,
                 'number_serial_second' => $detail->number_serial_second,
@@ -114,10 +115,19 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     protected function loadDropdownData()
     {
-        $this->types = Type::where('is_active', true)->orderBy('name')->get();
+        $user = auth()->user();
+        $typesQuery = Type::where('is_active', true)->orderBy('name');
+        if ($user && $user->userType && !empty($user->userType->types)) {
+            $allowedTypes = is_array($user->userType->types) 
+                ? $user->userType->types 
+                : json_decode($user->userType->types, true);
+            if (!empty($allowedTypes)) {
+                $typesQuery->whereIn('id', $allowedTypes);
+            }
+        }
+        $this->types = $typesQuery->get();
         $this->regionalPolices = RegionalPolice::where('is_active', true)->orderBy('name')->get();
 
-        $user = auth()->user();
         if ($user->hasRole('Polda')) {
             $this->regionalPoliceId = $user->regional_police_id;
             $this->loadRacks();
@@ -132,10 +142,11 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             'type_id' => '',
             'type_detail_id' => '',
             'rack_id' => '',
+            'rack_name' => 'Tanpa Rak',
             'item_code' => '',
             'number_serial_first' => '',
             'number_serial_second' => '',
-            'quantity' => 0,
+            'quantity' => '',
             'available_quantity' => 0,
             'usage_type' => 'Material Digunakan',
             'description' => '',
@@ -157,21 +168,37 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         $index = $parts[0];
         $field = $parts[1] ?? null;
 
-        if ($field === 'stock_detail_id' && !empty($value)) {
-            $stockDetail = StockDetail::find($value);
-            if ($stockDetail) {
-                $this->details[$index]['type_id'] = $stockDetail->type_id;
-                $this->details[$index]['type_detail_id'] = $stockDetail->type_detail_id;
-                $this->details[$index]['rack_id'] = $stockDetail->rack_id;
-                $this->details[$index]['item_code'] = $stockDetail->code ?? '';
-                $this->details[$index]['number_serial_first'] = $stockDetail->number_serial_first ?? '';
-                $this->details[$index]['number_serial_second'] = $stockDetail->number_serial_second ?? '';
-                $this->details[$index]['available_quantity'] = $stockDetail->quantity;
+        if ($field === 'stock_detail_id') {
+            if (!empty($value)) {
+                $stockDetail = StockDetail::with(['type', 'typeDetail', 'rack'])->find($value);
+                if ($stockDetail) {
+                    $this->details[$index]['type_id'] = $stockDetail->type_id;
+                    $this->details[$index]['type_detail_id'] = $stockDetail->type_detail_id;
+                    $this->details[$index]['rack_id'] = $stockDetail->rack_id;
+                    $this->details[$index]['rack_name'] = $stockDetail->rack->name ?? 'Tanpa Rak';
+                    $this->details[$index]['item_code'] = $stockDetail->code ?? '';
+                    $this->details[$index]['number_serial_first'] = $stockDetail->number_serial_first ?? '';
+                    $this->details[$index]['number_serial_second'] = $stockDetail->number_serial_second ?? '';
+                    $this->details[$index]['available_quantity'] = (float) $stockDetail->quantity;
+                    $this->details[$index]['quantity'] = '';
+                    $this->details[$index]['service_items'] = [];
 
-                // Load services for this type
-                if ($stockDetail->type_id) {
-                    $this->loadServicesForType($stockDetail->type_id);
+                    // Load services for this type
+                    if ($stockDetail->type_id) {
+                        $this->loadServicesForType($stockDetail->type_id);
+                    }
                 }
+            } else {
+                $this->details[$index]['type_id'] = '';
+                $this->details[$index]['type_detail_id'] = '';
+                $this->details[$index]['rack_id'] = '';
+                $this->details[$index]['rack_name'] = 'Tanpa Rak';
+                $this->details[$index]['item_code'] = '';
+                $this->details[$index]['number_serial_first'] = '';
+                $this->details[$index]['number_serial_second'] = '';
+                $this->details[$index]['available_quantity'] = 0;
+                $this->details[$index]['quantity'] = '';
+                $this->details[$index]['service_items'] = [];
             }
         }
 
@@ -188,26 +215,30 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
         $serviceItems = $this->details[$index]['service_items'] ?? [];
         $total = 0;
-        $hasServiceInputs = false;
+        $hasAnyServiceField = false;
 
         foreach ($serviceItems as $serviceId => $serviceData) {
             if (is_array($serviceData)) {
-                if (isset($serviceData['quantity']) && is_numeric($serviceData['quantity'])) {
-                    $hasServiceInputs = true;
-                    $total += (float) $serviceData['quantity'];
+                if (array_key_exists('quantity', $serviceData)) {
+                    $hasAnyServiceField = true;
+                    if (is_numeric($serviceData['quantity']) && (float)$serviceData['quantity'] > 0) {
+                        $total += (float) $serviceData['quantity'];
+                    }
                 } else {
                     foreach ($serviceData as $detailId => $detailData) {
-                        if (is_array($detailData) && isset($detailData['quantity']) && is_numeric($detailData['quantity'])) {
-                            $hasServiceInputs = true;
-                            $total += (float) $detailData['quantity'];
+                        if (is_array($detailData) && array_key_exists('quantity', $detailData)) {
+                            $hasAnyServiceField = true;
+                            if (is_numeric($detailData['quantity']) && (float)$detailData['quantity'] > 0) {
+                                $total += (float) $detailData['quantity'];
+                            }
                         }
                     }
                 }
             }
         }
 
-        if ($hasServiceInputs && $total > 0) {
-            $this->details[$index]['quantity'] = $total;
+        if ($hasAnyServiceField) {
+            $this->details[$index]['quantity'] = $total > 0 ? $total : '';
         }
     }
 
@@ -220,14 +251,33 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
     public function loadStockDetails()
     {
         $query = StockDetail::with(['type', 'typeDetail', 'rack'])
-            ->where('is_active', true)
-            ->where('quantity', '>', 0);
+            ->where('is_active', true);
+
+        if ($this->isEditMode) {
+            $existingStockIds = collect($this->details)->pluck('stock_detail_id')->filter();
+            $query->where(function($q) use ($existingStockIds) {
+                $q->where('quantity', '>', 0)
+                  ->orWhereIn('id', $existingStockIds);
+            });
+        } else {
+            $query->where('quantity', '>', 0);
+        }
 
         if ($this->regionalPoliceId) {
             $query->where('regional_police_id', $this->regionalPoliceId);
         }
 
-        $this->stockDetails = $query->get();
+        $user = auth()->user();
+        if ($user && $user->userType && !empty($user->userType->types)) {
+            $allowedTypes = is_array($user->userType->types) 
+                ? $user->userType->types 
+                : json_decode($user->userType->types, true);
+            if (!empty($allowedTypes)) {
+                $query->whereIn('type_id', $allowedTypes);
+            }
+        }
+
+        $this->stockDetails = $query->orderBy('created_at', 'desc')->get();
     }
 
     public function loadRacks()
@@ -473,18 +523,27 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     public function getServicesForType($typeId)
     {
-        return $this->services[$typeId] ?? [];
+        if (!$typeId) return collect();
+        return Service::where('type_id', $typeId)
+            ->where('is_active', true)
+            ->withCount('details')
+            ->with(['details' => fn($q) => $q->where('is_active', true)->orderBy('name')])
+            ->orderBy('name')
+            ->get();
     }
 
     public function hasServices($typeId)
     {
-        $this->loadServicesForType($typeId);
-        return !empty($this->services[$typeId]) && $this->services[$typeId]->count() > 0;
+        if (!$typeId) return false;
+        return $this->getServicesForType($typeId)->isNotEmpty();
     }
 
     public function render()
     {
-        return view('livewire.admin.menu-polda.material-usage.detail.admin-menu-polda-material-usage-detail-index')
-            ->layout('components.layouts.main.app');
+        $this->loadStockDetails();
+
+        return view('livewire.admin.menu-polda.material-usage.detail.admin-menu-polda-material-usage-detail-index', [
+            'stockDetails' => $this->stockDetails,
+        ])->layout('components.layouts.main.app');
     }
 }

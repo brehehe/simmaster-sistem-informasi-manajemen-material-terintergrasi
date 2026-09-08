@@ -104,8 +104,8 @@ class AdminMenuPolresLastStockDetailIndex extends Component
     {
         // Auto-fill type_detail_id when service_id is selected
         if (preg_match('/^details\.(\d+)\.service_id$/', $propertyName, $matches)) {
-            $index = $matches[1];
-            $serviceId = $this->details[$index]['service_id'];
+            $index = (int)$matches[1];
+            $serviceId = $this->details[$index]['service_id'] ?? '';
             
             if ($serviceId) {
                 $service = collect($this->services)->firstWhere('id', $serviceId);
@@ -114,6 +114,8 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                 if ($typeDetailId) {
                     $this->details[$index]['type_detail_id'] = $typeDetailId;
                 }
+                $this->details[$index]['service_detail_id'] = '';
+            } else {
                 $this->details[$index]['service_detail_id'] = '';
             }
         }
@@ -136,12 +138,23 @@ class AdminMenuPolresLastStockDetailIndex extends Component
         $this->addDetail();
     }
 
+    public function getServiceDetails($serviceId)
+    {
+        if (!$serviceId) return [];
+        return \App\Models\Service\ServiceDetail::where('service_id', $serviceId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+    }
+
     protected function loadTypeData($typeId)
     {
         if (!$typeId) return;
         
         $this->typeDetails = TypeDetail::where('type_id', $typeId)->where('is_active', true)->orderBy('name')->get();
-        $this->services = Service::with('details')
+        $this->services = Service::with(['details' => function($q) {
+                $q->where('is_active', true)->orderBy('name');
+            }])
             ->where('is_active', true)
             ->where(function($q) use ($typeId) {
                 $q->where('type_id', $typeId)
@@ -162,7 +175,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'code' => '',
             'number_serial_first' => '',
             'number_serial_second' => '',
-            'quantity' => 0,
+            'quantity' => '',
             'is_active' => true,
         ];
         $this->detailCounter++;
@@ -170,8 +183,10 @@ class AdminMenuPolresLastStockDetailIndex extends Component
 
     public function removeDetail($index)
     {
-        unset($this->details[$index]);
-        $this->details = array_values($this->details);
+        if (count($this->details) > 1) {
+            unset($this->details[$index]);
+            $this->details = array_values($this->details);
+        }
     }
 
     public function updatedPoliceStationId($value)
@@ -198,6 +213,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'typeId' => 'required|exists:types,id',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
+            'details' => 'required|array|min:1',
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
             'details.*.service_id' => 'nullable|exists:services,id',
             'details.*.service_detail_id' => 'nullable|exists:service_details,id',
@@ -224,6 +240,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'policeStationId.required' => 'Polres wajib dipilih.',
             'details.required' => 'Minimal harus mengisi 1 baris detail stok awal.',
             'details.*.quantity.required' => 'Jumlah stok awal wajib diisi.',
+            'details.*.quantity.numeric' => 'Jumlah harus berupa angka.',
             'details.*.quantity.min' => 'Jumlah stok awal minimal 1 unit.',
         ];
     }
@@ -277,9 +294,9 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                         'service_id' => $detail['service_id'] ?: null,
                         'service_detail_id' => $detail['service_detail_id'] ?: null,
                         'rack_id' => $detail['rack_id'] ?: null,
-                        'code' => $detail['code'],
-                        'number_serial_first' => $detail['number_serial_first'],
-                        'number_serial_second' => $detail['number_serial_second'],
+                        'code' => $detail['code'] ?? null,
+                        'number_serial_first' => $detail['number_serial_first'] ?? null,
+                        'number_serial_second' => $detail['number_serial_second'] ?? null,
                         'quantity' => $detail['quantity'],
                         'is_active' => $detail['is_active'] ?? true,
                     ]);
@@ -305,8 +322,33 @@ class AdminMenuPolresLastStockDetailIndex extends Component
         $user = Auth::user();
         $canSelectPoliceStation = !$user->hasRole('Polres');
 
+        $services = collect();
+        $typeDetails = collect();
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->where('is_active', true)->orderBy('name')->get();
+            $services = Service::with(['details' => function($q) {
+                    $q->where('is_active', true)->orderBy('name');
+                }])
+                ->where('is_active', true)
+                ->where(function($q) {
+                    $q->where('type_id', $this->typeId)
+                      ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $this->typeId)->pluck('id'));
+                })
+                ->orderBy('name')
+                ->get();
+            $this->services = $services;
+            $this->typeDetails = $typeDetails;
+        }
+
+        $this->loadRacks();
+
         return view('livewire.admin.menu-polres.last-stock.detail.admin-menu-polres-last-stock-detail-index', [
             'canSelectPoliceStation' => $canSelectPoliceStation,
+            'services' => $services,
+            'typeDetails' => $typeDetails,
+            'racks' => $this->racks,
+            'types' => $this->types,
+            'policeStations' => $this->policeStations,
         ])->layout('components.layouts.main.app');
     }
 }

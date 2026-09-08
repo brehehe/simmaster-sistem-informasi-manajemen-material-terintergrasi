@@ -88,12 +88,23 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->is_with_serial_number = $typeRef ? (bool) $typeRef->is_with_serial_number : false;
 
         $this->typeDetails = TypeDetail::where('type_id', $typeId)->where('is_active', true)->orderBy('name')->get();
-        $this->services = Service::with('details')
+        $this->services = Service::with(['details' => function ($q) {
+                $q->where('is_active', true)->orderBy('name');
+            }])
             ->where('is_active', true)
             ->where(function ($q) use ($typeId) {
                 $q->where('type_id', $typeId)
                   ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
             })
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function getServiceDetails($serviceId)
+    {
+        if (!$serviceId) return [];
+        return \App\Models\Service\ServiceDetail::where('service_id', $serviceId)
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
     }
@@ -261,15 +272,22 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         }
 
         if (!empty($detail['type_detail_id'])) {
-            $query->where('type_detail_id', $detail['type_detail_id']);
+            $query->where(function ($q) use ($detail) {
+                $q->where('type_detail_id', $detail['type_detail_id'])
+                  ->orWhereNull('type_detail_id');
+            });
         }
 
         if (!empty($detail['service_id'])) {
-            $query->where('service_id', $detail['service_id']);
-            if (empty($detail['service_detail_id'])) {
-                $query->whereNull('service_detail_id');
-            } else {
-                $query->where('service_detail_id', $detail['service_detail_id']);
+            $query->where(function ($q) use ($detail) {
+                $q->where('service_id', $detail['service_id'])
+                  ->orWhereNull('service_id');
+            });
+            if (!empty($detail['service_detail_id'])) {
+                $query->where(function ($q) use ($detail) {
+                    $q->where('service_detail_id', $detail['service_detail_id'])
+                      ->orWhereNull('service_detail_id');
+                });
             }
         }
 
@@ -414,10 +432,29 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
     public function render()
     {
+        $services = collect();
+        $typeDetails = collect();
+        if ($this->typeId) {
+            $typeDetails = TypeDetail::where('type_id', $this->typeId)->where('is_active', true)->orderBy('name')->get();
+            $services = Service::with(['details' => function($q) {
+                    $q->where('is_active', true)->orderBy('name');
+                }])
+                ->where('is_active', true)
+                ->where(function ($q) {
+                    $q->where('type_id', $this->typeId)
+                      ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $this->typeId)->pluck('id'));
+                })
+                ->orderBy('name')
+                ->get();
+            $this->services = $services;
+            $this->typeDetails = $typeDetails;
+        }
+
         return view('livewire.admin.menu-polres.material-usage.detail.admin-menu-polres-material-usage-detail-index', [
             'types' => Type::where('is_active', true)->orderBy('name')->get(),
-            'typeDetails' => $this->typeDetails,
-            'services' => $this->services,
+            'typeDetails' => $typeDetails,
+            'services' => $services,
+            'policeStations' => $this->policeStations,
         ])->layout('components.layouts.main.app');
     }
 }

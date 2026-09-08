@@ -64,7 +64,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Material <span class="text-red-500">*</span>
                     </label>
-                    <div wire:ignore wire:key="select-type-master-{{ rand() }}">
+                    <div wire:ignore wire:key="select-type-master">
                         <select id="select-type-master" @disabled($lastStockId) x-data x-ref="input" x-init="
                             const selectize = $($refs.input).selectize({
                                 dropdownParent: 'body',
@@ -99,7 +99,7 @@
                         Polres
                     </label>
                     @if ($canSelectPoliceStation)
-                        <div wire:ignore wire:key="select-police-station-{{ rand() }}">
+                        <div wire:ignore wire:key="select-police-station">
                             <select id="select-police-station" @disabled($lastStockId) x-data x-ref="input" x-init="
                                 const selectize = $($refs.input).selectize({
                                     dropdownParent: 'body',
@@ -180,114 +180,97 @@
                         </thead>
                         <tbody class="overflow-visible">
                             @foreach ($details as $index => $detail)
-                                <tr wire:key="row-{{ $index }}" class="bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-200">
+                                <tr wire:key="detail-row-{{ $index }}" class="bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-200">
                                     <td class="px-4 py-3 font-bold text-gray-500 rounded-l-xl">{{ $index + 1 }}</td>
                                     
                                     <!-- Detail Material -->
-                                    <td class="px-4 py-3 overflow-visible">
-                                        <div wire:ignore wire:key="td-{{ $index }}-{{ $typeId }}-{{ rand() }}">
-                                            <select @disabled($lastStockId) class="selectize-td" x-data x-ref="input" x-init="
-                                                $($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.type_detail_id', e ? e : '');
-                                                    }
-                                                });
-                                            " wire:model="details.{{ $index }}.type_detail_id">
-                                                <option value="">-- Semua --</option>
-                                                @foreach ($typeDetails as $td)
-                                                    <option value="{{ $td->id }}">{{ $td->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <td class="px-4 py-3">
+                                        <select wire:model.live="details.{{ $index }}.type_detail_id" @disabled($lastStockId)
+                                            class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                            <option value="">-- Semua --</option>
+                                            @foreach ($typeDetails as $td)
+                                                <option value="{{ $td->id }}">{{ $td->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error("details.{$index}.type_detail_id")
+                                            <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                        @enderror
                                     </td>
 
                                     <!-- Service -->
-                                    <td class="px-4 py-3 overflow-visible">
-                                        <div wire:ignore wire:key="svc-{{ $index }}-{{ $typeId }}-{{ rand() }}">
-                                            <select @disabled($lastStockId) class="selectize-svc" x-data x-ref="input" x-init="
-                                                $($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.service_id', e ? e : '');
-                                                    }
-                                                });
-                                            " wire:model="details.{{ $index }}.service_id">
-                                                <option value="">-- Semua --</option>
-                                                @foreach ($services as $svc)
-                                                    <option value="{{ $svc->id }}">{{ $svc->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <td class="px-4 py-3">
+                                        <select wire:model.live="details.{{ $index }}.service_id" @disabled($lastStockId)
+                                            class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                            <option value="">-- Semua --</option>
+                                            @foreach ($services as $svc)
+                                                <option value="{{ $svc->id }}">{{ $svc->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error("details.{$index}.service_id")
+                                            <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                        @enderror
                                     </td>
 
                                     <!-- Service Detail -->
-                                    <td class="px-4 py-3 overflow-visible">
-                                        <div wire:ignore wire:key="svcd-{{ $index }}-{{ $detail['service_id'] ?? 'none' }}-{{ rand() }}">
-                                            <select @disabled($lastStockId) class="selectize-svcd" x-data x-ref="input" x-init="
-                                                $($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.service_detail_id', e ? e : '');
-                                                    }
-                                                });
-                                            " wire:model="details.{{ $index }}.service_detail_id">
-                                                <option value="">-- Semua --</option>
-                                                @if (!empty($detail['service_id']))
-                                                    @php
-                                                        $selectedService = collect($services)->firstWhere('id', $detail['service_id']);
-                                                    @endphp
-                                                    @if ($selectedService && $selectedService->details)
-                                                        @foreach ($selectedService->details as $sd)
-                                                            <option value="{{ $sd->id }}">{{ $sd->name }}</option>
-                                                        @endforeach
-                                                    @endif
-                                                @endif
-                                            </select>
-                                        </div>
+                                    <td class="px-4 py-3">
+                                        <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($lastStockId)
+                                            class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                            <option value="">-- Semua --</option>
+                                            @if (!empty($detail['service_id']))
+                                                @foreach ($this->getServiceDetails($detail['service_id']) as $sd)
+                                                    <option value="{{ $sd->id }}">{{ $sd->name }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        @error("details.{$index}.service_detail_id")
+                                            <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                        @enderror
                                     </td>
 
                                     <!-- Rack -->
-                                    <td class="px-4 py-3 overflow-visible">
-                                        <div wire:ignore wire:key="rack-{{ $index }}-{{ $policeStationId ?? 'none' }}-{{ rand() }}">
-                                            <select @disabled($lastStockId) class="selectize-rack" x-data x-ref="input" x-init="
-                                                $($refs.input).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    onChange: function(e) {
-                                                        @this.set('details.{{ $index }}.rack_id', e ? e : '');
-                                                    }
-                                                });
-                                            " wire:model="details.{{ $index }}.rack_id">
-                                                <option value="">-- Tanpa Rak --</option>
-                                                @foreach ($racks as $rack)
-                                                    <option value="{{ $rack->id }}">{{ $rack->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <td class="px-4 py-3">
+                                        <select wire:model.live="details.{{ $index }}.rack_id" @disabled($lastStockId)
+                                            class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                            <option value="">-- Tanpa Rak --</option>
+                                            @foreach ($racks as $rack)
+                                                <option value="{{ $rack->id }}">{{ $rack->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error("details.{$index}.rack_id")
+                                            <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                        @enderror
                                     </td>
 
                                     @if ($is_with_serial_number)
                                         <td class="px-4 py-3">
                                             <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.code" @disabled($lastStockId)
-                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="Kode">
+                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="Kode">
+                                            @error("details.{$index}.code")
+                                                <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                            @enderror
                                         </td>
                                         <td class="px-4 py-3">
                                             <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_first" @disabled($lastStockId)
-                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="SN1">
+                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="SN1">
+                                            @error("details.{$index}.number_serial_first")
+                                                <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                            @enderror
                                         </td>
                                         <td class="px-4 py-3">
                                             <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_second" @disabled($lastStockId)
-                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="SN2">
+                                                class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="SN2">
+                                            @error("details.{$index}.number_serial_second")
+                                                <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                            @enderror
                                         </td>
                                     @endif
 
                                     <td class="px-4 py-3">
                                         <input type="number" wire:model.live="details.{{ $index }}.quantity" @disabled($lastStockId) step="0.01"
-                                            class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="0">
+                                            class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="0">
+                                        @error("details.{$index}.quantity")
+                                            <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
+                                        @enderror
                                     </td>
 
                                     @if (!$lastStockId)
