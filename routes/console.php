@@ -37,7 +37,7 @@ Artisan::command('bamat:create-all {--password=password : Default password untuk
 
     $userTypeDefinitions = [
         'BAMAT' => ['types' => $allTypeIds, 'level' => 1, 'desc' => 'Bintara Administrasi Materiel SBST'],
-        'SAMSAT POLDA' => ['types' => $getTypeIds(['STNK', 'TNKB REG', 'TNKB R2 PUTIH', 'TNKB R4 PUTIH', 'BPKB', 'E-BPKB', 'STCK']), 'level' => 2, 'desc' => 'Pelayanan Samsat Ditlantas Polda Jatim'],
+        'SAMSAT POLDA' => ['types' => $getTypeIds(['STNK', 'TNKB REG', 'TNKB R2 PUTIH', 'TNKB R4 PUTIH', 'MUTASI']), 'level' => 2, 'desc' => 'Pelayanan Samsat Ditlantas Polda Jatim'],
         'SIE FASMAT' => ['types' => $allTypeIds, 'level' => 2, 'desc' => 'Seksi Fasilitas Materiel SBST Ditlantas'],
         'SIE STNK' => ['types' => $getTypeIds(['STNK', 'STCK']), 'level' => 2, 'desc' => 'Seksi STNK Ditlantas Polda Jatim'],
         'SIE BPKB' => ['types' => $getTypeIds(['E-BPKB', 'BPKB', 'MUTASI']), 'level' => 2, 'desc' => 'Seksi BPKB Ditlantas Polda Jatim'],
@@ -277,3 +277,63 @@ Artisan::command('bamat:create-all {--password=password : Default password untuk
     $this->info("Password default untuk semua akun di atas: {$defaultPassword}");
     $this->info("================================================================");
 })->purpose('Generate atau update akun BAMAT Polres, SAMSAT Polda, dan Pelayanan Polda dengan domain @armaster.net');
+
+Artisan::command('fix:check {issue?}', function ($issue = 'all') {
+    $this->info("Running fix:check for issue: {$issue}");
+
+    // Issue 7: Bangkalan STNK
+    if ($issue === 'all' || $issue === 'bangkalan') {
+        $this->info("\n--- 7. BANGKALAN STNK ---");
+        $bangkalan = PoliceStation::where('name', 'ilike', '%bangkalan%')->first();
+        $stnk = Type::where('name', 'STNK')->first();
+        if ($bangkalan && $stnk) {
+            $ls = \App\Models\LastStock\LastStock::where('police_station_id', $bangkalan->id)->where('type_id', $stnk->id)->with('lastStockDetails')->get();
+            foreach ($ls as $l) {
+                $this->line("LastStock {$l->code} | date: {$l->date->format('Y-m-d')} | Qty: " . $l->lastStockDetails->sum('quantity'));
+                foreach ($l->lastStockDetails as $d) {
+                    $this->line("  Detail id: {$d->id} | Qty: {$d->quantity} | serial: {$d->number_serial_first} - {$d->number_serial_second} | code: {$d->code}");
+                }
+            }
+            $stocks = \App\Models\Stock\Stock::where('police_station_id', $bangkalan->id)->where('type_id', $stnk->id)->with('stockDetails')->get();
+            foreach ($stocks as $s) {
+                $this->line("Stock id: {$s->id} | Qty: {$s->quantity}");
+                foreach ($s->stockDetails as $sd) {
+                    $this->line("  StockDetail id: {$sd->id} | Qty: {$sd->quantity} | serial: {$sd->number_serial_first} - {$sd->number_serial_second}");
+                }
+            }
+            $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsage::where('police_station_id', $bangkalan->id)
+                ->whereHas('materialUsageDetails', fn($q) => $q->where('type_id', $stnk->id))
+                ->with(['materialUsageDetails' => fn($q) => $q->where('type_id', $stnk->id)])
+                ->get();
+            $this->line("Total Usages: " . $usages->count() . " | Sum qty: " . $usages->flatMap->materialUsageDetails->sum('quantity'));
+        }
+    }
+
+    // Issue 8: Mojokerto Kab
+    if ($issue === 'all' || $issue === 'mojokerto') {
+        $this->info("\n--- 8. MOJOKERTO KAB (TNKB R2 PUTIH & MUTASI) ---");
+        $mojokerto = PoliceStation::where('name', 'ilike', '%mojokerto%')->where('name', 'not ilike', '%kota%')->first();
+        $this->line("Police Station: " . ($mojokerto->name ?? 'NULL') . " (ID: " . ($mojokerto->id ?? 'NULL') . ")");
+        $types = Type::whereIn('name', ['TNKB R2 PUTIH', 'MUTASI'])->get();
+        foreach ($types as $t) {
+            $stocks = \App\Models\Stock\Stock::where('police_station_id', $mojokerto->id)->where('type_id', $t->id)->with('stockDetails')->get();
+            foreach ($stocks as $s) {
+                $this->line("Type {$t->name} Stock id: {$s->id} | Qty: {$s->quantity}");
+                foreach ($s->stockDetails as $sd) {
+                    $this->line("  StockDetail id: {$sd->id} | Qty: {$sd->quantity} | rack: {$sd->rack_id}");
+                }
+            }
+        }
+    }
+
+    // Issue 6: Samsat Surabaya Barat
+    if ($issue === 'all' || $issue === 'sby_barat') {
+        $this->info("\n--- 6. SAMSAT SBY BARAT ---");
+        $user = User::where('email', 'bamat-samsat-barat@armaster.net')->with(['userType', 'roles'])->first();
+        $this->line("User: " . ($user->name ?? 'NULL') . " | Role: " . $user->roles->pluck('name')->implode(', '));
+        $this->line("UserType: " . ($user->userType->name ?? 'NULL') . " | Types count: " . count($user->userType->types ?? []));
+        $userTypes = Type::whereIn('id', $user->userType->types ?? [])->pluck('name')->toArray();
+        $this->line("UserType types: " . implode(', ', $userTypes));
+    }
+});
+

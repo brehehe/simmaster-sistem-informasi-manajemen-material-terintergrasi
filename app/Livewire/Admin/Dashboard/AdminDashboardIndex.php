@@ -12,6 +12,7 @@ use App\Models\Police\RegionalPolice;
 use App\Models\Rack\Rack;
 use App\Models\Reception\Reception;
 use App\Models\Stock\Stock;
+use App\Models\Stock\StockDetail;
 use App\Services\DashboardStatsService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -251,15 +252,19 @@ class AdminDashboardIndex extends Component
                     ];
                 });
 
-            $stockByMaterial = Stock::where('police_station_id', $stationId)
-                ->whereNull('type_detail_id')
+            $stockByMaterial = StockDetail::where('police_station_id', $stationId)
+                ->where('is_active', true)
+                ->where('quantity', '>', 0)
                 ->with('type')
                 ->get()
                 ->groupBy('type_id')
-                ->map(fn($group) => [
-                    'type_name' => $group->first()->type?->name ?? 'Material',
-                    'total_stock' => (int)$group->sum('quantity')
-                ])->values();
+                ->map(function ($items) {
+                    $pnbpQty = $items->whereNull('type_detail_id')->sum('quantity');
+                    return [
+                        'type_name' => $items->first()->type?->name ?? 'Material',
+                        'total_stock' => (int) ($pnbpQty > 0 ? $pnbpQty : $items->sum('quantity'))
+                    ];
+                })->values();
 
             $damageTotal = MaterialDamageDetail::whereHas('materialDamage', fn($q) => $q->where('police_station_id', $stationId))->sum('quantity') ?? 0;
             $damageByMaterial = MaterialDamageDetail::whereHas('materialDamage', fn($q) => $q->where('police_station_id', $stationId))

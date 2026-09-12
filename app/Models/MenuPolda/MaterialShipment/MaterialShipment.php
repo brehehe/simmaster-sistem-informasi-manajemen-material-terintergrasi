@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MaterialShipment extends Model
 {
@@ -204,6 +205,86 @@ class MaterialShipment extends Model
             $this->received_at = now();
             $this->received_by = $user->id;
             $this->save();
+        });
+    }
+
+    /**
+     * Delete shipment with stock reversal and without creating new history records.
+     */
+    public function deleteWithStockReversal(): void
+    {
+        DB::transaction(function () {
+            // Revert stock if shipment was received by Polres
+            if ($this->status === 'received') {
+                foreach ($this->materialShipmentDetails as $detail) {
+                    // 1. Return deducted stock back to Polda
+                    $poldaStock = Stock::where('regional_police_id', $this->sender_regional_police_id)
+                        ->where('type_id', $detail->type_id)
+                        ->where(function ($q) use ($detail) {
+                            if ($detail->type_detail_id) {
+                                $q->where('type_detail_id', $detail->type_detail_id);
+                            } else {
+                                $q->whereNull('type_detail_id');
+                            }
+                        })
+                        ->first();
+
+                    if ($poldaStock) {
+                        $poldaStock->quantity += $detail->quantity;
+                        $poldaStock->save();
+                    }
+
+                    if ($detail->stock_detail_id) {
+                        $poldaStockDetail = StockDetail::find($detail->stock_detail_id);
+                        if ($poldaStockDetail) {
+                            $poldaStockDetail->quantity += $detail->quantity;
+                            $poldaStockDetail->save();
+                        }
+                    }
+
+                    // 2. Deduct added stock from Polres
+                    $polresStock = Stock::where('police_station_id', $this->receiver_police_station_id)
+                        ->where('type_id', $detail->type_id)
+                        ->where(function ($q) use ($detail) {
+                            if ($detail->type_detail_id) {
+                                $q->where('type_detail_id', $detail->type_detail_id);
+                            } else {
+                                $q->whereNull('type_detail_id');
+                            }
+                        })
+                        ->first();
+
+                    if ($polresStock) {
+                        $polresStock->quantity = max(0, $polresStock->quantity - $detail->quantity);
+                        $polresStock->save();
+                    }
+
+                    // Remove the stock detail that was created at Polres on receive
+                    StockDetail::where('police_station_id', $this->receiver_police_station_id)
+                        ->where('type_id', $detail->type_id)
+                        ->where(function ($q) use ($detail) {
+                            if ($detail->type_detail_id) {
+                                $q->where('type_detail_id', $detail->type_detail_id);
+                            } else {
+                                $q->whereNull('type_detail_id');
+                            }
+                        })
+                        ->where('description', 'like', "%{$this->code}%")
+                        ->forceDelete();
+                }
+
+                // Delete any HistoryStock associated with this shipment code (clean reversal without creating new history)
+                HistoryStock::where('description', 'like', "%{$this->code}%")->forceDelete();
+            }
+
+            // Cleanup any uploaded picking photo
+            if ($this->picker_photo && Storage::disk('public')->exists($this->picker_photo)) {
+                Storage::disk('public')->delete($this->picker_photo);
+            }
+
+            // Delete shipment details and shipment header
+            $this->materialShipmentDetails()->forceDelete();
+            $this->forceDelete();
         });
     }
 }

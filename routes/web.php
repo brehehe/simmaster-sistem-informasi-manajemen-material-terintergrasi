@@ -17,6 +17,67 @@ Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 })->name('main');
 
+Route::get('/dev-check', function () {
+    $result = [];
+
+    // 1. Bangkalan STNK
+    $bangkalan = \App\Models\Police\PoliceStation::where('name', 'ilike', '%bangkalan%')->first();
+    $stnk = \App\Models\Type\Type::where('name', 'STNK')->first();
+    if ($stnk) {
+        $result['stnk_services'] = \App\Models\Service\Service::where('type_id', $stnk->id)->with('details')->get()->toArray();
+    }
+
+    // Jember BPKB details
+    $jember = \App\Models\Police\PoliceStation::where('name', 'ilike', '%jember%')->first();
+    $bpkbType = \App\Models\Type\Type::where('name', 'BPKB')->first();
+    if ($jember && $bpkbType) {
+        $jemberLSTrashed = \App\Models\LastStock\LastStock::withTrashed()->where('police_station_id', $jember->id)->where('type_id', $bpkbType->id)->with('lastStockDetails')->get();
+        $jemberStock = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->where('type_id', $bpkbType->id)->with('stockDetails')->first();
+        $jemberUsages = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::where('type_id', $bpkbType->id)
+            ->whereHas('materialUsage', fn($mu) => $mu->where('police_station_id', $jember->id))
+            ->get();
+        $result['jember_bpkb'] = [
+            'last_stocks_trashed' => $jemberLSTrashed->toArray(),
+            'stock' => $jemberStock ? $jemberStock->toArray() : null,
+            'usages_sum' => $jemberUsages->sum('quantity'),
+            'usages' => $jemberUsages->toArray(),
+        ];
+    }
+
+    // 3. Jember All Materials
+    $jember = \App\Models\Police\PoliceStation::where('name', 'ilike', '%jember%')->first();
+    if ($jember) {
+        $jemberStocks = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->with('type:id,name')->get();
+        $jemberLastStocks = \App\Models\LastStock\LastStock::where('police_station_id', $jember->id)->with(['type:id,name', 'lastStockDetails'])->get();
+        $result['jember'] = [
+            'stocks' => $jemberStocks->map(fn($s) => ['type' => $s->type?->name, 'qty' => $s->quantity]),
+            'lastStocks' => $jemberLastStocks->map(fn($l) => ['code' => $l->code, 'type' => $l->type?->name, 'qty' => $l->lastStockDetails->sum('quantity')]),
+        ];
+    }
+
+    // 4. Bondowoso TNKB R2 Hitam Listrik
+    $bondowoso = \App\Models\Police\PoliceStation::where('name', 'ilike', '%bondowoso%')->first();
+    $r2HitamListrik = \App\Models\Type\Type::where('name', 'ilike', '%TNKB R2 HITAM LISTRIK%')->first();
+    if ($bondowoso && $r2HitamListrik) {
+        $st = \App\Models\Stock\Stock::where('police_station_id', $bondowoso->id)->where('type_id', $r2HitamListrik->id)->with('stockDetails')->first();
+        $ls = \App\Models\LastStock\LastStock::where('police_station_id', $bondowoso->id)->where('type_id', $r2HitamListrik->id)->with('lastStockDetails')->first();
+        $result['bondowoso_r2_hitam_listrik'] = [
+            'stock' => $st ? $st->toArray() : null,
+            'lastStock' => $ls ? $ls->toArray() : null,
+        ];
+    }
+
+    // 5. Samsat SBY Barat
+    $userBarat = \App\Models\User::where('email', 'bamat-samsat-barat@armaster.net')->with(['userType', 'roles'])->first();
+    $result['samsat_barat'] = [
+        'user' => $userBarat ? $userBarat->toArray() : null,
+        'roles' => $userBarat ? $userBarat->roles->pluck('name')->toArray() : [],
+        'types_names' => $userBarat && $userBarat->userType ? \App\Models\Type\Type::whereIn('id', $userBarat->userType->types ?? [])->pluck('name')->toArray() : [],
+    ];
+
+    return response()->json($result);
+});
+
 Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewire\\Admin'], function () {
     Route::get('dashboard', 'Dashboard\\AdminDashboardIndex')
         ->name('dashboard');

@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
             if (str_starts_with($modelClass, 'App\\')) {
                 $modelClass::addGlobalScope('default_order', function (Builder $builder) {
                     $query = $builder->getQuery();
-                    if (empty($query->orders) && empty($query->groups) && empty($query->aggregate)) {
+                    if (empty($query->orders) && empty($query->groups) && empty($query->aggregate) && ! $query->distinct) {
                         // Check if any custom selected columns contain aggregate functions
                         $hasAggregate = false;
                         if (! empty($query->columns)) {

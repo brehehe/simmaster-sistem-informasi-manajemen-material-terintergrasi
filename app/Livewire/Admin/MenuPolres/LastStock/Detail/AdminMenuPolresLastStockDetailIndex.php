@@ -221,7 +221,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
-            'details.*.quantity' => 'required|numeric|min:1',
+            'details.*.quantity' => 'required|numeric|min:0',
         ];
 
         if (!$user->hasRole('Polres')) {
@@ -238,10 +238,10 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'date.required' => 'Tanggal stok awal wajib diisi.',
             'typeId.required' => 'Material utama wajib dipilih.',
             'policeStationId.required' => 'Polres wajib dipilih.',
-            'details.required' => 'Minimal harus mengisi 1 baris detail stok awal.',
-            'details.*.quantity.required' => 'Jumlah stok awal wajib diisi.',
-            'details.*.quantity.numeric' => 'Jumlah harus berupa angka.',
-            'details.*.quantity.min' => 'Jumlah stok awal minimal 1 unit.',
+            'details.required' => 'Rincian material wajib diisi minimal satu.',
+            'details.*.quantity.required' => 'Jumlah kuantitas wajib diisi.',
+            'details.*.quantity.numeric' => 'Jumlah kuantitas harus berupa angka.',
+            'details.*.quantity.min' => 'Jumlah kuantitas minimal 0.',
         ];
     }
 
@@ -286,7 +286,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             }
 
             foreach ($this->details as $detail) {
-                if (($detail['quantity'] ?? 0) > 0) {
+                if (isset($detail['quantity']) && is_numeric($detail['quantity']) && $detail['quantity'] >= 0) {
                     LastStockDetail::create([
                         'last_stock_id' => $lastStock->id,
                         'type_id' => $this->typeId,

@@ -119,12 +119,17 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
     public function delete()
     {
         if ($this->shipmentId) {
-            $shipment = MaterialShipment::find($this->shipmentId);
-            if ($shipment && $shipment->status === 'draft') {
-                $shipment->delete();
-                session()->flash('success', 'Pengiriman berhasil dihapus.');
+            $shipment = MaterialShipment::with('materialShipmentDetails')->find($this->shipmentId);
+            if ($shipment) {
+                try {
+                    $code = $shipment->code;
+                    $shipment->deleteWithStockReversal();
+                    session()->flash('success', "Pengiriman {$code} berhasil dihapus.");
+                } catch (\Exception $e) {
+                    session()->flash('error', 'Gagal menghapus pengiriman: ' . $e->getMessage());
+                }
             } else {
-                session()->flash('error', 'Hanya pengiriman dengan status draft yang bisa dihapus.');
+                session()->flash('error', 'Data pengiriman tidak ditemukan.');
             }
         }
         $this->closeModal();
