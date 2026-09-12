@@ -281,6 +281,19 @@ Artisan::command('bamat:create-all {--password=password : Default password untuk
 Artisan::command('fix:check {issue?}', function ($issue = 'all') {
     $this->info("Running fix:check for issue: {$issue}");
 
+    // Issue 1, 2, 4, 5: STNK Services
+    if ($issue === 'all' || $issue === 'stnk') {
+        $this->info("\n--- STNK SERVICES ---");
+        $stnk = Type::where('name', 'STNK')->first();
+        if ($stnk) {
+            $svcs = \App\Models\Service\Service::where('type_id', $stnk->id)->with('details')->get();
+            foreach ($svcs as $s) {
+                $usageCount = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::where('service_id', $s->id)->count();
+                $this->line("Service: {$s->id} | {$s->name} | active: " . ($s->is_active ? 'Y' : 'N') . " | UsageItems: {$usageCount}");
+            }
+        }
+    }
+
     // Issue 7: Bangkalan STNK
     if ($issue === 'all' || $issue === 'bangkalan') {
         $this->info("\n--- 7. BANGKALAN STNK ---");
@@ -335,5 +348,328 @@ Artisan::command('fix:check {issue?}', function ($issue = 'all') {
         $userTypes = Type::whereIn('id', $user->userType->types ?? [])->pluck('name')->toArray();
         $this->line("UserType types: " . implode(', ', $userTypes));
     }
+
+    // Issue 2: Bondowoso
+    if ($issue === 'all' || $issue === 'bondowoso') {
+        $this->info("\n--- 2. BONDOWOSO TNKB R2 HITAM LISTRIK ---");
+        $bondowoso = PoliceStation::where('name', 'ilike', '%bondowoso%')->first();
+        $tListrik = Type::where('name', 'ilike', '%TNKB%LISTRIK%')->orWhere('name', 'ilike', '%TCKB%')->get();
+        foreach ($tListrik as $tl) {
+            $this->line("Type found: {$tl->id} | {$tl->name}");
+            if ($bondowoso) {
+                $stocks = \App\Models\Stock\Stock::where('police_station_id', $bondowoso->id)->where('type_id', $tl->id)->with('stockDetails')->get();
+                foreach ($stocks as $s) {
+                    $this->line("  Stock {$s->id} | Qty: {$s->quantity}");
+                    foreach ($s->stockDetails as $sd) {
+                        $this->line("    StockDetail {$sd->id} | Qty: {$sd->quantity} | serial: {$sd->number_serial_first} - {$sd->number_serial_second}");
+                    }
+                }
+                $ls = \App\Models\LastStock\LastStock::where('police_station_id', $bondowoso->id)->where('type_id', $tl->id)->with('lastStockDetails')->get();
+                foreach ($ls as $l) {
+                    $this->line("  LastStock {$l->code} | Qty: " . $l->lastStockDetails->sum('quantity'));
+                    foreach ($l->lastStockDetails as $ld) {
+                        $this->line("    LastStockDetail {$ld->id} | Qty: {$ld->quantity}");
+                    }
+                }
+                $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsage::where('police_station_id', $bondowoso->id)
+                    ->whereHas('materialUsageDetails', fn($q) => $q->where('type_id', $tl->id))
+                    ->with(['materialUsageDetails' => fn($q) => $q->where('type_id', $tl->id)])
+                    ->get();
+                foreach ($usages as $u) {
+                    $this->line("  Usage {$u->code} | Date: {$u->date->format('Y-m-d')} | Qty: " . $u->materialUsageDetails->sum('quantity'));
+                }
+            }
+        }
+    }
+
+    // Issue 3: Jember
+    if ($issue === 'all' || $issue === 'jember') {
+        $this->info("\n--- 3. JEMBER BPKB & ALL MATERIALS ---");
+        $jember = PoliceStation::where('name', 'ilike', '%jember%')->first();
+        if ($jember) {
+            $bpkbTypes = Type::where('name', 'ilike', '%BPKB%')->get();
+            foreach ($bpkbTypes as $bt) {
+                $this->line("BPKB Type: {$bt->id} | {$bt->name}");
+                $stocks = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->where('type_id', $bt->id)->with('stockDetails')->get();
+                foreach ($stocks as $s) {
+                    $this->line("  Stock {$s->id} | Qty: {$s->quantity}");
+                    foreach ($s->stockDetails as $sd) {
+                        $this->line("    StockDetail {$sd->id} | Qty: {$sd->quantity} | serial: {$sd->number_serial_first} - {$sd->number_serial_second}");
+                    }
+                }
+                $ls = \App\Models\LastStock\LastStock::where('police_station_id', $jember->id)->where('type_id', $bt->id)->with('lastStockDetails')->get();
+                foreach ($ls as $l) {
+                    $this->line("  LastStock {$l->code} | Qty: " . $l->lastStockDetails->sum('quantity'));
+                    foreach ($l->lastStockDetails as $ld) {
+                        $this->line("    LastStockDetail {$ld->id} | Qty: {$ld->quantity}");
+                    }
+                }
+                $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsage::where('police_station_id', $jember->id)
+                    ->whereHas('materialUsageDetails', fn($q) => $q->where('type_id', $bt->id))
+                    ->with(['materialUsageDetails' => fn($q) => $q->where('type_id', $bt->id)])
+                    ->get();
+                foreach ($usages as $u) {
+                    $this->line("  Usage {$u->code} | Date: {$u->date->format('Y-m-d')} | Qty: " . $u->materialUsageDetails->sum('quantity'));
+                }
+            }
+
+            // Check negative / 0 stocks for Jember
+            $this->line("\nJember all stocks:");
+            $allJemberStocks = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->with('type')->get();
+            foreach ($allJemberStocks as $js) {
+                $this->line("  Type: {$js->type?->name} | Qty: {$js->quantity}");
+            }
+        }
+    }
+
+    // Issue 4: Situbondo
+    if ($issue === 'all' || $issue === 'situbondo') {
+        $this->info("\n--- 4. SITUBONDO TCKB R2 LISTRIK ---");
+        $situbondo = PoliceStation::where('name', 'ilike', '%situbondo%')->first();
+        if ($situbondo) {
+            $tckbTypes = Type::where('name', 'ilike', '%TCKB%')->orWhere('name', 'ilike', '%listrik%')->get();
+            foreach ($tckbTypes as $tt) {
+                $this->line("Type: {$tt->id} | {$tt->name}");
+                $st = \App\Models\Stock\Stock::where('police_station_id', $situbondo->id)->where('type_id', $tt->id)->first();
+                $ls = \App\Models\LastStock\LastStock::where('police_station_id', $situbondo->id)->where('type_id', $tt->id)->with('lastStockDetails')->first();
+                $this->line("  Stock Qty: " . ($st ? $st->quantity : 'NONE') . " | LastStock Qty: " . ($ls ? $ls->lastStockDetails->sum('quantity') : 'NONE'));
+            }
+        }
+    }
+
+    // Issue 5: Blitar Kota
+    if ($issue === 'all' || $issue === 'blitar') {
+        $this->info("\n--- 5. BLITAR KOTA STNK USAGES ---");
+        $blitar = PoliceStation::where('name', 'ilike', '%blitar%')->where('name', 'ilike', '%kota%')->first();
+        if ($blitar) {
+            $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsage::where('police_station_id', $blitar->id)
+                ->with(['materialUsageDetails.materialUsageDetailItems.service'])
+                ->get();
+            foreach ($usages as $u) {
+                $this->line("Usage: {$u->code} | Date: {$u->date->format('Y-m-d')}");
+                foreach ($u->materialUsageDetails as $ud) {
+                    foreach ($ud->materialUsageDetailItems as $udi) {
+                        $this->line("  Item: " . ($udi->service->name ?? 'NO SERVICE') . " | Qty: {$udi->quantity}");
+                    }
+                }
+            }
+        }
+    }
 });
+
+Artisan::command('fix:issues', function () {
+    $this->info("================================================================");
+    $this->info("  MEMULAI PERBAIKAN 8 KENDALA POLRES & SAMSAT");
+    $this->info("================================================================");
+
+    DB::transaction(function () {
+        // 1. Normalisasi Service STNK (Issue 1, 2, 4, 5, 6)
+        $this->info("\n1. Normalisasi Layanan STNK...");
+        $targetService = \App\Models\Service\Service::find('01a01567-4ae2-7395-b9ac-d64ad5f8b022');
+        if ($targetService) {
+            $targetService->update([
+                'name' => 'Penerbitan STNK Roda 2 atau 3 Perpanjangan',
+                'is_active' => true,
+            ]);
+            $this->info("   -> Updated service 01a01567-4ae2-7395-b9ac-d64ad5f8b022 to 'Penerbitan STNK Roda 2 atau 3 Perpanjangan'");
+        }
+
+        $duplicateService = \App\Models\Service\Service::find('01a0957f-2cf3-72e1-a0c4-b090ea47d0df');
+        if ($duplicateService) {
+            $migrated = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::where('service_id', $duplicateService->id)
+                ->update(['service_id' => $targetService->id]);
+            $this->info("   -> Migrated {$migrated} usage items from duplicate service to main service");
+            
+            \App\Models\Stock\StockDetail::where('service_id', $duplicateService->id)
+                ->update(['service_id' => $targetService->id]);
+            \App\Models\LastStock\LastStockDetail::where('service_id', $duplicateService->id)
+                ->update(['service_id' => $targetService->id]);
+            
+            $duplicateService->forceDelete();
+            $this->info("   -> Removed duplicate service 01a0957f-2cf3-72e1-a0c4-b090ea47d0df");
+        }
+
+        // 2. Realokasi Penggunaan STNK Blitar Kota (Issue 5)
+        $this->info("\n2. Realokasi Penggunaan STNK Blitar Kota...");
+        $blitarKota = PoliceStation::where('name', 'ilike', '%blitar%')->where('name', 'ilike', '%kota%')->first();
+        if ($blitarKota && $targetService) {
+            $usageCodes = ['MU-20260911-0046', 'MU-20260911-0047', 'MU-20260912-0004'];
+            $perubahanSvc = \App\Models\Service\Service::find('01a01567-c0b0-704c-b1d5-2e356a367948'); // Penerbitan STNK Roda 2 atau 3 Perubahan
+            
+            $blitarItems = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::with('materialUsage')->whereHas('materialUsage', function ($q) use ($blitarKota, $usageCodes) {
+                $q->where('police_station_id', $blitarKota->id)->whereIn('code', $usageCodes);
+            })->where('service_id', $perubahanSvc?->id)->get();
+
+            foreach ($blitarItems as $bi) {
+                $bi->update(['service_id' => $targetService->id]);
+                $this->info("   -> Reallocated Blitar item (Qty: {$bi->quantity}) under {$bi->materialUsage->code} to {$targetService->name}");
+            }
+        }
+
+        // 3. Update UserType SAMSAT POLDA (Issue 6)
+        $this->info("\n3. Update UserType SAMSAT POLDA...");
+        $samsatTypeNames = ['STNK', 'TNKB REG', 'TNKB R2 PUTIH', 'TNKB R4 PUTIH', 'MUTASI'];
+        $samsatTypeIds = Type::whereIn('name', $samsatTypeNames)->pluck('id')->toArray();
+        $samsatUserType = UserType::where('name', 'SAMSAT POLDA')->first();
+        if ($samsatUserType) {
+            $samsatUserType->update([
+                'types' => $samsatTypeIds,
+                'level_user' => 2,
+                'description' => 'Pelayanan Samsat Ditlantas Polda Jatim',
+                'is_active' => true,
+            ]);
+            $this->info("   -> SAMSAT POLDA types updated to: " . implode(', ', $samsatTypeNames));
+        }
+
+        // 4. Bangkalan STNK Pengurangan 225 (Issue 7)
+        $this->info("\n4. Bangkalan STNK Pengurangan 225...");
+        $lsd = \App\Models\LastStock\LastStockDetail::find('01a09604-fb66-73cf-a49b-c8117e6a6462');
+        if ($lsd) {
+            $lsd->update(['quantity' => 573.00]);
+            $this->info("   -> Bangkalan LastStockDetail 01a09604-fb66-73cf-a49b-c8117e6a6462 set to 573.00");
+        }
+        $sd = \App\Models\Stock\StockDetail::find('01a09604-fb85-7311-95c6-80e84077f564');
+        if ($sd) {
+            $sd->update(['quantity' => 573.00]);
+            $this->info("   -> Bangkalan StockDetail 01a09604-fb85-7311-95c6-80e84077f564 set to 573.00");
+        }
+        $sd2 = \App\Models\Stock\StockDetail::find('01a09604-fba1-73cd-8124-ba3296f37de7');
+        if ($sd2) {
+            $sd2->update(['quantity' => 177.00]);
+            $this->info("   -> Bangkalan StockDetail 01a09604-fba1-73cd-8124-ba3296f37de7 set to 177.00 (1000 - 823 usages)");
+        }
+        $bangkalanStock = \App\Models\Stock\Stock::find('01a07c27-8bb7-72ed-bea7-f156673da686');
+        if ($bangkalanStock) {
+            $bangkalanStock->update(['quantity' => 1750.00]);
+            $this->info("   -> Bangkalan Stock 01a07c27-8bb7-72ed-bea7-f156673da686 set to 1750.00");
+        }
+        $hs = \App\Models\Stock\HistoryStock::find('01a09604-fb96-706b-8b04-380d82b802b6');
+        if ($hs) {
+            $hs->update(['quantity' => 573.00]);
+            $this->info("   -> Bangkalan HistoryStock 01a09604-fb96-706b-8b04-380d82b802b6 set to 573.00");
+        }
+        // Relink Bangkalan usages to active stock details
+        \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::where('stock_detail_id', '01a07c93-9c81-7012-ac94-cfc1e2289bed')
+            ->update(['stock_detail_id' => '01a09604-fb85-7311-95c6-80e84077f564']);
+        \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::where('stock_detail_id', '01a07c93-9c81-7012-ac94-cfc1e2289bed')
+            ->update(['stock_detail_id' => '01a09604-fb85-7311-95c6-80e84077f564']);
+
+        \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::where('stock_detail_id', '01a07c93-9c9d-7175-8f7a-70cc877269c5')
+            ->update(['stock_detail_id' => '01a09604-fba1-73cd-8124-ba3296f37de7']);
+        \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::where('stock_detail_id', '01a07c93-9c9d-7175-8f7a-70cc877269c5')
+            ->update(['stock_detail_id' => '01a09604-fba1-73cd-8124-ba3296f37de7']);
+        $this->info("   -> Relinked Bangkalan material usages to active stock details");
+
+        // 5. Mojokerto Kab Stock Synchronization (Issue 8)
+        $this->info("\n5. Mojokerto Kab Stock Synchronization...");
+        $mojokerto = PoliceStation::where('name', 'ilike', '%mojokerto%')->where('name', 'not ilike', '%kota%')->first();
+        if ($mojokerto) {
+            $tMutasi = Type::where('name', 'MUTASI')->first();
+            $tTnkbR2 = Type::where('name', 'TNKB R2 PUTIH')->first();
+            if ($tMutasi) {
+                \App\Models\Stock\Stock::where('police_station_id', $mojokerto->id)->where('type_id', $tMutasi->id)
+                    ->update(['quantity' => 3048.00]);
+                $this->info("   -> Mojokerto Kab MUTASI Stock set to 3048.00");
+            }
+            if ($tTnkbR2) {
+                \App\Models\Stock\Stock::where('police_station_id', $mojokerto->id)->where('type_id', $tTnkbR2->id)
+                    ->update(['quantity' => 67707.00]);
+                $this->info("   -> Mojokerto Kab TNKB R2 PUTIH Stock set to 67707.00");
+            }
+        }
+
+        // 6. Bondowoso TNKB R2 HITAM LISTRIK (Issue 2)
+        $this->info("\n6. Bondowoso TNKB R2 Hitam Listrik Stock Awal...");
+        $bondoLsd = \App\Models\LastStock\LastStockDetail::find('01a08008-d0bb-7346-8ccf-11eacf787bf0');
+        if ($bondoLsd) {
+            $bondoLsd->update(['quantity' => 400.00]);
+            $this->info("   -> Bondowoso LastStockDetail set to 400.00");
+        }
+        $bondoHs = \App\Models\Stock\HistoryStock::find('01a08008-d0f0-7287-a2cc-24db6595e365');
+        if ($bondoHs) {
+            $bondoHs->update(['quantity' => 400.00]);
+            $this->info("   -> Bondowoso HistoryStock set to 400.00");
+        }
+        $bondoStock = \App\Models\Stock\Stock::find('01a08008-d0cf-72c4-b4ee-12311e250a92');
+        if ($bondoStock) {
+            $bondoStock->update(['quantity' => 398.00]);
+            $this->info("   -> Bondowoso Stock set to 398.00 (400 - 2 usages)");
+        }
+
+        // 7. Jember BPKB Restoration (Issue 3)
+        $this->info("\n7. Jember BPKB Restoration...");
+        $jember = PoliceStation::where('name', 'ilike', '%jember%')->first();
+        $tBpkb = Type::where('name', 'BPKB')->first();
+        if ($jember && $tBpkb) {
+            // Restore LastStock
+            $jemberLs = \App\Models\LastStock\LastStock::withTrashed()->find('01a07c08-7662-7265-98ca-3050e2a2562d');
+            if ($jemberLs) {
+                $jemberLs->restore();
+                $jemberLs->update(['is_active' => true]);
+                $this->info("   -> Restored Jember LastStock LS-20260907-0025");
+            }
+            $jemberLsd = \App\Models\LastStock\LastStockDetail::withTrashed()->find('01a07c08-7670-701e-8816-4f192ba6fc44');
+            if ($jemberLsd) {
+                $jemberLsd->restore();
+                $jemberLsd->update(['quantity' => 2582.00, 'is_active' => true]);
+                $this->info("   -> Restored Jember LastStockDetail (qty: 2582.00)");
+            }
+            $jemberHs = \App\Models\Stock\HistoryStock::withTrashed()->find('01a07c08-769e-72f6-8896-619d32b9acf7');
+            if ($jemberHs) {
+                $jemberHs->restore();
+                $jemberHs->update(['quantity' => 2582.00, 'is_active' => true]);
+                $this->info("   -> Restored Jember HistoryStock (qty: 2582.00)");
+            }
+            $jemberSd = \App\Models\Stock\StockDetail::withTrashed()->find('01a07c08-768f-7095-8160-1a1c00fa3238');
+            if ($jemberSd) {
+                $jemberSd->restore();
+                $jemberSd->update(['quantity' => 1748.00, 'is_active' => true]);
+                $this->info("   -> Restored Jember StockDetail (qty: 1748.00 = 2582 - 834 usages)");
+            }
+            $jemberStock = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->where('type_id', $tBpkb->id)->first();
+            if ($jemberStock) {
+                $jemberStock->update(['quantity' => 1748.00]);
+                $this->info("   -> Updated Jember Stock to 1748.00");
+            }
+
+            // Relink Jember BPKB usages to the restored active stock detail
+            $activeJemberSdId = '01a07c08-768f-7095-8160-1a1c00fa3238';
+            \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->where('police_station_id', $jember->id))
+                ->where('type_id', $tBpkb->id)
+                ->update(['stock_detail_id' => $activeJemberSdId]);
+            \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::whereHas('materialUsage', fn($q) => $q->where('police_station_id', $jember->id))
+                ->where('type_id', $tBpkb->id)
+                ->update(['stock_detail_id' => $activeJemberSdId]);
+            $this->info("   -> Relinked all Jember BPKB usages to active StockDetail {$activeJemberSdId}");
+        }
+
+        // 8. Situbondo TCKB R2 Listrik (Issue 4)
+        $this->info("\n8. Situbondo TCKB R2 Listrik verification...");
+        $situbondo = PoliceStation::where('name', 'ilike', '%situbondo%')->first();
+        $tTckbListrik = Type::where('name', 'TCKB R2 LISTRIK')->first();
+        if ($situbondo && $tTckbListrik) {
+            $sitStock = \App\Models\Stock\Stock::where('police_station_id', $situbondo->id)->where('type_id', $tTckbListrik->id)->first();
+            if (!$sitStock) {
+                $sitStock = \App\Models\Stock\Stock::create([
+                    'type_id' => $tTckbListrik->id,
+                    'police_station_id' => $situbondo->id,
+                    'quantity' => 0,
+                    'is_active' => true,
+                ]);
+            } else {
+                $sitStock->update(['is_active' => true]);
+            }
+            $sitSd = \App\Models\Stock\StockDetail::where('police_station_id', $situbondo->id)->where('type_id', $tTckbListrik->id)->first();
+            if ($sitSd) {
+                $sitSd->update(['is_active' => true]);
+            }
+            $this->info("   -> Situbondo TCKB R2 Listrik stock record confirmed active (qty: 0)");
+        }
+    });
+
+    $this->info("\n================================================================");
+    $this->info("  SEMUA 8 KENDALA BERHASIL DIPERBAIKI!");
+    $this->info("================================================================");
+})->purpose('Eksekusi perbaikan komprehensif untuk 8 kendala Polres & Samsat');
+
 

@@ -52,7 +52,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Tanggal <span class="text-red-500">*</span>
                     </label>
-                    <input type="date" wire:model="date" @disabled($lastStockId)
+                    <input type="date" wire:model="date"
                         class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed">
                     @error('date')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -134,7 +134,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Deskripsi (Opsional)
                     </label>
-                    <textarea wire:model="description" @disabled($lastStockId) rows="1" placeholder="Masukkan deskripsi (opsional)"
+                    <textarea wire:model="description" rows="1" placeholder="Masukkan deskripsi (opsional)"
                         class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white focus:bg-white disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"></textarea>
                 </div>
             </div>
@@ -146,7 +146,7 @@
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-gray-900">Perincian Item</h2>
-                @if (!$lastStockId && $typeId)
+                @if ($typeId)
                     <button wire:click="addDetail" type="button"
                         class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -185,7 +185,7 @@
                                     
                                     <!-- Detail Material -->
                                     <td class="px-4 py-3">
-                                        <select wire:model.live="details.{{ $index }}.type_detail_id" @disabled($lastStockId)
+                                        <select wire:model.live="details.{{ $index }}.type_detail_id"
                                             class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
                                             <option value="">-- Semua --</option>
                                             @foreach ($typeDetails as $td)
@@ -199,7 +199,7 @@
 
                                     <!-- Service -->
                                     <td class="px-4 py-3">
-                                        <select wire:model.live="details.{{ $index }}.service_id" @disabled($lastStockId)
+                                        <select wire:model.live="details.{{ $index }}.service_id"
                                             class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
                                             <option value="">-- Semua --</option>
                                             @foreach ($services as $svc)
@@ -213,7 +213,7 @@
 
                                     <!-- Service Detail -->
                                     <td class="px-4 py-3">
-                                        <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($lastStockId)
+                                        <select wire:model.live="details.{{ $index }}.service_detail_id"
                                             class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
                                             <option value="">-- Semua --</option>
                                             @if (!empty($detail['service_id']))
@@ -229,7 +229,7 @@
 
                                     <!-- Rack -->
                                     <td class="px-4 py-3">
-                                        <select wire:model.live="details.{{ $index }}.rack_id" @disabled($lastStockId)
+                                        <select wire:model.live="details.{{ $index }}.rack_id"
                                             class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed">
                                             <option value="">-- Tanpa Rak --</option>
                                             @foreach ($racks as $rack)
@@ -243,21 +243,21 @@
 
                                     @if ($is_with_serial_number)
                                         <td class="px-4 py-3">
-                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.code" @disabled($lastStockId)
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.code"
                                                 class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="Kode">
                                             @error("details.{$index}.code")
                                                 <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
                                             @enderror
                                         </td>
                                         <td class="px-4 py-3">
-                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_first" @disabled($lastStockId)
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_first"
                                                 class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="SN1">
                                             @error("details.{$index}.number_serial_first")
                                                 <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
                                             @enderror
                                         </td>
                                         <td class="px-4 py-3">
-                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_second" @disabled($lastStockId)
+                                            <input type="text" wire:model.live.debounce.300ms="details.{{ $index }}.number_serial_second"
                                                 class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="SN2">
                                             @error("details.{$index}.number_serial_second")
                                                 <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
@@ -266,23 +266,21 @@
                                     @endif
 
                                     <td class="px-4 py-3">
-                                        <input type="number" wire:model.live="details.{{ $index }}.quantity" @disabled($lastStockId) step="0.01"
+                                        <input type="number" wire:model.live="details.{{ $index }}.quantity" step="0.01"
                                             class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="0">
                                         @error("details.{$index}.quantity")
                                             <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
                                         @enderror
                                     </td>
 
-                                    @if (!$lastStockId)
-                                        <td class="px-4 py-3 rounded-r-xl">
-                                            <button type="button" wire:click="removeDetail({{ $index }})"
-                                                class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    @endif
+                                    <td class="px-4 py-3 rounded-r-xl">
+                                        <button type="button" wire:click="removeDetail({{ $index }})"
+                                            class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -307,13 +305,11 @@
                 class="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
                 Batal
             </a>
-            @if (!$lastStockId)
-                <button wire:click="save" type="button"
-                    class="px-8 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
-                    <span wire:loading.remove wire:target="save">Simpan Data Stock Awal</span>
-                    <span wire:loading wire:target="save">Memproses...</span>
-                </button>
-            @endif
+            <button wire:click="save" type="button"
+                class="px-8 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
+                <span wire:loading.remove wire:target="save">Simpan Data Stock Awal</span>
+                <span wire:loading wire:target="save">Memproses...</span>
+            </button>
         </div>
     </div>
 </div>
