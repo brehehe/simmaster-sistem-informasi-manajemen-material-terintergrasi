@@ -211,7 +211,7 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
-            'details.*.quantity' => 'required|numeric|min:0',
+            'details.*.quantity' => 'required|numeric',
         ];
 
         // Admin can select regional_police_id, Polda uses their own
@@ -237,7 +237,6 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
             'details.min' => 'Minimal harus ada 1 item material.',
             'details.*.type_id.required' => 'Jenis material wajib dipilih.',
             'details.*.quantity.required' => 'Jumlah material wajib diisi.',
-            'details.*.quantity.min' => 'Jumlah minimal 0 unit.',
         ];
     }
 

@@ -221,7 +221,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'details.*.code' => 'nullable|string|max:255',
             'details.*.number_serial_first' => 'nullable|string|max:255',
             'details.*.number_serial_second' => 'nullable|string|max:255',
-            'details.*.quantity' => 'required|numeric|min:0',
+            'details.*.quantity' => 'required|numeric',
         ];
 
         if (!$user->hasRole('Polres')) {
@@ -241,7 +241,6 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'details.required' => 'Rincian material wajib diisi minimal satu.',
             'details.*.quantity.required' => 'Jumlah kuantitas wajib diisi.',
             'details.*.quantity.numeric' => 'Jumlah kuantitas harus berupa angka.',
-            'details.*.quantity.min' => 'Jumlah kuantitas minimal 0.',
         ];
     }
 
@@ -286,7 +285,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             }
 
             foreach ($this->details as $detail) {
-                if (isset($detail['quantity']) && is_numeric($detail['quantity']) && $detail['quantity'] >= 0) {
+                if (isset($detail['quantity']) && is_numeric($detail['quantity'])) {
                     LastStockDetail::create([
                         'last_stock_id' => $lastStock->id,
                         'type_id' => $this->typeId,

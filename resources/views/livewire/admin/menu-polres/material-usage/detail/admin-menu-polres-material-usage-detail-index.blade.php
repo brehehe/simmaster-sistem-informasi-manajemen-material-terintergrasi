@@ -278,7 +278,7 @@
 
                                 <!-- Quantity -->
                                 <td class="px-3 py-3 align-top">
-                                    <input type="number" min="1" step="1"
+                                    <input type="number" min="0" step="1"
                                         wire:model.live="details.{{ $index }}.quantity"
                                         placeholder="Qty"
                                         class="w-full px-2 py-2 text-xs font-bold text-center rounded-lg border {{ $errors->has("details.{$index}.quantity") ? 'border-red-500 bg-red-50 text-red-700' : 'border-blue-300 bg-blue-50/50 text-blue-700' }} focus:border-blue-500">

@@ -53,11 +53,11 @@ class CreateMaterialUsageAction
                 $stockDetail = StockDetail::findOrFail($detail['stock_detail_id']);
                 $qty = (float)($detail['quantity'] ?? 0);
 
-                if ($qty <= 0) {
-                    throw new \Exception('Jumlah material yang digunakan harus lebih dari 0.');
+                if ($qty < 0) {
+                    throw new \Exception('Jumlah material yang digunakan tidak boleh kurang dari 0.');
                 }
 
-                if ($qty > $stockDetail->quantity) {
+                if ($qty > 0 && $qty > $stockDetail->quantity) {
                     $itemLabel = $stockDetail->code ? $stockDetail->code . ' ' : '';
                     $itemLabel .= $stockDetail->number_serial_first ?: ($stockDetail->type?->name ?? 'Material');
                     throw new \Exception("Jumlah ({$qty}) melebihi stok yang tersedia ({$stockDetail->quantity}) untuk {$itemLabel}.");

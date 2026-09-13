@@ -256,11 +256,9 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         if ($this->isEditMode) {
             $existingStockIds = collect($this->details)->pluck('stock_detail_id')->filter();
             $query->where(function($q) use ($existingStockIds) {
-                $q->where('quantity', '>', 0)
+                $q->where('is_active', true)
                   ->orWhereIn('id', $existingStockIds);
             });
-        } else {
-            $query->where('quantity', '>', 0);
         }
 
         if ($this->regionalPoliceId) {
@@ -299,7 +297,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             'regionalPoliceId' => 'required|exists:regional_police,id',
             'details' => 'required|array|min:1',
             'details.*.stock_detail_id' => 'required|exists:stock_details,id',
-            'details.*.quantity' => 'required|numeric|min:1',
+            'details.*.quantity' => 'required|numeric|min:0',
             'details.*.usage_type' => 'required|string',
             'details.*.description' => 'nullable|string|max:500',
         ];
@@ -317,7 +315,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         'details.*.stock_detail_id.exists' => 'Stok barang tidak valid atau sudah habis.',
         'details.*.quantity.required' => 'Jumlah material wajib diisi.',
         'details.*.quantity.numeric' => 'Jumlah harus berupa angka.',
-        'details.*.quantity.min' => 'Jumlah minimal 1 unit.',
+        'details.*.quantity.min' => 'Jumlah minimal 0 unit.',
         'details.*.usage_type.required' => 'Jenis penggunaan wajib dipilih.',
     ];
 
@@ -345,17 +343,17 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                 $available = (float)($detail['available_quantity'] ?? $available);
             }
 
-            if ($qty <= 0) {
-                $this->addError("details.{$index}.quantity", "Jumlah minimal 1 unit.");
+            if ($qty < 0) {
+                $this->addError("details.{$index}.quantity", "Jumlah tidak boleh kurang dari 0.");
                 $hasError = true;
             }
 
-            if ($qty > $available) {
+            if ($qty > 0 && $qty > $available) {
                 $this->addError("details.{$index}.quantity", "Jumlah ({$qty}) melebihi stok tersedia ({$available}).");
                 $hasError = true;
             }
 
-            if ($stockId) {
+            if ($stockId && $qty > 0) {
                 $stockCounts[$stockId] = ($stockCounts[$stockId] ?? 0) + $qty;
                 if ($stockCounts[$stockId] > $available) {
                     $this->addError("details.{$index}.stock_detail_id", "Total penggunaan stok ini ({$stockCounts[$stockId]}) melebihi sisa stok ({$available}).");

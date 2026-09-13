@@ -87,10 +87,71 @@ class StockService
     }
 
     /**
-     * Create stock detail record
+     * Create or update stock detail record
      */
     protected function createStockDetail(Stock $stock, LastStockDetail $lastStockDetail): StockDetail
     {
+        $query = StockDetail::where('stock_id', $stock->id)
+            ->where('type_id', $lastStockDetail->type_id)
+            ->where('regional_police_id', $stock->regional_police_id)
+            ->where('police_station_id', $stock->police_station_id);
+
+        if ($lastStockDetail->type_detail_id === null) {
+            $query->whereNull('type_detail_id');
+        } else {
+            $query->where('type_detail_id', $lastStockDetail->type_detail_id);
+        }
+
+        if ($lastStockDetail->service_id === null) {
+            $query->whereNull('service_id');
+        } else {
+            $query->where('service_id', $lastStockDetail->service_id);
+        }
+
+        if ($lastStockDetail->service_detail_id === null) {
+            $query->whereNull('service_detail_id');
+        } else {
+            $query->where('service_detail_id', $lastStockDetail->service_detail_id);
+        }
+
+        if ($lastStockDetail->code === null || $lastStockDetail->code === '') {
+            $query->where(function($q) { $q->whereNull('code')->orWhere('code', ''); });
+        } else {
+            $query->where('code', $lastStockDetail->code);
+        }
+
+        if ($lastStockDetail->number_serial_first === null || $lastStockDetail->number_serial_first === '') {
+            $query->where(function($q) { $q->whereNull('number_serial_first')->orWhere('number_serial_first', ''); });
+        } else {
+            $query->where('number_serial_first', $lastStockDetail->number_serial_first);
+        }
+
+        if ($lastStockDetail->number_serial_second === null || $lastStockDetail->number_serial_second === '') {
+            $query->where(function($q) { $q->whereNull('number_serial_second')->orWhere('number_serial_second', ''); });
+        } else {
+            $query->where('number_serial_second', $lastStockDetail->number_serial_second);
+        }
+
+        $stockDetail = $query->first();
+
+        if (!$stockDetail) {
+            $trashed = (clone $query)->onlyTrashed()->first();
+            if ($trashed) {
+                $trashed->restore();
+                $trashed->quantity = 0;
+                $stockDetail = $trashed;
+            }
+        }
+
+        if ($stockDetail) {
+            $stockDetail->quantity += $lastStockDetail->quantity;
+            if ($lastStockDetail->rack_id) {
+                $stockDetail->rack_id = $lastStockDetail->rack_id;
+            }
+            $stockDetail->save();
+            return $stockDetail;
+        }
+
         return StockDetail::create([
             'stock_id' => $stock->id,
             'type_id' => $lastStockDetail->type_id,
@@ -571,9 +632,6 @@ class StockService
 
                 if ($stock) {
                     $stock->quantity -= $item->quantity;
-                    if ($stock->quantity < 0) {
-                        $stock->quantity = 0;
-                    }
                     $stock->save();
                 }
             }
@@ -643,7 +701,10 @@ class StockService
             $stockDetail = $query->first();
 
             if ($stockDetail) {
-                if ($stockDetail->quantity <= $detail->quantity) {
+                $hasUsage = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::where('stock_detail_id', $stockDetail->id)->exists()
+                    || \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::where('stock_detail_id', $stockDetail->id)->exists();
+
+                if ($stockDetail->quantity <= $detail->quantity && !$hasUsage) {
                     $stockDetail->delete();
                 } else {
                     $stockDetail->quantity -= $detail->quantity;
@@ -677,9 +738,6 @@ class StockService
             $stock = $stockQuery->first();
             if ($stock) {
                 $stock->quantity -= $detail->quantity;
-                if ($stock->quantity < 0) {
-                    $stock->quantity = 0;
-                }
                 $stock->save();
             }
         }
