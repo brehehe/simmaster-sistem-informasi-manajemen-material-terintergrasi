@@ -23,7 +23,7 @@ class MaterialUsageDetailItem extends Model
 
     public function stockDetail()
     {
-        return $this->belongsTo(\App\Models\Stock\StockDetail::class);
+        return $this->belongsTo(\App\Models\Stock\StockDetail::class)->withTrashed();
     }
 
     public function service()

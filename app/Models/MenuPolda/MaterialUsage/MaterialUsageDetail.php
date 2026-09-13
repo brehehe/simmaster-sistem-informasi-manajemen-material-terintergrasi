@@ -28,7 +28,7 @@ class MaterialUsageDetail extends Model
 
     public function stockDetail()
     {
-        return $this->belongsTo(StockDetail::class);
+        return $this->belongsTo(StockDetail::class)->withTrashed();
     }
 
     public function type()
