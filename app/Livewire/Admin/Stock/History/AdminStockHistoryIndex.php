@@ -80,6 +80,7 @@ class AdminStockHistoryIndex extends Component
 
         // Load filter options
         $regionalPolices = [];
+        $policeStations = [];
         if ($user->hasRole('Admin')) {
             $regionalPolices = RegionalPolice::orderBy('name')->get();
             $policeStations = PoliceStation::orderBy('name')->get();

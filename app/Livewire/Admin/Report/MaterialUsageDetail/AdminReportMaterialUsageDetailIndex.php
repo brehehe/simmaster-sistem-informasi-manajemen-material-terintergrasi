@@ -342,6 +342,7 @@ class AdminReportMaterialUsageDetailIndex extends Component
 
         // Load filter options
         $policeStations = [];
+        $regionalPolices = [];
         if ($user->hasRole('Admin')) {
             $policeStations = PoliceStation::orderBy('name')->get();
             $regionalPolices = RegionalPolice::orderBy('name')->get();
