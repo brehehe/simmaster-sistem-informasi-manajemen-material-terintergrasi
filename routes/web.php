@@ -220,6 +220,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/stock', 'Stock\\AdminMenuPoldaStockIndex')
             ->name('menu-polda.stock');
 
+        Route::get('menu-polda/stock-correction', 'StockCorrection\\AdminMenuPoldaStockCorrectionIndex')
+            ->name('menu-polda.stock-correction');
+
         // Rack Assignment
         Route::get('menu-polda/rack-assignment', 'RackAssignment\\AdminMenuPoldaRackAssignmentIndex')
             ->name('menu-polda.rack-assignment');
@@ -300,6 +303,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
 
         Route::get('menu-polres/stock', 'Stock\\AdminMenuPolresStockIndex')
             ->name('menu-polres.stock');
+
+        Route::get('menu-polres/stock-correction', 'StockCorrection\\AdminMenuPolresStockCorrectionIndex')
+            ->name('menu-polres.stock-correction');
 
         // Rack Assignment
         Route::get('menu-polres/rack-assignment', 'RackAssignment\\AdminMenuPolresRackAssignmentIndex')
