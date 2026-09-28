@@ -11,7 +11,7 @@
                     <h3 class="text-lg font-bold text-white">
                         {{ $isEditMode ? 'Edit Polres' : 'Tambah Polres Baru' }}
                     </h3>
-                    <button wire:click="closeModal" class="text-white/80 hover:text-white transition-colors">
+                    <button wire:loading.attr="disabled" wire:click="closeModal" class="text-white/80 hover:text-white transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -101,7 +101,7 @@
 
                 <!-- Footer Buttons -->
                 <div class="flex gap-3 pt-3 border-t border-gray-100">
-                    <button type="button" wire:click="closeModal"
+                    <button wire:loading.attr="disabled" type="button" wire:click="closeModal"
                         class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                         Batal
                     </button>

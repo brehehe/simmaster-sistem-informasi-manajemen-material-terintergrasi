@@ -205,7 +205,7 @@
         </a>
 
         @if ($mutation->status === 'sent')
-            <button wire:click="confirmReceipt"
+            <button wire:loading.attr="disabled" wire:click="confirmReceipt"
                 wire:confirm="Konfirmasi penerimaan mutasi stock? Stock akan ditambahkan ke inventory Anda."
                 type="button"
                 class="w-full sm:w-auto px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl hover:from-green-700 hover:to-emerald-600 shadow-lg shadow-green-500/30 transition-all duration-200 transform hover:scale-105 text-center flex items-center justify-center gap-2">

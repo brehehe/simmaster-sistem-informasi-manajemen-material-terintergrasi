@@ -121,7 +121,7 @@
 
             <!-- Tab Navigation Menu -->
             <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-200/80 space-y-1">
-                <button type="button"
+                <button wire:loading.attr="disabled" type="button"
                     wire:click="setTab('profile')"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all {{ $tab === 'profile' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
                     <div class="flex items-center gap-3">
@@ -136,7 +136,7 @@
                     </svg>
                 </button>
 
-                <button type="button"
+                <button wire:loading.attr="disabled" type="button"
                     wire:click="setTab('security')"
                     class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all {{ $tab === 'security' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
                     <div class="flex items-center gap-3">

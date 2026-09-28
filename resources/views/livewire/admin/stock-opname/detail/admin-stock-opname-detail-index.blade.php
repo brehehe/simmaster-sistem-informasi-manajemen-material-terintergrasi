@@ -206,12 +206,12 @@
                 class="px-6 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold rounded-lg transition-colors">
                 Edit Stock Opname
             </a>
-            <button wire:click="markAsCompleted"
+            <button wire:loading.attr="disabled" wire:click="markAsCompleted"
                 class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg shadow-green-500/30 transition-all duration-200">
                 Mark as Completed
             </button>
         @elseif($opname->status === 'completed')
-            <button wire:click="openApproveModal"
+            <button wire:loading.attr="disabled" wire:click="openApproveModal"
                 class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 transition-all duration-200">
                 Approve & Adjust Stock
             </button>
@@ -234,11 +234,11 @@
                     Tindakan ini tidak dapat dibatalkan. Lanjutkan?
                 </p>
                 <div class="flex gap-3">
-                    <button wire:click="closeModal"
+                    <button wire:loading.attr="disabled" wire:click="closeModal"
                         class="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
                         Batal
                     </button>
-                    <button wire:click="approve"
+                    <button wire:loading.attr="disabled" wire:click="approve"
                         class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
                         Approve
                     </button>

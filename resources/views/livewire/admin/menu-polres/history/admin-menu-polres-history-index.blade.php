@@ -261,7 +261,7 @@
                                 </svg>
                             </span>
                         @else
-                            <button wire:click="previousPage"
+                            <button wire:loading.attr="disabled" wire:click="previousPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -281,7 +281,7 @@
                         @endphp
 
                         @if ($start > 1)
-                            <button wire:click="gotoPage(1)"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage(1)"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 1
                             </button>
@@ -296,7 +296,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <button wire:click="gotoPage({{ $page }})"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $page }})"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     {{ $page }}
                                 </button>
@@ -307,7 +307,7 @@
                             @if ($end < $lastPage - 1)
                                 <span class="px-2 py-2 text-sm text-gray-400">...</span>
                             @endif
-                            <button wire:click="gotoPage({{ $lastPage }})"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage({{ $lastPage }})"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 {{ $lastPage }}
                             </button>
@@ -315,7 +315,7 @@
 
                         {{-- Next Button --}}
                         @if ($historyStocks->hasMorePages())
-                            <button wire:click="nextPage"
+                            <button wire:loading.attr="disabled" wire:click="nextPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">

@@ -9,7 +9,7 @@
                 <p class="text-gray-500 mt-1">Monitoring pengiriman material ke satuan kerja</p>
             </div>
             <div class="flex gap-2">
-                <button wire:click="exportExcel"
+                <button wire:loading.attr="disabled" wire:click="exportExcel"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -18,7 +18,7 @@
                     </svg>
                     Export Excel
                 </button>
-                <button wire:click="exportPdf"
+                <button wire:loading.attr="disabled" wire:click="exportPdf"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"

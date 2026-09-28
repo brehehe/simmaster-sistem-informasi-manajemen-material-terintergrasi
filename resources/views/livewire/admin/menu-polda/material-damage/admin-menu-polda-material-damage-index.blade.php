@@ -211,7 +211,7 @@
                             </td>
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button wire:click="viewDetail('{{ $damage->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="viewDetail('{{ $damage->id }}')"
                                         class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                                         title="Lihat Detail Breakdown">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -228,7 +228,7 @@
                                                 d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
                                     </a>
-                                    <button wire:click="openDeleteModal('{{ $damage->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $damage->id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                         title="Hapus Transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -290,7 +290,7 @@
                             <h3 class="text-xl font-bold text-gray-900">Detail Breakdown Material Rusak: {{ $selectedMaterialDamage->code }}</h3>
                             <p class="text-sm text-gray-500 mt-1">{{ $selectedMaterialDamage->policeStation?->name ?? ($selectedMaterialDamage->regionalPolice?->name ?? '-') }} • {{ \Carbon\Carbon::parse($selectedMaterialDamage->date)->format('d M Y') }}</p>
                         </div>
-                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
                             <span class="sr-only">Close</span>
                             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -350,7 +350,7 @@
                     </div>
 
                     <div class="p-6 border-t border-gray-100 flex justify-end">
-                        <button wire:click="closeModal" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
                             Tutup
                         </button>
                     </div>
@@ -383,10 +383,10 @@
                         </div>
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-                        <button wire:click="delete" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
+                        <button wire:loading.attr="disabled" wire:click="delete" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
                             Hapus
                         </button>
-                        <button wire:click="closeModal" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all">
                             Batal
                         </button>
                     </div>

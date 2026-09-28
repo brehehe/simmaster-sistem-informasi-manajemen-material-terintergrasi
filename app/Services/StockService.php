@@ -494,15 +494,17 @@ class StockService
     {
         foreach ($materialUsage->materialUsageDetails as $detail) {
             // Reduce stock detail quantity
-            $stockDetail = StockDetail::find($detail->stock_detail_id);
+            $stockDetail = StockDetail::whereKey($detail->stock_detail_id)->lockForUpdate()->first();
             if ($stockDetail) {
+                if ($detail->quantity < 0 || ($detail->quantity > 0 && $detail->quantity > $stockDetail->quantity)) {
+                    throw new \RuntimeException('Jumlah pemakaian melebihi stok tersedia atau bernilai negatif.');
+                }
                 $stockDetail->quantity -= $detail->quantity;
                 $stockDetail->save();
 
                 $stock = $stockDetail->stock;
                 if ($stock) {
-                    $stock->quantity -= $detail->quantity;
-                    $stock->save();
+                    $stock->decrement('quantity', $detail->quantity);
                 }
 
                 // Determine owner safely

@@ -147,7 +147,7 @@
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-gray-900">Perincian Item</h2>
                 @if ($typeId)
-                    <button wire:click="addDetail" type="button"
+                    <button wire:loading.attr="disabled" wire:click="addDetail" type="button"
                         class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -266,7 +266,7 @@
                                     @endif
 
                                     <td class="px-4 py-3">
-                                        <input type="number" wire:model.live="details.{{ $index }}.quantity" step="0.01"
+                                        <input type="number" wire:model="details.{{ $index }}.quantity" step="0.01"
                                             class="w-full px-3 py-2 text-xs font-bold rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white disabled:bg-gray-100" placeholder="0">
                                         @error("details.{$index}.quantity")
                                             <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p>
@@ -274,7 +274,7 @@
                                     </td>
 
                                     <td class="px-4 py-3 rounded-r-xl">
-                                        <button type="button" wire:click="removeDetail({{ $index }})"
+                                        <button wire:loading.attr="disabled" type="button" wire:click="removeDetail({{ $index }})"
                                             class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -305,7 +305,7 @@
                 class="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
                 Batal
             </a>
-            <button wire:click="save" type="button"
+            <button wire:loading.attr="disabled" wire:click="save" type="button"
                 class="px-8 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
                 <span wire:loading.remove wire:target="save">Simpan Data Stock Awal</span>
                 <span wire:loading wire:target="save">Memproses...</span>

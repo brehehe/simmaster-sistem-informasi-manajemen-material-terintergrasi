@@ -130,7 +130,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
                                     {{-- Detail Modal --}}
-                                    <button wire:click="viewDetail('{{ $subsidy->id }}')" class="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Lihat Detail">
+                                    <button wire:loading.attr="disabled" wire:click="viewDetail('{{ $subsidy->id }}')" class="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Lihat Detail">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
 
@@ -141,12 +141,12 @@
                                         </a>
 
                                         {{-- Confirm Button --}}
-                                        <button wire:click="openConfirmModal('{{ $subsidy->id }}')" class="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Konfirmasi & Kurangi Stok">
+                                        <button wire:loading.attr="disabled" wire:click="openConfirmModal('{{ $subsidy->id }}')" class="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Konfirmasi & Kurangi Stok">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         </button>
 
                                         {{-- Delete --}}
-                                        <button wire:click="openDeleteModal('{{ $subsidy->id }}')" class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Hapus">
+                                        <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $subsidy->id }}')" class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Hapus">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     @endif
@@ -183,7 +183,7 @@
                     <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                         📋 Detail Subsidi Silang — <span class="font-mono text-blue-600">{{ $selectedSubsidy->code }}</span>
                     </h3>
-                    <button wire:click="closeDetailModal" class="text-gray-400 hover:text-gray-600">✕</button>
+                    <button wire:loading.attr="disabled" wire:click="closeDetailModal" class="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-4 text-xs">
@@ -240,7 +240,7 @@
                 </div>
 
                 <div class="flex justify-end pt-3 border-t border-gray-100">
-                    <button wire:click="closeDetailModal" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs">Tutup</button>
+                    <button wire:loading.attr="disabled" wire:click="closeDetailModal" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs">Tutup</button>
                 </div>
             </div>
         </div>
@@ -258,8 +258,8 @@
                 </p>
 
                 <div class="flex items-center justify-center gap-3">
-                    <button wire:click="closeConfirmModal" class="px-5 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</button>
-                    <button wire:click="confirmSubsidy" class="px-6 py-2.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-500/25">Ya, Konfirmasi Sekarang</button>
+                    <button wire:loading.attr="disabled" wire:click="closeConfirmModal" class="px-5 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</button>
+                    <button wire:loading.attr="disabled" wire:click="confirmSubsidy" class="px-6 py-2.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-500/25">Ya, Konfirmasi Sekarang</button>
                 </div>
             </div>
         </div>
@@ -274,8 +274,8 @@
                 <p class="text-xs text-gray-500 mb-6">Data draft subsidi ini akan dihapus permanen.</p>
 
                 <div class="flex items-center justify-center gap-3">
-                    <button wire:click="closeDeleteModal" class="px-5 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</button>
-                    <button wire:click="deleteSubsidy" class="px-6 py-2.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-500/25">Ya, Hapus</button>
+                    <button wire:loading.attr="disabled" wire:click="closeDeleteModal" class="px-5 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</button>
+                    <button wire:loading.attr="disabled" wire:click="deleteSubsidy" class="px-6 py-2.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-500/25">Ya, Hapus</button>
                 </div>
             </div>
         </div>

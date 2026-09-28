@@ -238,7 +238,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         }
 
         if ($hasAnyServiceField) {
-            $this->details[$index]['quantity'] = $total > 0 ? $total : '';
+            $this->details[$index]['quantity'] = $total;
         }
     }
 
@@ -476,7 +476,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     protected function createDetailItemAndHistory($materialUsage, $materialUsageDetail, $detail, $serviceId, $serviceDetailId, $quantity)
     {
-        if ($quantity <= 0) {
+        if (! is_numeric($quantity) || $quantity < 0) {
             return;
         }
 

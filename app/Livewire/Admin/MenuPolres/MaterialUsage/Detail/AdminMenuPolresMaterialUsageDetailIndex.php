@@ -120,6 +120,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public function updatedPoliceStationId($value)
     {
         foreach ($this->details as $index => $detail) {
+            $this->details[$index]['stock_detail_id'] = '';
             $this->loadStockOptions($index);
         }
     }
@@ -202,6 +203,14 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $parts = explode('.', $key);
         if (count($parts) !== 2) return;
         [$index, $field] = $parts;
+
+        if (in_array($field, ['type_detail_id', 'service_id', 'service_detail_id'], true)) {
+            $this->details[$index]['stock_detail_id'] = '';
+            $this->details[$index]['available_quantity'] = 0;
+        }
+        if ($field === 'service_detail_id' || ($field === 'service_id' && ! $value)) {
+            $this->loadStockOptions($index);
+        }
 
         // Auto-fill type_detail_id when service_id is selected
         if ($field === 'service_id' && $value) {
@@ -297,6 +306,9 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 'type_id' => $this->typeId,
                 'police_station_id' => $this->policeStationId,
                 'regional_police_id' => null,
+                'type_detail_id' => $detail['type_detail_id'] ?: null,
+                'service_id' => $detail['service_id'] ?: null,
+                'service_detail_id' => $detail['service_detail_id'] ?: null,
             ], [
                 'quantity' => 0,
                 'is_active' => true,
@@ -305,6 +317,9 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             $defaultSd = StockDetail::firstOrCreate([
                 'stock_id' => $stock->id,
                 'type_id' => $this->typeId,
+                'type_detail_id' => $detail['type_detail_id'] ?: null,
+                'service_id' => $detail['service_id'] ?: null,
+                'service_detail_id' => $detail['service_detail_id'] ?: null,
                 'police_station_id' => $this->policeStationId,
                 'code' => null,
                 'number_serial_first' => null,

@@ -41,12 +41,21 @@ class CreateMaterialShipmentAction
                 $sn1  = $parts[1] ?? null;
                 $sn2  = $parts[2] ?? null;
 
+                // Resolve code: prefer parsed value from selected_stock_key,
+                // fall back to the StockDetail's own code (for non-serial-number items
+                // where selected_stock_key is never set by the user).
+                $resolvedCode = ($code && $code !== '-') ? $code : null;
+                if ($resolvedCode === null && !empty($item['stock_detail_id'])) {
+                    $stockDetail = \App\Models\Stock\StockDetail::find($item['stock_detail_id']);
+                    $resolvedCode = $stockDetail?->code ?? null;
+                }
+
                 MaterialShipmentDetail::create([
                     'material_shipment_id' => $shipment->id,
                     'stock_detail_id'      => $item['stock_detail_id'] ?: null,
                     'type_id'              => $item['type_id'],
                     'type_detail_id'       => $item['type_detail_id'] ?: null,
-                    'code'                 => ($code && $code !== '-') ? $code : null,
+                    'code'                 => $resolvedCode,
                     'number_serial_first'  => ($sn1 && $sn1 !== '-') ? $sn1 : null,
                     'number_serial_second' => ($sn2 && $sn2 !== '-') ? $sn2 : null,
                     'quantity'             => (float)$item['quantity'],

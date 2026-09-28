@@ -206,7 +206,7 @@
         </button>
 
         @if ($shipment->status === 'shipped' || $shipment->status === 'sent')
-            <button wire:click="confirmReceipt"
+            <button wire:loading.attr="disabled" wire:click="confirmReceipt"
                 wire:confirm="Konfirmasi penerimaan material ini? Stock akan ditambahkan ke inventory Polres Anda dan tidak dapat dibatalkan."
                 type="button"
                 class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl hover:from-green-700 hover:to-emerald-600 shadow-xl shadow-green-500/30 transition-all transform hover:scale-105 text-center flex items-center justify-center gap-2">

@@ -241,7 +241,7 @@
                     </svg>
                     Detail Stock
                 </h2>
-                <button wire:click="addDetail" type="button"
+                <button wire:loading.attr="disabled" wire:click="addDetail" type="button"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -266,7 +266,7 @@
                             </div>
 
                             <!-- Delete Button -->
-                            <button wire:click="removeDetail({{ $index }})" type="button"
+                            <button wire:loading.attr="disabled" wire:click="removeDetail({{ $index }})" type="button"
                                 class="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -405,11 +405,11 @@
         </a>
 
         @if (!$isEditMode || ($mutation && $mutation->status === 'draft'))
-            <button wire:click="save(false)" type="button"
+            <button wire:loading.attr="disabled" wire:click="save(false)" type="button"
                 class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl hover:from-gray-300 hover:to-gray-400 shadow-lg transition-all duration-200 text-center">
                 💾 Simpan Draft
             </button>
-            <button wire:click="save(true)" type="button"
+            <button wire:loading.attr="disabled" wire:click="save(true)" type="button"
                 class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200 transform hover:scale-105 text-center">
                 🚀 Kirim Sekarang
             </button>

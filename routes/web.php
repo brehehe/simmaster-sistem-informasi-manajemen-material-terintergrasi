@@ -82,6 +82,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
     Route::get('dashboard', 'Dashboard\\AdminDashboardIndex')
         ->name('dashboard');
 
+    Route::get('menu-polda/stock-adjustment', \App\Livewire\Admin\StockAdjustment\StockAdjustmentIndex::class)->defaults('scope', 'polda')->name('menu-polda.stock-adjustment');
+    Route::get('menu-polres/stock-adjustment', \App\Livewire\Admin\StockAdjustment\StockAdjustmentIndex::class)->defaults('scope', 'polres')->name('menu-polres.stock-adjustment');
+
     // Kotak Pesan & Notifikasi Routes
     Route::get('dashboard/kotak-pesan', Message\AdminMessageIndex::class)->name('dashboard.kotak-pesan');
     Route::get('menu-polda/kotak-pesan', Message\AdminMessageIndex::class)->name('menu-polda.kotak-pesan');
@@ -135,6 +138,10 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('master/target/{target_id}/detail', 'Target\\Detail\\AdminMasterTargetDetailIndex')
             ->name('master.target.detail');
     });
+
+    Route::get('report/anev', \App\Livewire\Admin\Report\Anev\ReportingComplianceIndex::class)
+        ->middleware(\Spatie\Permission\Middleware\RoleMiddleware::class.':Admin')
+        ->name('report.anev');
 
     Route::group(['namespace' => 'Report'], function () {
         Route::get('report/reception-regional-police', 'ReceptionRegionalPolice\\AdminReportReceptionRegionalPoliceIndex')

@@ -64,11 +64,11 @@
             </div>
 
             <div class="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0">
-                <button wire:click="closeModal"
+                <button wire:loading.attr="disabled" wire:click="closeModal"
                     class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
                     Batal
                 </button>
-                <button wire:click="save"
+                <button wire:loading.attr="disabled" wire:click="save"
                     class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                     {{ $isEditMode ? 'Simpan Perubahan' : 'Tambah Service' }}
                 </button>

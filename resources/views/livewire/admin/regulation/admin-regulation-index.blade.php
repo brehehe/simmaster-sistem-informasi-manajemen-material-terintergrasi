@@ -7,7 +7,7 @@
                 <p class="text-gray-500 mt-1">Kumpulan Perpol, Perkap, Surat Telegram (ST), Jukrah, dan SOP Fasmat SBST</p>
             </div>
             @if(Auth::user()->hasRole(['Admin', 'Polda']))
-                <button wire:click="openCreateModal"
+                <button wire:loading.attr="disabled" wire:click="openCreateModal"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -188,13 +188,13 @@
                                     </a>
 
                                     @if(Auth::user()->hasRole(['Admin', 'Polda']))
-                                        <button wire:click="editRegulation('{{ $reg->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="editRegulation('{{ $reg->id }}')"
                                             class="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors" title="Edit Dokumen">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                             </svg>
                                         </button>
-                                        <button wire:click="openDeleteModal('{{ $reg->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $reg->id }}')"
                                             class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Hapus Dokumen">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -240,7 +240,7 @@
                 <div class="relative inline-block w-full max-w-2xl my-8 text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl overflow-hidden">
                     <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
                         <h3 class="text-xl font-bold">{{ $selectedId ? 'Edit' : 'Tambah' }} Dokumen Peraturan Fasmat</h3>
-                        <button wire:click="closeModal" class="text-white/80 hover:text-white transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="text-white/80 hover:text-white transition-colors">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -298,7 +298,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                            <button type="button" wire:click="closeModal" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                            <button wire:loading.attr="disabled" type="button" wire:click="closeModal" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                                 Batal
                             </button>
                             <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all">
@@ -335,10 +335,10 @@
                         </div>
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-                        <button type="button" wire:click="deleteRegulation" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button wire:loading.attr="disabled" type="button" wire:click="deleteRegulation" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">
                             Hapus
                         </button>
-                        <button type="button" wire:click="closeModal" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">
+                        <button wire:loading.attr="disabled" type="button" wire:click="closeModal" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">
                             Batal
                         </button>
                     </div>

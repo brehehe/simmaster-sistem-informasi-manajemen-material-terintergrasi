@@ -116,27 +116,20 @@
     window.addEventListener('resize', checkAndReposition, { passive: true });
     window.addEventListener('scroll', checkAndReposition, { passive: true, capture: true });
 
-    // 3. Mutation Observer for new nodes (initial render)
-    const observer = new MutationObserver(function(mutations) {
-        let shouldCheck = false;
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                shouldCheck = true;
-            }
-            if (mutation.type === 'attributes' && (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
-                 shouldCheck = true;
-            }
+    // Watch only Selectize's active control. Observing our dropdown style writes
+    // causes a perpetual observer -> animation frame -> style mutation loop.
+    let pending = false;
+    const observer = new MutationObserver((mutations) => {
+        if (pending || !mutations.some(({ target }) => target.matches?.('.selectize-input'))) return;
+        pending = true;
+        requestAnimationFrame(() => {
+            pending = false;
+            checkAndReposition();
         });
-        if (shouldCheck) {
-             checkAndReposition();
-        }
     });
-
-    observer.observe(document.body, {
-        childList: true,
+    observer.observe(document.documentElement, {
         subtree: true,
         attributes: true,
-        attributeFilter: ['style', 'class', 'display'] // monitor style changes on dropdowns
+        attributeFilter: ['class'],
     });
-
 })();

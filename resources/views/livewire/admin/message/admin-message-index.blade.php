@@ -6,7 +6,7 @@
                 <h1 class="text-3xl font-bold text-blue-600">Kotak Pesan & Notifikasi</h1>
                 <p class="text-gray-500 mt-1">Pusat komunikasi, notifikasi material rusak, dan subsidi silang antar jajaran</p>
             </div>
-            <button wire:click="openCreateModal"
+            <button wire:loading.attr="disabled" wire:click="openCreateModal"
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -92,7 +92,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <!-- Inbox / Sent Tabs -->
                 <div class="flex bg-gray-200/70 p-1 rounded-xl w-fit">
-                    <button wire:click="setTab('inbox')"
+                    <button wire:loading.attr="disabled" wire:click="setTab('inbox')"
                         class="px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {{ $activeTab === 'inbox' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -102,7 +102,7 @@
                             <span class="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">{{ $unreadCount }}</span>
                         @endif
                     </button>
-                    <button wire:click="setTab('sent')"
+                    <button wire:loading.attr="disabled" wire:click="setTab('sent')"
                         class="px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {{ $activeTab === 'sent' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -209,7 +209,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button wire:click="viewMessage('{{ $msg->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="viewMessage('{{ $msg->id }}')"
                                         class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                                         title="Buka Pesan">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -218,7 +218,7 @@
                                         </svg>
                                     </button>
                                     @if($activeTab === 'inbox')
-                                        <button wire:click="replyMessage('{{ $msg->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="replyMessage('{{ $msg->id }}')"
                                             class="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
                                             title="Balas Pesan">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -265,7 +265,7 @@
                 <div class="relative inline-block w-full max-w-2xl my-8 text-left align-middle transition-all transform bg-white shadow-2xl rounded-2xl overflow-hidden">
                     <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
                         <h3 class="text-xl font-bold">Kirim Pesan / Notifikasi</h3>
-                        <button wire:click="closeModal" class="text-white/80 hover:text-white transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="text-white/80 hover:text-white transition-colors">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -337,7 +337,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                            <button type="button" wire:click="closeModal" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                            <button wire:loading.attr="disabled" type="button" wire:click="closeModal" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                                 Batal
                             </button>
                             <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all">
@@ -364,7 +364,7 @@
                             <span class="text-xs font-mono text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">{{ $selectedMessage->code }}</span>
                             <h3 class="text-xl font-bold text-gray-900 mt-2">{{ $selectedMessage->subject }}</h3>
                         </div>
-                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -405,10 +405,10 @@
                     </div>
 
                     <div class="p-6 border-t border-gray-100 flex items-center justify-between">
-                        <button wire:click="closeModal" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                             Tutup
                         </button>
-                        <button wire:click="replyMessage('{{ $selectedMessage->id }}')" class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2">
+                        <button wire:loading.attr="disabled" wire:click="replyMessage('{{ $selectedMessage->id }}')" class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                             </svg>

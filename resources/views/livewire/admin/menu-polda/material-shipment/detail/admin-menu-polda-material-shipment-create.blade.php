@@ -147,7 +147,7 @@
                 Daftar Rincian Material yang Dikirim
             </h2>
             @if(!$shipmentId)
-                <button wire:click="addDetail" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-xl shadow-lg transition-all flex items-center gap-2">
+                <button wire:loading.attr="disabled" wire:click="addDetail" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-xl shadow-lg transition-all flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                     Tambah Baris
                 </button>
@@ -273,7 +273,7 @@
                                 <!-- Action -->
                                 <td class="px-2 py-3 text-center align-top pt-4">
                                     @if(!$shipmentId && count($details) > 1)
-                                        <button wire:click="removeDetail({{ $index }})" class="p-1.5 inline-flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
+                                        <button wire:loading.attr="disabled" wire:click="removeDetail({{ $index }})" class="p-1.5 inline-flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                                         </button>
                                     @endif
@@ -295,10 +295,10 @@
         <a href="{{ route('menu-polda.material-shipment') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
 
         @if (!$shipmentId)
-            <button wire:click="save(false)" class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-center">💾 Simpan Draft</button>
-            <button wire:click="save(true)" class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">🚀 Kirim Sekarang</button>
+            <button wire:loading.attr="disabled" wire:click="save(false)" class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-center">💾 Simpan Draft</button>
+            <button wire:loading.attr="disabled" wire:click="save(true)" class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">🚀 Kirim Sekarang</button>
         @elseif ($shipmentStatus === 'draft')
-            <button wire:click="shipDraft" wire:confirm="Yakin ingin mengirim pengiriman ini? Status tidak bisa dikembalikan ke draft." class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl hover:from-green-700 hover:to-emerald-700 shadow-xl shadow-green-500/30 transition-all transform hover:scale-105 text-center">🚀 Kirim Sekarang</button>
+            <button wire:loading.attr="disabled" wire:click="shipDraft" wire:confirm="Yakin ingin mengirim pengiriman ini? Status tidak bisa dikembalikan ke draft." class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl hover:from-green-700 hover:to-emerald-700 shadow-xl shadow-green-500/30 transition-all transform hover:scale-105 text-center">🚀 Kirim Sekarang</button>
         @endif
     </div>
 

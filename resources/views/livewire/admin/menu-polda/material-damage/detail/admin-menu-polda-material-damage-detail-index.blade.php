@@ -171,7 +171,7 @@
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-gray-900">Detail Material Rusak</h2>
                 @if (!$materialDamageId)
-                    <button wire:click="addDetail" type="button"
+                    <button wire:loading.attr="disabled" wire:click="addDetail" type="button"
                         class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
@@ -303,7 +303,7 @@
                                     @if (!$materialDamageId)
                                         <td class="px-3 py-3 text-center align-top pt-4">
                                             @if (count($details) > 1)
-                                                <button type="button" wire:click="removeDetail({{ $index }})"
+                                                <button wire:loading.attr="disabled" type="button" wire:click="removeDetail({{ $index }})"
                                                     class="p-1.5 inline-flex items-center justify-center rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Hapus Item">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -338,7 +338,7 @@
             {{ $materialDamageId ? 'Kembali' : 'Batal' }}
         </a>
         @if (!$materialDamageId)
-            <button wire:click="save" type="button"
+            <button wire:loading.attr="disabled" wire:click="save" type="button"
                 class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
                 <span wire:loading.remove wire:target="save">Simpan Data</span>
                 <span wire:loading wire:target="save">Menyimpan...</span>

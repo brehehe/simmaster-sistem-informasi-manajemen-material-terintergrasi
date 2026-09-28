@@ -24,8 +24,7 @@ class AdminReportStockIndex extends Component
             'regionalPolice',
             'policeStation'
         ])
-            ->where('is_active', true)
-            ->where('quantity', '>', 0); // Only show stocks with quantity
+            ->where('is_active', true);
 
         if(Auth::user()->hasRole('Polda')) {
             $query->where('regional_police_id', Auth::user()->regional_police_id)->whereNull('police_station_id');
@@ -70,7 +69,6 @@ class AdminReportStockIndex extends Component
     public function getTotalItemsProperty()
     {
         return Stock::where('is_active', true)
-            ->where('quantity', '>', 0)
             ->count();
     }
 
@@ -84,7 +82,6 @@ class AdminReportStockIndex extends Component
     public function getTotalTypesProperty()
     {
         return Stock::where('is_active', true)
-            ->where('quantity', '>', 0)
             ->distinct('type_id')
             ->count('type_id');
     }

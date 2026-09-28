@@ -89,8 +89,7 @@ class AdminMenuPolresStockIndex extends Component
         // ================= BASE QUERY =================
         $query = StockDetail::query()
             ->where('is_active', true)
-            ->whereNotNull('police_station_id')
-            ->where('quantity', '>', 0);
+            ->whereNotNull('police_station_id');
 
         // ================= ROLE & POLICE STATION FILTER =================
         if ($user->hasRole('Admin')) {

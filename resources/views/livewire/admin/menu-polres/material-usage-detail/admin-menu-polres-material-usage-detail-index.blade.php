@@ -46,23 +46,23 @@
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
         <div class="flex flex-wrap items-center gap-2 mb-4">
             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Periode:</span>
-            <button wire:click="setDatePreset('today')"
+            <button wire:loading.attr="disabled" wire:click="setDatePreset('today')"
                 class="text-xs px-3 py-1.5 rounded-full font-semibold transition-all {{ (!$dateFrom && !$dateTo) || ($dateFrom == now()->format('Y-m-d') && $dateTo == now()->format('Y-m-d')) ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                 Hari Ini
             </button>
-            <button wire:click="setDatePreset('yesterday')"
+            <button wire:loading.attr="disabled" wire:click="setDatePreset('yesterday')"
                 class="text-xs px-3 py-1.5 rounded-full font-semibold transition-all {{ ($dateFrom == now()->subDay()->format('Y-m-d') && $dateTo == now()->subDay()->format('Y-m-d')) ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                 Kemarin
             </button>
-            <button wire:click="setDatePreset('this_week')"
+            <button wire:loading.attr="disabled" wire:click="setDatePreset('this_week')"
                 class="text-xs px-3 py-1.5 rounded-full font-semibold transition-all {{ ($dateFrom == now()->startOfWeek()->format('Y-m-d') && $dateTo == now()->endOfWeek()->format('Y-m-d')) ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                 Minggu Ini
             </button>
-            <button wire:click="setDatePreset('this_month')"
+            <button wire:loading.attr="disabled" wire:click="setDatePreset('this_month')"
                 class="text-xs px-3 py-1.5 rounded-full font-semibold transition-all {{ ($dateFrom == now()->startOfMonth()->format('Y-m-d') && $dateTo == now()->endOfMonth()->format('Y-m-d')) ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                 Bulan Ini
             </button>
-            <button wire:click="setDatePreset('all')"
+            <button wire:loading.attr="disabled" wire:click="setDatePreset('all')"
                 class="text-xs px-3 py-1.5 rounded-full font-semibold transition-all {{ !$dateFrom && !$dateTo ? 'bg-gray-700 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                 Semua
             </button>
@@ -273,7 +273,7 @@
                                                     ->first();
                                             @endphp
                                             <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                                                @if($item && $item->quantity > 0)
+                                                @if($item !== null)
                                                     <span class="font-medium text-gray-800 text-xs">{{ number_format($item->quantity, 0, ',', '.') }}</span>
                                                 @else
                                                     <span class="text-gray-300 text-xs">—</span>
@@ -288,7 +288,7 @@
                                                 ->first();
                                         @endphp
                                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                                            @if($item && $item->quantity > 0)
+                                            @if($item !== null)
                                                 <span class="font-medium text-gray-800 text-xs">{{ number_format($item->quantity, 0, ',', '.') }}</span>
                                             @else
                                                 <span class="text-gray-300 text-xs">—</span>
@@ -334,7 +334,7 @@
                                                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                             </svg>
                                         </a>
-                                        <button type="button" wire:click="openDeleteModal('{{ $detail->material_usage_id }}')"
+                                        <button wire:loading.attr="disabled" type="button" wire:click="openDeleteModal('{{ $detail->material_usage_id }}')"
                                             class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                             title="Hapus Penggunaan">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -371,7 +371,7 @@
                     </div>
                     <div class="flex items-center gap-1">
                         @if (!$details->onFirstPage())
-                            <button wire:click="previousPage('{{ $pageName }}')" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <button wire:loading.attr="disabled" wire:click="previousPage('{{ $pageName }}')" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                             </button>
                         @endif
@@ -380,11 +380,11 @@
                             @if ($p == $cp)
                                 <span class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg">{{ $p }}</span>
                             @else
-                                <button wire:click="gotoPage({{ $p }}, '{{ $pageName }}')" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $p }}</button>
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $p }}, '{{ $pageName }}')" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $p }}</button>
                             @endif
                         @endfor
                         @if ($details->hasMorePages())
-                            <button wire:click="nextPage('{{ $pageName }}')" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <button wire:loading.attr="disabled" wire:click="nextPage('{{ $pageName }}')" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                             </button>
                         @endif
@@ -468,11 +468,11 @@
                             @if($sv->details->count() > 0)
                                 @foreach($sv->details as $sd)
                                     @php $itm = $d->materialUsageDetailItems->where('service_id',$sv->id)->where('service_detail_id',$sd->id)->first(); @endphp
-                                    <td style="border:1px solid #e2e8f0; padding:4px 4px; text-align:center;">{{ $itm && $itm->quantity > 0 ? number_format($itm->quantity,0,',','.') : '—' }}</td>
+                                    <td style="border:1px solid #e2e8f0; padding:4px 4px; text-align:center;">{{ $itm !== null ? number_format($itm->quantity,0,',','.') : '—' }}</td>
                                 @endforeach
                             @else
                                 @php $itm = $d->materialUsageDetailItems->where('service_id',$sv->id)->whereNull('service_detail_id')->first(); @endphp
-                                <td style="border:1px solid #e2e8f0; padding:4px 4px; text-align:center;">{{ $itm && $itm->quantity > 0 ? number_format($itm->quantity,0,',','.') : '—' }}</td>
+                                <td style="border:1px solid #e2e8f0; padding:4px 4px; text-align:center;">{{ $itm !== null ? number_format($itm->quantity,0,',','.') : '—' }}</td>
                             @endif
                         @endforeach
                         <td style="border:1px solid #e2e8f0; padding:4px 6px; text-align:center; font-weight:bold; color:#065f46;">{{ number_format($d->quantity,0,',','.') }}</td>
@@ -541,11 +541,11 @@
                         <p class="text-gray-500 text-sm">Apakah Anda yakin ingin menghapus data penggunaan ini? Stok material akan <strong>otomatis dikembalikan</strong> ke stok tersedia.</p>
                     </div>
                     <div class="mt-6 flex gap-3">
-                        <button type="button" wire:click="closeModal"
+                        <button wire:loading.attr="disabled" type="button" wire:click="closeModal"
                             class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                             Batal
                         </button>
-                        <button type="button" wire:click="delete"
+                        <button wire:loading.attr="disabled" type="button" wire:click="delete"
                             class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus & Kembalikan Stok
                         </button>

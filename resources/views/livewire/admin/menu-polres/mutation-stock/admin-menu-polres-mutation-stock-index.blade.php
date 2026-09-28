@@ -163,7 +163,7 @@
                                                     d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                             </svg>
                                         </a>
-                                        <button wire:click="openDeleteModal('{{ $mutation->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $mutation->id }}')"
                                             class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                             title="Hapus">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
@@ -237,11 +237,11 @@
                             dapat dibatalkan.</p>
                     </div>
                     <div class="mt-6 flex gap-3">
-                        <button wire:click="closeModal"
+                        <button wire:loading.attr="disabled" wire:click="closeModal"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                             Batal
                         </button>
-                        <button wire:click="delete"
+                        <button wire:loading.attr="disabled" wire:click="delete"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus
                         </button>

@@ -6,7 +6,7 @@
                 <h1 class="text-3xl font-bold text-blue-600">Manajemen Detail Tipe</h1>
                 <p class="text-gray-500 mt-1">Kelola data detail tipe produk</p>
             </div>
-            <button wire:click="openCreateModal"
+            <button wire:loading.attr="disabled" wire:click="openCreateModal"
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
@@ -104,7 +104,7 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button wire:click="openService('{{ $detail->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openService('{{ $detail->id }}')"
                                         class="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
                                         title="Service">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -113,7 +113,7 @@
                                             <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <button wire:click="openEditModal('{{ $detail->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openEditModal('{{ $detail->id }}')"
                                         class="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100"
                                         title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -122,7 +122,7 @@
                                                 d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
                                     </button>
-                                    <button wire:click="openDeleteModal('{{ $detail->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $detail->id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -168,7 +168,7 @@
                                 </svg>
                             </span>
                         @else
-                            <button wire:click="previousPage"
+                            <button wire:loading.attr="disabled" wire:click="previousPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -188,7 +188,7 @@
                         @endphp
 
                         @if ($start > 1)
-                            <button wire:click="gotoPage(1)"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage(1)"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 1
                             </button>
@@ -203,7 +203,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <button wire:click="gotoPage({{ $page }})"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $page }})"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     {{ $page }}
                                 </button>
@@ -214,7 +214,7 @@
                             @if ($end < $lastPage - 1)
                                 <span class="px-2 py-2 text-sm text-gray-400">...</span>
                             @endif
-                            <button wire:click="gotoPage({{ $lastPage }})"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage({{ $lastPage }})"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 {{ $lastPage }}
                             </button>
@@ -222,7 +222,7 @@
 
                         {{-- Next Button --}}
                         @if ($typeDetails->hasMorePages())
-                            <button wire:click="nextPage"
+                            <button wire:loading.attr="disabled" wire:click="nextPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -268,9 +268,9 @@
                 <h3 class="text-xl font-bold text-gray-900 mb-2">Hapus Detail Tipe</h3>
                 <p class="text-gray-500 mb-6">Apakah Anda yakin ingin menghapus detail tipe ini?</p>
                 <div class="flex gap-3">
-                    <button wire:click="closeModal"
+                    <button wire:loading.attr="disabled" wire:click="closeModal"
                         class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200">Batal</button>
-                    <button wire:click="delete"
+                    <button wire:loading.attr="disabled" wire:click="delete"
                         class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl">Ya,
                         Hapus</button>
                 </div>

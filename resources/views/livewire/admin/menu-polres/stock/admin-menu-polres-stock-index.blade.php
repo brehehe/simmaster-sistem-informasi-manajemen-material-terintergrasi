@@ -220,7 +220,7 @@
                 </div>
                 <div class="flex items-center gap-1">
                     @if (!$stocks->onFirstPage())
-                        <button wire:click="previousPage" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="previousPage" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                         </button>
                     @endif
@@ -229,11 +229,11 @@
                         @if ($p == $cp)
                             <span class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg">{{ $p }}</span>
                         @else
-                            <button wire:click="gotoPage({{ $p }})" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $p }}</button>
+                            <button wire:loading.attr="disabled" wire:click="gotoPage({{ $p }})" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $p }}</button>
                         @endif
                     @endfor
                     @if ($stocks->hasMorePages())
-                        <button wire:click="nextPage" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="nextPage" class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                         </button>
                     @endif

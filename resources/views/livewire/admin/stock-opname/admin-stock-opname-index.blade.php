@@ -213,7 +213,7 @@
                                         </a>
 
                                         <!-- Delete -->
-                                        <button wire:click="openDeleteModal('{{ $opname->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $opname->id }}')"
                                             class="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold rounded-lg transition-colors"
                                             title="Hapus">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -268,11 +268,11 @@
                     Apakah Anda yakin ingin menghapus stock opname ini? Tindakan ini tidak dapat dibatalkan.
                 </p>
                 <div class="flex gap-3">
-                    <button wire:click="closeModal"
+                    <button wire:loading.attr="disabled" wire:click="closeModal"
                         class="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
                         Batal
                     </button>
-                    <button wire:click="delete"
+                    <button wire:loading.attr="disabled" wire:click="delete"
                         class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
                         Hapus
                     </button>

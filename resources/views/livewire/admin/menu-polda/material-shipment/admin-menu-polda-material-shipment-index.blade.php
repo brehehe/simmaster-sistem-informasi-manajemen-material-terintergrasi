@@ -238,14 +238,14 @@
                                     </div>
 
                                     <!-- Scan QR Code Button (Petugas Warehouse) -->
-                                    <button wire:click="openScanQrModal('{{ $shipment->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openScanQrModal('{{ $shipment->id }}')"
                                         class="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
                                         title="Scan QR Code Warehouse">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     </button>
 
                                     <!-- View Data Pengambilan (Picking Sheet) -->
-                                    <button wire:click="openPickingDetailModal('{{ $shipment->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openPickingDetailModal('{{ $shipment->id }}')"
                                         class="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
                                         title="View Data Pengambilan Material (Warehouse)">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -261,7 +261,7 @@
                                         </a>
                                     @endif
 
-                                    <button wire:click="openDeleteModal('{{ $shipment->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $shipment->id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                         title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -317,11 +317,11 @@
                         <p class="text-gray-500">Apakah Anda yakin ingin menghapus pengiriman ini? Jika material sudah diterima, stok akan otomatis dikembalikan ke kondisi semula tanpa membuat riwayat baru. Tindakan ini tidak dapat dibatalkan.</p>
                     </div>
                     <div class="mt-6 flex gap-3">
-                        <button wire:click="closeModal"
+                        <button wire:loading.attr="disabled" wire:click="closeModal"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                             Batal
                         </button>
-                        <button wire:click="delete"
+                        <button wire:loading.attr="disabled" wire:click="delete"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus
                         </button>
@@ -351,7 +351,7 @@
                                     {{ \Carbon\Carbon::parse($selectedShipment->shipment_date)->format('d F Y') }}
                                 </p>
                             </div>
-                            <button wire:click="closeDetailModal" class="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl">
+                            <button wire:loading.attr="disabled" wire:click="closeDetailModal" class="text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -440,7 +440,7 @@
 
                     <!-- Modal Footer -->
                     <div class="bg-gray-50 px-8 py-6 border-t border-gray-100 flex justify-end">
-                        <button wire:click="closeDetailModal" class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-sm">
+                        <button wire:loading.attr="disabled" wire:click="closeDetailModal" class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-sm">
                             Tutup Detail
                         </button>
                     </div>
@@ -512,7 +512,7 @@
                             class="text-xs bg-white/20 hover:bg-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-all">
                             🖥️ Buka Halaman Warehouse
                         </a>
-                        <button wire:click="closeScanQrModal" @click="stopCamera(); closePhotoCamera()" class="text-white/80 hover:text-white">✕</button>
+                        <button wire:loading.attr="disabled" wire:click="closeScanQrModal" @click="stopCamera(); closePhotoCamera()" class="text-white/80 hover:text-white">✕</button>
                     </div>
                 </div>
 
@@ -549,7 +549,7 @@
                             <input type="text" wire:model="scanInputCode" placeholder="Masukkan / scan kode (Contoh: SHP-20260720-001)"
                                 wire:keydown.enter="processScanQr"
                                 class="w-full px-3.5 py-2.5 text-xs font-mono font-bold rounded-xl border border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white">
-                            <button type="button" wire:click="processScanQr"
+                            <button wire:loading.attr="disabled" type="button" wire:click="processScanQr"
                                 class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0">
                                 Verifikasi
                             </button>
@@ -673,7 +673,7 @@
 
                 {{-- Sticky Modal Footer --}}
                 <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
-                    <button wire:click="closeScanQrModal" @click="stopCamera(); closePhotoCamera()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
+                    <button wire:loading.attr="disabled" wire:click="closeScanQrModal" @click="stopCamera(); closePhotoCamera()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
                         Tutup
                     </button>
                 </div>
@@ -693,7 +693,7 @@
                         </h3>
                         <p class="text-xs text-gray-500">Rincian lokasi rak & barang yang diambil petugas warehouse untuk SPPM: <strong class="font-mono text-blue-600">{{ $selectedShipment->code }}</strong></p>
                     </div>
-                    <button wire:click="closePickingDetailModal" class="text-gray-400 hover:text-gray-600">✕</button>
+                    <button wire:loading.attr="disabled" wire:click="closePickingDetailModal" class="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
 
                 {{-- Scrollable Modal Body --}}
@@ -769,7 +769,7 @@
 
                 {{-- Sticky Modal Footer --}}
                 <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
-                    <button wire:click="closePickingDetailModal" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
+                    <button wire:loading.attr="disabled" wire:click="closePickingDetailModal" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-bold text-xs">
                         Tutup
                     </button>
                 </div>

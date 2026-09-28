@@ -5,7 +5,7 @@
             <div class="bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-bold text-white">{{ $isEditMode ? 'Edit Tipe' : 'Tambah Tipe Baru' }}</h3>
-                    <button wire:click="closeModal" class="text-white/80 hover:text-white"><svg
+                    <button wire:loading.attr="disabled" wire:click="closeModal" class="text-white/80 hover:text-white"><svg
                             xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -53,7 +53,7 @@
                     </div>
                 </div>
                 <div class="flex gap-3 pt-3 border-t border-gray-100">
-                    <button type="button" wire:click="closeModal"
+                    <button wire:loading.attr="disabled" type="button" wire:click="closeModal"
                         class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Batal</button>
                     <button type="submit"
                         class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg shadow-lg shadow-blue-500/30">{{ $isEditMode ? 'Perbarui' : 'Simpan' }}</button>

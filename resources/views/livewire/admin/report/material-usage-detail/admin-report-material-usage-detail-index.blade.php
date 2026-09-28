@@ -6,14 +6,14 @@
                 <p class="text-gray-600">Daftar detail penggunaan material dikelompokkan berdasarkan tipe material.</p>
             </div>
             <div class="flex gap-2">
-                <button wire:click="exportExcel"
+                <button wire:loading.attr="disabled" wire:click="exportExcel"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                     Export Excel
                 </button>
-                <button wire:click="exportPdf"
+                <button wire:loading.attr="disabled" wire:click="exportPdf"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
@@ -260,7 +260,7 @@
                                                     ->first();
                                             @endphp
                                             <td class="px-2 py-3 text-center border-r border-gray-100">
-                                                @if($item && $item->quantity > 0)
+                                                @if($item !== null)
                                                     <span class="font-medium text-gray-800 text-sm">
                                                         {{ number_format($item->quantity, 0,',','.') }}
                                                     </span>
@@ -278,7 +278,7 @@
                                                 ->first();
                                         @endphp
                                         <td class="px-2 py-3 text-center border-r border-gray-100">
-                                            @if($item && $item->quantity > 0)
+                                            @if($item !== null)
                                                 <span class="font-medium text-gray-800 text-sm">
                                                     {{ number_format($item->quantity, 0,',','.') }}
                                                 </span>
@@ -326,7 +326,7 @@
                                     </svg>
                                 </span>
                             @else
-                                <button wire:click="previousPage('{{ $pageName }}')"
+                                <button wire:loading.attr="disabled" wire:click="previousPage('{{ $pageName }}')"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                         fill="currentColor">
@@ -343,7 +343,7 @@
                                 $end = min($lastPage, $currentPage + 2);
                             @endphp
                             @if ($start > 1)
-                                <button wire:click="gotoPage(1, '{{ $pageName }}')"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage(1, '{{ $pageName }}')"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">1</button>
                                 @if ($start > 2)
                                     <span class="px-2 py-2 text-sm text-gray-400">...</span>
@@ -354,7 +354,7 @@
                                     <span
                                         class="px-3 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg">{{ $page }}</span>
                                 @else
-                                    <button wire:click="gotoPage({{ $page }}, '{{ $pageName }}')"
+                                    <button wire:loading.attr="disabled" wire:click="gotoPage({{ $page }}, '{{ $pageName }}')"
                                         class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $page }}</button>
                                 @endif
                             @endfor
@@ -362,11 +362,11 @@
                                 @if ($end < $lastPage - 1)
                                     <span class="px-2 py-2 text-sm text-gray-400">...</span>
                                 @endif
-                                <button wire:click="gotoPage({{ $lastPage }}, '{{ $pageName }}')"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $lastPage }}, '{{ $pageName }}')"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $lastPage }}</button>
                             @endif
                             @if ($details->hasMorePages())
-                                <button wire:click="nextPage('{{ $pageName }}')"
+                                <button wire:loading.attr="disabled" wire:click="nextPage('{{ $pageName }}')"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                         fill="currentColor">

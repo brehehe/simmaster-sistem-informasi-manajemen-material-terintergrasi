@@ -69,7 +69,7 @@
                 </svg>
                 Daftar Material Disubsidikan
             </h2>
-            <button type="button" wire:click="addItem" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-all text-xs">
+            <button wire:loading.attr="disabled" type="button" wire:click="addItem" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-all text-xs">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                 Tambah Material
             </button>
@@ -128,7 +128,7 @@
                                 </td>
                                 <td class="p-3 text-center pt-4">
                                     @if(count($items) > 1)
-                                        <button type="button" wire:click="removeItem({{ $index }})" class="p-1 text-red-500 hover:bg-red-50 rounded-lg">
+                                        <button wire:loading.attr="disabled" type="button" wire:click="removeItem({{ $index }})" class="p-1 text-red-500 hover:bg-red-50 rounded-lg">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     @endif
@@ -144,7 +144,7 @@
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3">
         <a href="{{ route('menu-polres.material-subsidy') }}" wire:navigate class="px-6 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</a>
-        <button type="button" wire:click="save" class="px-8 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-500/25 transition-all">
+        <button wire:loading.attr="disabled" type="button" wire:click="save" class="px-8 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-500/25 transition-all">
             💾 Simpan Draft Subsidi Silang
         </button>
     </div>

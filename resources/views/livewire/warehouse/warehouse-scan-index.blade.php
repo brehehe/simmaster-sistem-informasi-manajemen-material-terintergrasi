@@ -123,7 +123,7 @@
                             wire:keydown.enter="processScanQr"
                             placeholder="Contoh: SHP-JATIM-20260805-001"
                             class="flex-1 px-4 py-3 text-sm font-mono font-bold rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all bg-gray-50 focus:bg-white">
-                        <button wire:click="processScanQr"
+                        <button wire:loading.attr="disabled" wire:click="processScanQr"
                             class="px-6 py-3 bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs rounded-xl shadow-sm transition-all whitespace-nowrap">
                             Cari SPPM
                         </button>
@@ -164,7 +164,7 @@
                         {{ $scannedShipment->receiverPoliceStation?->name }}
                     </p>
                 </div>
-                <button wire:click="resetScan" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition-all">
+                <button wire:loading.attr="disabled" wire:click="resetScan" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition-all">
                     ← Scan Ulang
                 </button>
             </div>
@@ -405,7 +405,7 @@
 
         {{-- Action Buttons --}}
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pb-6">
-            <button wire:click="resetScan" type="button"
+            <button wire:loading.attr="disabled" wire:click="resetScan" type="button"
                 class="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all text-sm">
                 ← Scan Ulang
             </button>
@@ -446,7 +446,7 @@
                     Cetak Bukti Serah Terima (PDF)
                 </a>
             @endif
-            <button wire:click="resetScan" type="button"
+            <button wire:loading.attr="disabled" wire:click="resetScan" type="button"
                 class="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs rounded-xl transition-all">
                 Scan SPPM Berikutnya
             </button>

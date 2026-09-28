@@ -88,7 +88,7 @@
         <div class="p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold text-gray-900">Detail Item Barang</h2>
-                <button wire:click="addDetail" type="button"
+                <button wire:loading.attr="disabled" wire:click="addDetail" type="button"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -189,7 +189,7 @@
                                         @enderror
                                     </td>
                                     <td class="px-4 py-3 text-center">
-                                        <button wire:click="removeDetail({{ $index }})" type="button"
+                                        <button wire:loading.attr="disabled" wire:click="removeDetail({{ $index }})" type="button"
                                             class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                             title="Hapus">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
@@ -225,7 +225,7 @@
             class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
             Batal
         </a>
-        <button wire:click="save" type="button"
+        <button wire:loading.attr="disabled" wire:click="save" type="button"
             class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
             <span wire:loading.remove wire:target="save">Simpan Data</span>
             <span wire:loading wire:target="save">Menyimpan...</span>

@@ -6,7 +6,7 @@
             <p class="mt-1 text-gray-500">Visualisasi data dan statistik sistem manajemen material.</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-            <button wire:click="toggleDataKendaraan"
+            <button wire:loading.attr="disabled" wire:click="toggleDataKendaraan"
                 class="inline-flex items-center gap-2 rounded-xl border {{ $showDataKendaraan ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50' }} px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -15,7 +15,7 @@
                 {{ $showDataKendaraan ? 'Tutup Pengecekan' : 'Data Kendaraan' }}
             </button>
             @if(!$showDataKendaraan)
-                <button wire:click="$refresh"
+                <button wire:loading.attr="disabled" wire:click="$refresh"
                     class="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm hover:bg-blue-50 transition-colors">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -46,7 +46,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <button wire:click="openImportEriModal" type="button"
+                    <button wire:loading.attr="disabled" wire:click="openImportEriModal" type="button"
                         class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold shadow-md shadow-emerald-600/20 transition-all">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                         Import Data ERI
@@ -58,7 +58,7 @@
                             Export / Download PDF Hasil Cek
                         </button>
                     @endif
-                    <button wire:click="toggleDataKendaraan" type="button"
+                    <button wire:loading.attr="disabled" wire:click="toggleDataKendaraan" type="button"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 px-3.5 py-2 text-xs font-semibold transition-all">
                         Kembali ke Dashboard
                     </button>
@@ -248,7 +248,7 @@
                 <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
                     <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
                         <h3 class="text-base font-bold text-gray-900">Import Data ERI Korlantas Polri</h3>
-                        <button wire:click="closeImportEriModal" class="text-gray-400 hover:text-gray-600">✕</button>
+                        <button wire:loading.attr="disabled" wire:click="closeImportEriModal" class="text-gray-400 hover:text-gray-600">✕</button>
                     </div>
 
                     <div class="space-y-4 mb-6">
@@ -268,8 +268,8 @@
                     </div>
 
                     <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
-                        <button wire:click="closeImportEriModal" type="button" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">Batal</button>
-                        <button wire:click="processImportEri" type="button" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Simpan & Sinkronkan</button>
+                        <button wire:loading.attr="disabled" wire:click="closeImportEriModal" type="button" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">Batal</button>
+                        <button wire:loading.attr="disabled" wire:click="processImportEri" type="button" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Simpan & Sinkronkan</button>
                     </div>
                 </div>
             </div>

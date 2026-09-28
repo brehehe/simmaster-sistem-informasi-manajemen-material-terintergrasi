@@ -221,7 +221,7 @@
                                             <path d="M10 8a2 2 0 100 4 2 2 0 000-4z"/>
                                         </svg>
                                     </a>
-                                    <button wire:click="openDeleteModal('{{ $detail->last_stock_id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $detail->last_stock_id }}')"
                                         class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-150"
                                         title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -277,7 +277,7 @@
                                 </svg>
                             </span>
                         @else
-                            <button wire:click="previousPage"
+                            <button wire:loading.attr="disabled" wire:click="previousPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -297,7 +297,7 @@
                         @endphp
 
                         @if ($start > 1)
-                            <button wire:click="gotoPage(1)"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage(1)"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 1
                             </button>
@@ -312,7 +312,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <button wire:click="gotoPage({{ $page }})"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $page }})"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     {{ $page }}
                                 </button>
@@ -323,7 +323,7 @@
                             @if ($end < $lastPage - 1)
                                 <span class="px-2 py-2 text-sm text-gray-400">...</span>
                             @endif
-                            <button wire:click="gotoPage({{ $lastPage }})"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage({{ $lastPage }})"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 {{ $lastPage }}
                             </button>
@@ -331,7 +331,7 @@
 
                         {{-- Next Button --}}
                         @if ($lastStocks->hasMorePages())
-                            <button wire:click="nextPage"
+                            <button wire:loading.attr="disabled" wire:click="nextPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -387,11 +387,11 @@
                     </div>
 
                     <div class="mt-6 flex gap-3">
-                        <button wire:click="closeModal"
+                        <button wire:loading.attr="disabled" wire:click="closeModal"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                             Batal
                         </button>
-                        <button wire:click="delete"
+                        <button wire:loading.attr="disabled" wire:click="delete"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus
                         </button>

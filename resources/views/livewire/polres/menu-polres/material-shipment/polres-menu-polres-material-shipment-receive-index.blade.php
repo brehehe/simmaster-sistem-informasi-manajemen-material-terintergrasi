@@ -106,7 +106,7 @@
                         placeholder="Contoh: SPPM/SHP-20260721-001..."
                         class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                         wire:keydown.enter="searchByCode">
-                    <button wire:click="searchByCode" type="button"
+                    <button wire:loading.attr="disabled" wire:click="searchByCode" type="button"
                         class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"

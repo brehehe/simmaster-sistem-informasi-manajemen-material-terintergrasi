@@ -39,7 +39,7 @@
                 @endif
             </div>
             @if($unreadCount > 0)
-                <button wire:click="markAllAsRead"
+                <button wire:loading.attr="disabled" wire:click="markAllAsRead"
                     class="text-xs text-white/80 hover:text-white font-medium transition-colors">
                     Tandai semua dibaca
                 </button>

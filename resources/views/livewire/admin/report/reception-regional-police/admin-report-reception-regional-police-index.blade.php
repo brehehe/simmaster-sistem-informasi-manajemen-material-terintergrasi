@@ -9,14 +9,14 @@
                 <p class="text-gray-500 mt-1">Laporan data penerimaan barang</p>
             </div>
             <div class="flex items-center gap-3">
-                <button wire:click="exportExcel" type="button"
+                <button wire:loading.attr="disabled" wire:click="exportExcel" type="button"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                     Export Excel
                 </button>
-                <button wire:click="exportPdf" type="button"
+                <button wire:loading.attr="disabled" wire:click="exportPdf" type="button"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -309,7 +309,7 @@
                                 </svg>
                             </span>
                         @else
-                            <button wire:click="previousPage"
+                            <button wire:loading.attr="disabled" wire:click="previousPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -329,7 +329,7 @@
                         @endphp
 
                         @if ($start > 1)
-                            <button wire:click="gotoPage(1)"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage(1)"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 1
                             </button>
@@ -344,7 +344,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <button wire:click="gotoPage({{ $page }})"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $page }})"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     {{ $page }}
                                 </button>
@@ -355,7 +355,7 @@
                             @if ($end < $lastPage - 1)
                                 <span class="px-2 py-2 text-sm text-gray-400">...</span>
                             @endif
-                            <button wire:click="gotoPage({{ $lastPage }})"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage({{ $lastPage }})"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 {{ $lastPage }}
                             </button>
@@ -363,7 +363,7 @@
 
                         {{-- Next Button --}}
                         @if ($receptions->hasMorePages())
-                            <button wire:click="nextPage"
+                            <button wire:loading.attr="disabled" wire:click="nextPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -419,11 +419,11 @@
                     </div>
 
                     <div class="mt-6 flex gap-3">
-                        <button wire:click="closeModal"
+                        <button wire:loading.attr="disabled" wire:click="closeModal"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                             Batal
                         </button>
-                        <button wire:click="delete"
+                        <button wire:loading.attr="disabled" wire:click="delete"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus
                         </button>

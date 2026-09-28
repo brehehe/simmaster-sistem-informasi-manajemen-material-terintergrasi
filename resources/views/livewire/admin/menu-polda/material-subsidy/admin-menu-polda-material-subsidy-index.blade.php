@@ -141,7 +141,7 @@
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <!-- View Detail -->
-                                    <button wire:click="viewDetail('{{ $subsidy->id }}')"
+                                    <button wire:loading.attr="disabled" wire:click="viewDetail('{{ $subsidy->id }}')"
                                         class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -157,14 +157,14 @@
                                             </svg>
                                         </a>
                                         <!-- Confirm -->
-                                        <button wire:click="openConfirmModal('{{ $subsidy->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="openConfirmModal('{{ $subsidy->id }}')"
                                             class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Konfirmasi Subsidi">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </button>
                                         <!-- Delete -->
-                                        <button wire:click="openDeleteModal('{{ $subsidy->id }}')"
+                                        <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $subsidy->id }}')"
                                             class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -211,7 +211,7 @@
                         <h3 class="text-lg font-bold text-gray-900">Detail Subsidi Material</h3>
                         <p class="text-sm text-gray-500 font-mono">{{ $selectedSubsidy->code }}</p>
                     </div>
-                    <button wire:click="closeDetailModal" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <button wire:loading.attr="disabled" wire:click="closeDetailModal" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -325,7 +325,7 @@
                         @endforeach
                     </div>
                     <div class="flex gap-3">
-                        <button wire:click="closeConfirmModal"
+                        <button wire:loading.attr="disabled" wire:click="closeConfirmModal"
                             class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                             Batal
                         </button>
@@ -358,7 +358,7 @@
                     </div>
                     <p class="text-sm text-gray-600 mb-5">Apakah Anda yakin ingin menghapus data subsidi material ini?</p>
                     <div class="flex gap-3">
-                        <button wire:click="closeDeleteModal"
+                        <button wire:loading.attr="disabled" wire:click="closeDeleteModal"
                             class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                             Batal
                         </button>

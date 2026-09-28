@@ -103,7 +103,7 @@
             <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
                 <div class="flex items-center justify-between mb-5">
                     <h2 class="text-base font-bold text-gray-800">Item Material</h2>
-                    <button type="button" wire:click="addItem"
+                    <button wire:loading.attr="disabled" type="button" wire:click="addItem"
                         class="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -124,7 +124,7 @@
                             <div class="flex items-start justify-between mb-3">
                                 <span class="text-xs font-bold text-gray-400 uppercase">Item #{{ $index + 1 }}</span>
                                 @if(count($items) > 1)
-                                    <button type="button" wire:click="removeItem({{ $index }})"
+                                    <button wire:loading.attr="disabled" type="button" wire:click="removeItem({{ $index }})"
                                         class="text-red-400 hover:text-red-600 transition-colors">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

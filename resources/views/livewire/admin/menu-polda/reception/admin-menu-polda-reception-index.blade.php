@@ -208,7 +208,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button wire:click="viewDetail('{{ $reception->id }}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
+                                    <button wire:loading.attr="disabled" wire:click="viewDetail('{{ $reception->id }}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                             <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
@@ -219,17 +219,17 @@
                                             <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                                         </svg>
                                     </a>
-                                    <button wire:click="exportBappmPdf('{{ $reception->id }}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Download PDF BAPPM">
+                                    <button wire:loading.attr="disabled" wire:click="exportBappmPdf('{{ $reception->id }}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Download PDF BAPPM">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A1 1 0 0112 2.586L15.414 6A1 1 0 0116 6.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <button wire:click="exportBappmExcel('{{ $reception->id }}')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Download Excel BAPPM">
+                                    <button wire:loading.attr="disabled" wire:click="exportBappmExcel('{{ $reception->id }}')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Download Excel BAPPM">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v2a1 1 0 102 0v-2zm3-3a1 1 0 00-2 0v5a1 1 0 102 0V9zm3 4a1 1 0 10-2 0v1a1 1 0 102 0v-1z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <button wire:click="openDeleteModal('{{ $reception->id }}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                    <button wire:loading.attr="disabled" wire:click="openDeleteModal('{{ $reception->id }}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
@@ -280,7 +280,7 @@
                                 </svg>
                             </span>
                         @else
-                            <button wire:click="previousPage"
+                            <button wire:loading.attr="disabled" wire:click="previousPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -300,7 +300,7 @@
                         @endphp
 
                         @if ($start > 1)
-                            <button wire:click="gotoPage(1)"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage(1)"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 1
                             </button>
@@ -315,7 +315,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <button wire:click="gotoPage({{ $page }})"
+                                <button wire:loading.attr="disabled" wire:click="gotoPage({{ $page }})"
                                     class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                     {{ $page }}
                                 </button>
@@ -326,7 +326,7 @@
                             @if ($end < $lastPage - 1)
                                 <span class="px-2 py-2 text-sm text-gray-400">...</span>
                             @endif
-                            <button wire:click="gotoPage({{ $lastPage }})"
+                            <button wire:loading.attr="disabled" wire:click="gotoPage({{ $lastPage }})"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 {{ $lastPage }}
                             </button>
@@ -334,7 +334,7 @@
 
                         {{-- Next Button --}}
                         @if ($receptions->hasMorePages())
-                            <button wire:click="nextPage"
+                            <button wire:loading.attr="disabled" wire:click="nextPage"
                                 class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -389,11 +389,11 @@
                     </div>
 
                     <div class="mt-6 flex gap-3">
-                        <button wire:click="closeModal"
+                        <button wire:loading.attr="disabled" wire:click="closeModal"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
                             Batal
                         </button>
-                        <button wire:click="delete"
+                        <button wire:loading.attr="disabled" wire:click="delete"
                             class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30 transition-all duration-200">
                             Ya, Hapus
                         </button>
@@ -419,7 +419,7 @@
                             <h3 class="text-xl font-bold text-gray-900">Detail Transaksi: {{ $selectedReception->code }}</h3>
                             <p class="text-sm text-gray-500 mt-1">{{ Str::title(Str::replace('-',' ',$selectedReception->type)) }} • {{ $selectedReception->date->format('d M Y') }}</p>
                         </div>
-                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <button wire:loading.attr="disabled" wire:click="closeModal" class="text-gray-400 hover:text-gray-500 transition-colors">
                             <span class="sr-only">Close</span>
                             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -465,14 +465,14 @@
                     </div>
 
                     <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
-                        <button wire:click="exportBappmExcel('{{ $selectedReception->id }}')"
+                        <button wire:loading.attr="disabled" wire:click="exportBappmExcel('{{ $selectedReception->id }}')"
                             class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all duration-200 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v2a1 1 0 102 0v-2zm3-3a1 1 0 00-2 0v5a1 1 0 102 0V9zm3 4a1 1 0 10-2 0v1a1 1 0 102 0v-1z" clip-rule="evenodd" />
                             </svg>
                             Export Excel BAPPM
                         </button>
-                        <button wire:click="exportBappmPdf('{{ $selectedReception->id }}')"
+                        <button wire:loading.attr="disabled" wire:click="exportBappmPdf('{{ $selectedReception->id }}')"
                             class="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 shadow-lg shadow-red-500/30 transition-all duration-200 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A1 1 0 0112 2.586L15.414 6A1 1 0 0116 6.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
