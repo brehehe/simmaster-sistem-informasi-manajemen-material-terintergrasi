@@ -142,7 +142,7 @@
                     <ul class="space-y-1 list-disc list-inside text-gray-600">
                         <li>Minta QR Code SPPM dari Admin Polres atau cetakan dokumen resmi.</li>
                         <li>Scan QR menggunakan kamera browser atau masukkan nomor SPPM secara manual.</li>
-                        <li>Pastikan status SPPM berstatus <strong>Draft</strong> untuk diproses serah terima.</li>
+                        <li>SPPM <strong>Draft</strong> atau <strong>Terkirim</strong> yang belum dipindai dapat diproses serah terima.</li>
                     </ul>
                 </div>
             </div>

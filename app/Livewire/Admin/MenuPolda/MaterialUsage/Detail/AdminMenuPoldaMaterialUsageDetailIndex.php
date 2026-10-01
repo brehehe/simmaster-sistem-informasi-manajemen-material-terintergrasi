@@ -10,7 +10,6 @@ use App\Models\Service\Service;
 use App\Models\Stock\HistoryStockDetail;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;
-use App\Models\Type\TypeDetail;
 use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -18,13 +17,18 @@ use Livewire\Component;
 class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 {
     public ?string $materialUsageId = null;
+
     public bool $isEditMode = false;
 
     // Header fields
     public string $code = '';
+
     public ?string $date = null;
+
     public ?string $regionalPoliceId = null;
+
     public ?string $policeStationId = null;
+
     public string $description = '';
 
     // Details array (batch)
@@ -32,17 +36,24 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     // Dropdown data
     public $stockDetails = [];
+
     public $types = [];
+
     public $typeDetails = [];
+
     public $racks = [];
+
     public $regionalPolices = [];
+
     public $services = [];  // Services grouped by type_id
+
     public $serviceDetails = [];  // Service details grouped by service_id
 
     protected StockService $stockService;
 
     public function boot(StockService $stockService)
     {
+        abort_unless(auth()->user()?->hasRole('Admin'), 403);
         $this->stockService = $stockService;
     }
 
@@ -117,11 +128,11 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
     {
         $user = auth()->user();
         $typesQuery = Type::where('is_active', true)->orderBy('name');
-        if ($user && $user->userType && !empty($user->userType->types)) {
-            $allowedTypes = is_array($user->userType->types) 
-                ? $user->userType->types 
+        if ($user && $user->userType && ! empty($user->userType->types)) {
+            $allowedTypes = is_array($user->userType->types)
+                ? $user->userType->types
                 : json_decode($user->userType->types, true);
-            if (!empty($allowedTypes)) {
+            if (! empty($allowedTypes)) {
                 $typesQuery->whereIn('id', $allowedTypes);
             }
         }
@@ -169,7 +180,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         $field = $parts[1] ?? null;
 
         if ($field === 'stock_detail_id') {
-            if (!empty($value)) {
+            if (! empty($value)) {
                 $stockDetail = StockDetail::with(['type', 'typeDetail', 'rack'])->find($value);
                 if ($stockDetail) {
                     $this->details[$index]['type_id'] = $stockDetail->type_id;
@@ -209,7 +220,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     public function recalculateDetailQuantity($index): void
     {
-        if (!isset($this->details[$index])) {
+        if (! isset($this->details[$index])) {
             return;
         }
 
@@ -221,14 +232,14 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             if (is_array($serviceData)) {
                 if (array_key_exists('quantity', $serviceData)) {
                     $hasAnyServiceField = true;
-                    if (is_numeric($serviceData['quantity']) && (float)$serviceData['quantity'] > 0) {
+                    if (is_numeric($serviceData['quantity']) && (float) $serviceData['quantity'] > 0) {
                         $total += (float) $serviceData['quantity'];
                     }
                 } else {
                     foreach ($serviceData as $detailId => $detailData) {
                         if (is_array($detailData) && array_key_exists('quantity', $detailData)) {
                             $hasAnyServiceField = true;
-                            if (is_numeric($detailData['quantity']) && (float)$detailData['quantity'] > 0) {
+                            if (is_numeric($detailData['quantity']) && (float) $detailData['quantity'] > 0) {
                                 $total += (float) $detailData['quantity'];
                             }
                         }
@@ -255,9 +266,9 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
         if ($this->isEditMode) {
             $existingStockIds = collect($this->details)->pluck('stock_detail_id')->filter();
-            $query->where(function($q) use ($existingStockIds) {
+            $query->where(function ($q) use ($existingStockIds) {
                 $q->where('is_active', true)
-                  ->orWhereIn('id', $existingStockIds);
+                    ->orWhereIn('id', $existingStockIds);
             });
         }
 
@@ -266,11 +277,11 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
         }
 
         $user = auth()->user();
-        if ($user && $user->userType && !empty($user->userType->types)) {
-            $allowedTypes = is_array($user->userType->types) 
-                ? $user->userType->types 
+        if ($user && $user->userType && ! empty($user->userType->types)) {
+            $allowedTypes = is_array($user->userType->types)
+                ? $user->userType->types
                 : json_decode($user->userType->types, true);
-            if (!empty($allowedTypes)) {
+            if (! empty($allowedTypes)) {
                 $query->whereIn('type_id', $allowedTypes);
             }
         }
@@ -334,17 +345,17 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
         foreach ($this->details as $index => $detail) {
             $stockId = $detail['stock_detail_id'] ?? null;
-            $qty = (float)($detail['quantity'] ?? 0);
+            $qty = (float) ($detail['quantity'] ?? 0);
             $stockDetail = StockDetail::find($stockId);
-            $available = $stockDetail ? (float)$stockDetail->quantity : 0;
+            $available = $stockDetail ? (float) $stockDetail->quantity : 0;
 
             if ($this->isEditMode) {
                 // In edit mode, add back currently saved quantity if modifying same record
-                $available = (float)($detail['available_quantity'] ?? $available);
+                $available = (float) ($detail['available_quantity'] ?? $available);
             }
 
             if ($qty < 0) {
-                $this->addError("details.{$index}.quantity", "Jumlah tidak boleh kurang dari 0.");
+                $this->addError("details.{$index}.quantity", 'Jumlah tidak boleh kurang dari 0.');
                 $hasError = true;
             }
 
@@ -364,6 +375,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
         if ($hasError) {
             session()->flash('error', 'Silakan periksa kembali isian formulir. Ada data yang belum sesuai.');
+
             return;
         }
 
@@ -402,14 +414,14 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                         'item_code' => $detail['item_code'],
                         'number_serial_first' => $detail['number_serial_first'],
                         'number_serial_second' => $detail['number_serial_second'],
-                        'quantity' => (float)$detail['quantity'],
+                        'quantity' => (float) $detail['quantity'],
                         'usage_type' => $detail['usage_type'],
                         'description' => $detail['description'] ?? '',
                         'is_active' => true,
                     ]);
 
                     // Process service items if they exist
-                    if (!empty($detail['service_items'])) {
+                    if (! empty($detail['service_items'])) {
                         $this->processServiceItems($materialUsage, $materialUsageDetail, $detail);
                     }
                 }
@@ -422,13 +434,13 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
             return $this->redirect(route('menu-polda.material-usage'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
     protected function loadServicesForType($typeId)
     {
-        if (!isset($this->services[$typeId])) {
+        if (! isset($this->services[$typeId])) {
             $this->services[$typeId] = Service::where('type_id', $typeId)
                 ->where('is_active', true)
                 ->withCount('details')
@@ -460,7 +472,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
                 }
 
                 // If no service details, it's a direct service quantity
-                if (!$hasServiceDetails && isset($serviceData['quantity'])) {
+                if (! $hasServiceDetails && isset($serviceData['quantity'])) {
                     $this->createDetailItemAndHistory(
                         $materialUsage,
                         $materialUsageDetail,
@@ -521,18 +533,24 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
 
     public function getServicesForType($typeId)
     {
-        if (!$typeId) return collect();
+        if (! $typeId) {
+            return collect();
+        }
+
         return Service::where('type_id', $typeId)
             ->where('is_active', true)
             ->withCount('details')
-            ->with(['details' => fn($q) => $q->where('is_active', true)->orderBy('name')])
+            ->with(['details' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
             ->orderBy('name')
             ->get();
     }
 
     public function hasServices($typeId)
     {
-        if (!$typeId) return false;
+        if (! $typeId) {
+            return false;
+        }
+
         return $this->getServicesForType($typeId)->isNotEmpty();
     }
 

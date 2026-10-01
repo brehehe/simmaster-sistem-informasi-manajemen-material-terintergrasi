@@ -6,7 +6,7 @@
         }
         body {
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 10px;
             line-height: 1.4;
             color: #000;
             background: #fff;
@@ -14,7 +14,8 @@
             padding: 0;
         }
         .header-kop {
-            text-align: left;
+            text-align: center;
+            width: 330px;
             margin-bottom: 15px;
         }
         .header-kop p {
@@ -29,7 +30,7 @@
         }
         .sppm-title {
             text-align: center;
-            margin: 20px 0;
+            margin: 15px 0;
         }
         .sppm-title h2 {
             margin: 0;
@@ -39,7 +40,7 @@
         }
         .sppm-title p {
             margin: 2px 0 0 0;
-            font-size: 11px;
+            font-size: 10px;
         }
         
         table.data-table {
@@ -74,8 +75,8 @@
     <!-- Kop Surat -->
     <div class="header-kop">
         <p>KEPOLISIAN NEGARA REPUBLIK INDONESIA</p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DAERAH JAWA TIMUR</p>
-        <p class="underline-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DIREKTORAT LALU LINTAS&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        <p>DAERAH JAWA TIMUR</p>
+        <p class="underline-text">DIREKTORAT LALU LINTAS</p>
     </div>
 
     <!-- Title -->
@@ -160,7 +161,7 @@
                 @endforeach
             @empty
                 <tr>
-                    <td colspan="5" style="text-align: center; height: 80px;">Tidak ada detail penerimaan.</td>
+                    <td colspan="5" style="text-align: center; height: 25px;">Tidak ada detail penerimaan.</td>
                 </tr>
             @endforelse
         </tbody>
@@ -168,22 +169,23 @@
 
     <p style="margin-left: 15px; font-weight: bold; text-decoration: underline; margin-top: 10px; margin-bottom: 10px;">Kedua : materiel terdapat tidak baik : NIHIL</p>
 
-    <p style="text-align: justify; margin-bottom: 25px;">
+    <p style="text-align: justify; margin-bottom: 15px;">
         Berita Acara ini dibuat dengan sebenarnya dalam rangkap 2 (dua) dan bila pernyataan dalam Berita Acara ini ternyata tidak benar, Tim Komisi akan mempertanggungjawabkan serta bersedia menerima segala tindakan yang diambil.
     </p>
 
     <!-- Signatures Section -->
-    <div style="margin-top: 30px; page-break-inside: avoid;">
+    <div style="margin-top: 15px; page-break-inside: avoid;">
         <table style="width: 100%; border: none;">
             <tr>
                 <!-- Kasi Fasmat (Kiri) -->
                 <td style="width: 45%; vertical-align: top; text-align: left; padding-right: 30px;">
                     <p style="margin-bottom: 0;">Bukti Pemasukan Nomor : __________________</p>
                     <p style="margin-top: 2px;">Materiel terdapat baik, telah kami terima dan dibukukan dalam pertanggungjawaban.</p>
-                    <p style="margin-top: 15px; margin-bottom: 55px;">
+                    <p style="margin-top: 15px; margin-bottom: 8px;">
                         Surabaya, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ \Carbon\Carbon::parse($reception->date)->translatedFormat('F Y') }}<br>
                         <span style="font-weight: bold;">KASI FASMAT SBST DITLANTAS POLDA JATIM</span>
                     </p>
+                    <div style="height: 50px;">@if($reception->kasi_signature)<img src="{{ $reception->kasi_signature }}" style="height: 45px; max-width: 180px;">@endif</div>
                     <p style="font-weight: bold; text-decoration: underline; margin-bottom: 0;">{{ $reception->kasi_fasmat_name ?? 'AYIP RIZAL, S.E., M.M.' }}</p>
                     <p style="margin-top: 2px;">{{ $reception->kasi_fasmat_rank ?? 'KOMPOL' }} NRP {{ $reception->kasi_fasmat_nip ?? '84091823' }}</p>
                 </td>
@@ -193,7 +195,7 @@
                 
                 <!-- Tim Komisi (Kanan) -->
                 <td style="width: 45%; vertical-align: top; text-align: left;">
-                    <p style="text-align: center; font-weight: bold; margin-bottom: 25px;">TIM KOMISI</p>
+                    <p style="text-align: center; font-weight: bold; margin-bottom: 15px;">TIM KOMISI</p>
                     
                     <div style="margin-bottom: 15px;">
                         <span style="display: inline-block; width: 20px;">1.</span>
@@ -223,15 +225,15 @@
         </table>
         
         <!-- Ordonatur (Tengah Bawah) -->
-        <div style="margin-top: 30px; text-align: center;">
+        <div style="margin-top: 15px; text-align: center;">
             <p style="margin-bottom: 5px;">Surabaya, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ \Carbon\Carbon::parse($reception->date)->translatedFormat('F Y') }}</p>
-            <p style="font-weight: bold; margin-bottom: 55px;">
+            <p style="font-weight: bold; margin-bottom: 8px;">
                 MENGETAHUI<br>
-                ORDONATUR<br>
                 DIREKTUR LALU LINTAS POLDA JAWA TIMUR
             </p>
-            <p style="font-weight: bold; text-decoration: underline; margin-bottom: 0;">{{ $reception->ordonatur_name ?? 'IWAN SAKTIADI, S.I.K., M.M., M.Si' }}</p>
-            <p style="margin-top: 2px;">{{ $reception->ordonatur_rank ?? 'BRIGADIR JENDERAL POLISI' }}</p>
+            <div style="height: 50px;">@if($reception->director_signature)<img src="{{ $reception->director_signature }}" style="height: 45px; max-width: 180px;">@endif</div>
+            <p style="font-weight: bold; text-decoration: underline; margin-bottom: 0;">{{ $reception->ordonatur_name ?? '________________' }}</p>
+            <p style="margin-top: 2px;">{{ $reception->ordonatur_rank ?? '' }} NRP {{ $reception->ordonatur_nrp ?: '________________' }}</p>
         </div>
     </div>
 </div>

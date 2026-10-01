@@ -3,14 +3,14 @@
 namespace App\Livewire\Admin\MenuPolres\MaterialUsage;
 
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class AdminMenuPolresMaterialUsageIndex extends Component
 {
@@ -32,9 +32,11 @@ class AdminMenuPolresMaterialUsageIndex extends Component
     public $endDate = '';
 
     public $search = '';
+
     public $perPage = 10;
 
     public $showDeleteModal = false;
+
     public $materialUsageId = null;
 
     public function mount()
@@ -53,7 +55,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
         }
 
         $allTypes = Type::query();
-        if ($user->userType && !empty($user->userType->types)) {
+        if ($user->userType && ! empty($user->userType->types)) {
             $allTypes->whereIn('id', $user->userType->types);
         }
         $allTypes = $allTypes->orderBy('name')->get();
@@ -62,13 +64,12 @@ class AdminMenuPolresMaterialUsageIndex extends Component
         if ($this->typeId) {
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
-             $tdQuery = TypeDetail::query();
-             if ($user->userType && !empty($user->userType->types)) {
-                 $tdQuery->whereIn('type_id', $user->userType->types);
-             }
-             $typeDetails = $tdQuery->orderBy('name')->get();
+            $tdQuery = TypeDetail::query();
+            if ($user->userType && ! empty($user->userType->types)) {
+                $tdQuery->whereIn('type_id', $user->userType->types);
+            }
+            $typeDetails = $tdQuery->orderBy('name')->get();
         }
-
 
         $query = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::query()
             ->select('material_usage_details.*')
@@ -78,7 +79,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
             ->with(['materialUsage', 'materialUsage.policeStation', 'type', 'typeDetail'])
             ->where('material_usages.is_active', true);
 
-        if ($user->userType && !empty($user->userType->types)) {
+        if ($user->userType && ! empty($user->userType->types)) {
             $query->whereIn('material_usage_details.type_id', $user->userType->types);
         }
 
@@ -88,7 +89,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
                 $query->where('material_usages.police_station_id', $this->policeStationId);
             }
         } else {
-             $query->where('material_usages.police_station_id', $user->police_station_id);
+            $query->where('material_usages.police_station_id', $user->police_station_id);
         }
 
         // Type Filter
@@ -103,7 +104,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
 
         // Search
         if ($this->search) {
-             $keywords = preg_split('/\s+/', trim($this->search));
+            $keywords = preg_split('/\s+/', trim($this->search));
             $query->where(function ($q) use ($keywords) {
                 foreach ($keywords as $word) {
                     $q->where(function ($sub) use ($word) {
@@ -128,14 +129,14 @@ class AdminMenuPolresMaterialUsageIndex extends Component
         }
 
         $materialUsages = $query->orderBy('material_usages.date', 'desc')
-             ->orderBy('material_usages.created_at', 'desc')
-             ->paginate($this->perPage);
+            ->orderBy('material_usages.created_at', 'desc')
+            ->paginate($this->perPage);
 
         return view('livewire.admin.menu-polres.material-usage.admin-menu-polres-material-usage-index', [
             'materialUsages' => $materialUsages,
             'policeStations' => $policeStations,
             'allTypes' => $allTypes,
-            'typeDetails' => $typeDetails
+            'typeDetails' => $typeDetails,
         ])->layout('components.layouts.main.app');
     }
 
@@ -162,6 +163,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
 
                 $materialUsage = MaterialUsage::with('materialUsageDetails')->find($this->materialUsageId);
                 if ($materialUsage) {
+                    $this->authorize('delete', $materialUsage);
                     // Restore stock & delete history
                     $stockService->deleteMaterialUsage($materialUsage);
 
@@ -176,7 +178,7 @@ class AdminMenuPolresMaterialUsageIndex extends Component
                 }
             } catch (\Exception $e) {
                 DB::rollBack();
-                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
             }
         }
         $this->closeModal();

@@ -25,6 +25,44 @@ class ReportingComplianceIndex extends Component
     #[Url]
     public string $source = 'all';
 
+    #[Url]
+    public string $period = 'daily';
+
+    #[Url]
+    public string $startDate = '';
+
+    #[Url]
+    public string $endDate = '';
+
+    public function updatedPeriod(): void
+    {
+        $today = CarbonImmutable::now(ReportingComplianceService::TIMEZONE);
+        [$this->startDate, $this->endDate] = match ($this->period) {
+            'weekly' => [$today->startOfWeek()->toDateString(), $today->toDateString()],
+            'monthly' => [$today->startOfMonth()->toDateString(), $today->toDateString()],
+            default => [$today->toDateString(), $today->toDateString()],
+        };
+    }
+
+    private function calendarData(): array
+    {
+        $today = CarbonImmutable::now(ReportingComplianceService::TIMEZONE)->toDateString();
+        $start = $this->period === 'daily' ? $this->date : $this->startDate;
+        $end = $this->period === 'daily' ? $this->date : $this->endDate;
+        $validation = validator(compact('start', 'end'), ['start' => 'required|date_format:Y-m-d|before_or_equal:end', 'end' => 'required|date_format:Y-m-d|before_or_equal:'.$today]);
+        if ($validation->fails()) {
+            return ['days' => [], 'rows' => collect(), 'error' => 'Pilih rentang tanggal yang valid, maksimal hari ini.'];
+        }
+        try {
+            $calendar = app(ReportingComplianceService::class)->calendar($start, $end);
+            $calendar['rows'] = $calendar['rows']->filter(fn ($row) => $this->search === '' || mb_stripos($row['name'], trim($this->search)) !== false)->values();
+
+            return $calendar + ['error' => null];
+        } catch (\InvalidArgumentException $e) {
+            return ['days' => [], 'rows' => collect(), 'error' => $e->getMessage()];
+        }
+    }
+
     public function boot(): void
     {
         abort_unless(auth()->user()?->hasRole('Admin'), 403);
@@ -55,6 +93,9 @@ class ReportingComplianceIndex extends Component
 
     public function mount(): void
     {
+        if ($this->startDate === '' || $this->endDate === '') {
+            $this->updatedPeriod();
+        }
         if ($this->date === '') {
             $this->date = CarbonImmutable::now(ReportingComplianceService::TIMEZONE)->toDateString();
         }
@@ -77,7 +118,9 @@ class ReportingComplianceIndex extends Component
         ];
         $rows = $this->filteredRows($all);
 
-        return view('livewire.admin.report.anev.reporting-compliance-index', compact('rows', 'summary', 'today', 'dateError', 'sourceError', 'sources'))
+        $calendar = $this->calendarData();
+
+        return view('livewire.admin.report.anev.reporting-compliance-index', compact('calendar', 'rows', 'summary', 'today', 'dateError', 'sourceError', 'sources'))
             ->layout('components.layouts.main.app', ['title' => 'Anev Ketertiban Laporan']);
     }
 }

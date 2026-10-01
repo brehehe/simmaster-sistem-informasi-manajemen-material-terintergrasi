@@ -29,6 +29,7 @@ it('does not mark missing reports green', function ($date, $expected, $days) {
 
 it('filters missing reports and keeps the full summary', function () {
     $service = Mockery::mock(ReportingComplianceService::class);
+    $service->shouldReceive('calendar')->andReturn(['days' => [], 'rows' => collect()]);
     $service->shouldReceive('rows')->once()->with('2026-09-10', 'all')->andReturn(collect([
         ['id' => 'a', 'name' => 'Polres A', 'color' => 'green', 'reported' => true],
         ['id' => 'b', 'name' => 'Polres B', 'color' => 'red', 'reported' => false],
@@ -44,6 +45,7 @@ it('filters missing reports and keeps the full summary', function () {
 
 it('rejects invalid and future dates without querying reports', function ($date) {
     $service = Mockery::mock(ReportingComplianceService::class);
+    $service->shouldReceive('calendar')->andReturn(['days' => [], 'rows' => collect()]);
     $service->shouldNotReceive('rows');
     app()->instance(ReportingComplianceService::class, $service);
     $component = new ReportingComplianceIndex;
@@ -78,6 +80,7 @@ it('does not penalize a missing event-based transaction', function () {
 
 it('passes the selected input type to the report service', function () {
     $service = Mockery::mock(ReportingComplianceService::class);
+    $service->shouldReceive('calendar')->andReturn(['days' => [], 'rows' => collect()]);
     $service->shouldReceive('rows')->once()->with('2026-09-10', 'opening')->andReturn(collect());
     app()->instance(ReportingComplianceService::class, $service);
     $component = new ReportingComplianceIndex;
@@ -88,6 +91,7 @@ it('passes the selected input type to the report service', function () {
 
 it('rejects unknown input types without querying', function () {
     $service = Mockery::mock(ReportingComplianceService::class);
+    $service->shouldReceive('calendar')->andReturn(['days' => [], 'rows' => collect()]);
     $service->shouldNotReceive('rows');
     app()->instance(ReportingComplianceService::class, $service);
     $component = new ReportingComplianceIndex;
@@ -118,6 +122,7 @@ it('exports only rows matching the selected filters', function () {
     \Maatwebsite\Excel\Facades\Excel::fake();
     $base = ['color' => 'red', 'reported' => false, 'label' => 'Belum input', 'delay' => 3, 'submitted_at' => '', 'report_count' => 0, 'inputs' => []];
     $service = Mockery::mock(ReportingComplianceService::class);
+    $service->shouldReceive('calendar')->andReturn(['days' => [], 'rows' => collect()]);
     $service->shouldReceive('rows')->once()->with('2026-09-10', 'usage')->andReturn(collect([
         array_merge($base, ['name' => 'Polres A']),
         array_merge($base, ['name' => 'Polres B']),
@@ -141,6 +146,7 @@ it('exports only rows matching the selected filters', function () {
 it('rejects invalid export filters before querying', function ($field, $value) {
     $this->actingAs(anevUser('Admin'));
     $service = Mockery::mock(ReportingComplianceService::class);
+    $service->shouldReceive('calendar')->andReturn(['days' => [], 'rows' => collect()]);
     $service->shouldNotReceive('rows');
     app()->instance(ReportingComplianceService::class, $service);
     $component = new ReportingComplianceIndex;

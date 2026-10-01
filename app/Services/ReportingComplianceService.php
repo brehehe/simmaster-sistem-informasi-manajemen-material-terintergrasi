@@ -102,4 +102,47 @@ class ReportingComplianceService
             return array_merge($unit, $this->summarize($date, $reports[$unit['id']] ?? [], $source));
         });
     }
+
+    public function calendar(string $start, string $end): array
+    {
+        $first = CarbonImmutable::parse($start, self::TIMEZONE);
+        $last = CarbonImmutable::parse($end, self::TIMEZONE);
+        if ($first->gt($last) || $first->diffInDays($last) > 365) {
+            throw new \InvalidArgumentException('Rentang maksimal 366 hari.');
+        }
+        $days = [];
+        for ($day = $first; $day->lte($last); $day = $day->addDay()) {
+            $days[] = $day->toDateString();
+        }
+        $required = array_keys(app(DailyMaterialUsageService::class)->catalog());
+        $reports = MaterialUsage::whereBetween('date', [$start, $end])->where('is_active', true)->whereNotNull('police_station_id')
+            ->get(['police_station_id', 'date'])->mapWithKeys(fn ($r) => [$r->police_station_id.':'.$r->date->toDateString() => true]);
+        $coverage = [];
+        $items = \Illuminate\Support\Facades\DB::table('material_usage_detail_items as items')
+            ->join('material_usages as reports', 'reports.id', '=', 'items.material_usage_id')
+            ->join('material_usage_details as details', 'details.id', '=', 'items.material_usage_detail_id')
+            ->whereBetween('reports.date', [$start, $end])->whereNotNull('reports.police_station_id')
+            ->whereNull('reports.deleted_at')->where('reports.is_active', true)
+            ->whereNull('details.deleted_at')->where('details.is_active', true)
+            ->whereNull('items.deleted_at')->where('items.is_active', true)->where('items.quantity', '>=', 0)
+            ->select(['reports.police_station_id', 'reports.date', 'items.type_id', 'items.type_detail_id', 'items.service_id', 'items.service_detail_id'])
+            ->distinct()->cursor();
+        foreach ($items as $item) {
+            $coverage[$item->police_station_id.':'.$item->date][DailyMaterialUsageService::key((array) $item)] = true;
+        }
+        $rows = PoliceStation::where('is_active', true)->orderBy('name')->get()->map(function ($station) use ($reports, $coverage, $days, $required) {
+            $cells = [];
+            foreach ($days as $day) {
+                $ownerDay = $station->id.':'.$day;
+                $reported = isset($reports[$ownerDay]);
+                $complete = count($required) > 0 && ! array_diff($required, array_keys($coverage[$ownerDay] ?? []));
+                $cells[$day] = ['reported' => $reported, 'complete' => $complete,
+                    'label' => $complete ? 'Lengkap' : ($reported ? 'Sudah input, material belum lengkap' : 'Belum input')];
+            }
+
+            return ['id' => $station->id, 'name' => $station->name, 'cells' => $cells];
+        });
+
+        return ['days' => $days, 'rows' => $rows];
+    }
 }

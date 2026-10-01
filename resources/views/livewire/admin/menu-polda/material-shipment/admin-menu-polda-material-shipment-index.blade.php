@@ -593,7 +593,7 @@
                                 </table>
                             </div>
 
-                            @if($scannedShipment->status === 'draft')
+                            @if(in_array($scannedShipment->status, ['draft', 'shipped']) && !$scannedShipment->picked_at)
                                 {{-- Identitas Pengambil + TTD + Foto --}}
                                 <div class="border border-purple-100 rounded-xl p-3 bg-purple-50/30 mb-3" x-init="initSignature()">
                                     <h4 class="font-bold text-purple-800 text-[10px] uppercase tracking-wider mb-2">👤 Identitas Pengambil</h4>

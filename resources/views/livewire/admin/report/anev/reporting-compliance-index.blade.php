@@ -16,6 +16,19 @@
         @error('status')<p class="mt-2 text-sm text-red-700" role="alert">{{ $message }}</p>@enderror
     </div>
 
+    <section class="mb-6 rounded-xl border bg-white p-4">
+        <h2 class="text-xl font-bold mb-3">Absensi Penggunaan Material Polres</h2>
+        <div class="flex flex-wrap gap-4 mb-4">
+            <label>Periode<select wire:model.live="period" class="block rounded border p-2"><option value="daily">Harian</option><option value="weekly">Mingguan</option><option value="monthly">Bulanan</option><option value="custom">Rentang tanggal</option></select></label>
+            @if($period === 'daily')<label>Tanggal<input type="date" wire:model.live="date" max="{{ $today }}" class="block rounded border p-2"></label>
+            @else<label>Dari<input type="date" wire:model.live="startDate" max="{{ $today }}" class="block rounded border p-2"></label><label>Sampai<input type="date" wire:model.live="endDate" max="{{ $today }}" class="block rounded border p-2"></label>@endif
+        </div>
+        <p class="text-sm mb-3">✓ Hijau: seluruh material terisi, termasuk nilai 0. ✓ Kuning: sudah input tetapi belum lengkap. ✕ Merah: belum input.</p>
+        @if($calendar['error'])<p role="alert" class="text-red-600">{{ $calendar['error'] }}</p>@else
+        <div class="overflow-x-auto"><table class="w-full text-sm border-collapse"><thead><tr><th class="border p-2 text-left">Polres</th>@foreach($calendar['days'] as $day)<th class="border p-2 whitespace-nowrap">{{ \Carbon\Carbon::parse($day)->format('d/m') }}</th>@endforeach</tr></thead><tbody>
+            @foreach($calendar['rows'] as $row)<tr><td class="border p-2 whitespace-nowrap">{{ $row['name'] }}</td>@foreach($row['cells'] as $day => $cell)<td title="{{ $day }}: {{ $cell['label'] }}" aria-label="{{ $day }}: {{ $cell['label'] }}" class="border p-2 text-center font-bold {{ $cell['complete'] ? 'bg-green-100 text-green-800' : ($cell['reported'] ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">{{ $cell['reported'] ? '✓' : '✕' }}</td>@endforeach</tr>@endforeach
+        </tbody></table></div>@endif
+    </section>
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         @foreach ([

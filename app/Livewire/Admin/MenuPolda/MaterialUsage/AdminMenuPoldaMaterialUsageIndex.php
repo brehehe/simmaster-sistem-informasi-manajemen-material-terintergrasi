@@ -13,11 +13,21 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
     use WithPagination;
 
     public string $search = '';
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public int $perPage = 10;
+
     public bool $showDeleteModal = false;
+
     public ?string $materialUsageId = null;
+
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole('Admin'), 403);
+    }
 
     public function render()
     {
@@ -33,8 +43,8 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('description', 'ilike', '%' . $this->search . '%');
+                $q->where('code', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('description', 'ilike', '%'.$this->search.'%');
             });
         }
 
@@ -49,7 +59,7 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
         $materialUsages = $query->latest('date')->paginate($this->perPage);
 
         return view('livewire.admin.menu-polda.material-usage.admin-menu-polda-material-usage-index', [
-            'materialUsages' => $materialUsages
+            'materialUsages' => $materialUsages,
         ])->layout('components.layouts.main.app');
     }
 
@@ -90,7 +100,7 @@ class AdminMenuPoldaMaterialUsageIndex extends Component
                 }
             } catch (\Exception $e) {
                 DB::rollBack();
-                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
             }
         }
         $this->closeModal();

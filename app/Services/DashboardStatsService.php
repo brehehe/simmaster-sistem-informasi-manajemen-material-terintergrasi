@@ -2,11 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\LastStock\LastStock;
-use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
-use App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail;
-use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
-use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
 use App\Models\Police\RegionalPolice;
 use App\Models\Rack\Rack;
@@ -37,28 +32,30 @@ class DashboardStatsService
         $gunmatData = [];
 
         $isSqlite = DB::getDriverName() === 'sqlite';
-        $dayExpr = $isSqlite ? "CAST(strftime('%d', material_usages.date) AS INTEGER)" : "EXTRACT(DAY FROM material_usages.date)";
+        $dayExpr = $isSqlite ? "CAST(strftime('%d', material_usages.date) AS INTEGER)" : 'EXTRACT(DAY FROM material_usages.date)';
 
-        $usages = MaterialUsageDetail::query()
-            ->select(
-                DB::raw("{$dayExpr} as day_num"),
-                DB::raw('SUM(material_usage_details.quantity * COALESCE(types.price, 0)) as total_pnbp'),
-                DB::raw('SUM(material_usage_details.quantity) as total_gunmat')
-            )
-            ->join('material_usages', 'material_usage_details.material_usage_id', '=', 'material_usages.id')
-            ->leftJoin('types', 'material_usage_details.type_id', '=', 'types.id')
-            ->whereYear('material_usages.date', $year)
-            ->whereMonth('material_usages.date', $month)
-            ->groupBy(DB::raw($dayExpr))
-            ->get()
-            ->keyBy(fn($item) => (int)$item->day_num);
+        $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::query()
+            ->select(DB::raw("{$dayExpr} as day_num"),
+                DB::raw('SUM(material_usage_detail_items.quantity * COALESCE(service_details.price, services.price, type_details.price, types.price, 0)) as total_pnbp'),
+                DB::raw('SUM(material_usage_detail_items.quantity) as total_gunmat'))
+            ->join('material_usages', 'material_usage_detail_items.material_usage_id', '=', 'material_usages.id')
+            ->join('material_usage_details', 'material_usage_detail_items.material_usage_detail_id', '=', 'material_usage_details.id')
+            ->leftJoin('types', 'material_usage_detail_items.type_id', '=', 'types.id')
+            ->leftJoin('type_details', 'material_usage_detail_items.type_detail_id', '=', 'type_details.id')
+            ->leftJoin('services', 'material_usage_detail_items.service_id', '=', 'services.id')
+            ->leftJoin('service_details', 'material_usage_detail_items.service_detail_id', '=', 'service_details.id')
+            ->whereNull('material_usages.deleted_at')->where('material_usages.is_active', true)
+            ->whereNull('material_usage_details.deleted_at')->where('material_usage_details.is_active', true)
+            ->where('material_usage_detail_items.is_active', true)
+            ->whereYear('material_usages.date', $year)->whereMonth('material_usages.date', $month)
+            ->groupBy(DB::raw($dayExpr))->get()->keyBy(fn ($item) => (int) $item->day_num);
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $daysLabels[] = "Tgl {$day}";
             $usage = $usages->get($day);
             if ($usage) {
-                $pnbpData[] = (float)$usage->total_pnbp;
-                $gunmatData[] = (float)$usage->total_gunmat;
+                $pnbpData[] = (float) $usage->total_pnbp;
+                $gunmatData[] = (float) $usage->total_gunmat;
             } else {
                 $pnbpData[] = 0;
                 $gunmatData[] = 0;
@@ -80,8 +77,8 @@ class DashboardStatsService
     {
         $startDate = now()->subMonths(11)->startOfMonth();
         $isSqlite = DB::getDriverName() === 'sqlite';
-        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : "EXTRACT(YEAR FROM date)";
-        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : "EXTRACT(MONTH FROM date)";
+        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : 'EXTRACT(YEAR FROM date)';
+        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : 'EXTRACT(MONTH FROM date)';
 
         $rows = HistoryStock::query()
             ->select(
@@ -92,16 +89,16 @@ class DashboardStatsService
             ->where('date', '>=', $startDate)
             ->groupBy(DB::raw($yrExpr), DB::raw($moExpr))
             ->get()
-            ->keyBy(fn($r) => ((int)$r->yr) . '-' . ((int)$r->mo));
+            ->keyBy(fn ($r) => ((int) $r->yr).'-'.((int) $r->mo));
 
         $labels = [];
         $data = [];
 
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $key = $date->year . '-' . $date->month;
+            $key = $date->year.'-'.$date->month;
             $labels[] = $date->locale('id')->format('M');
-            $data[] = (float)($rows->get($key)?->total_qty ?? 0);
+            $data[] = (float) ($rows->get($key)?->total_qty ?? 0);
         }
 
         return [
@@ -117,8 +114,8 @@ class DashboardStatsService
     {
         $startDate = now()->subMonths(5)->startOfMonth();
         $isSqlite = DB::getDriverName() === 'sqlite';
-        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : "EXTRACT(YEAR FROM date)";
-        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : "EXTRACT(MONTH FROM date)";
+        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : 'EXTRACT(YEAR FROM date)';
+        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : 'EXTRACT(MONTH FROM date)';
 
         $rows = HistoryStock::query()
             ->select(
@@ -131,7 +128,7 @@ class DashboardStatsService
             ->whereIn('status_type', ['in', 'out'])
             ->groupBy(DB::raw($yrExpr), DB::raw($moExpr), 'status_type')
             ->get()
-            ->groupBy(fn($r) => ((int)$r->yr) . '-' . ((int)$r->mo));
+            ->groupBy(fn ($r) => ((int) $r->yr).'-'.((int) $r->mo));
 
         $labels = [];
         $dataIn = [];
@@ -139,11 +136,11 @@ class DashboardStatsService
 
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $key = $date->year . '-' . $date->month;
+            $key = $date->year.'-'.$date->month;
             $monthGroup = $rows->get($key, collect());
 
-            $in = (float)($monthGroup->firstWhere('status_type', 'in')?->total_qty ?? 0);
-            $out = (float)($monthGroup->firstWhere('status_type', 'out')?->total_qty ?? 0);
+            $in = (float) ($monthGroup->firstWhere('status_type', 'in')?->total_qty ?? 0);
+            $out = (float) ($monthGroup->firstWhere('status_type', 'out')?->total_qty ?? 0);
 
             $labels[] = $date->locale('id')->format('M Y');
             $dataIn[] = $in;
@@ -166,26 +163,27 @@ class DashboardStatsService
             ->whereNotNull('regional_police_id')
             ->whereNull('police_station_id')
             ->where('is_active', true)
-            ->with(['stockDetails' => fn($q) => $q->whereNull('type_detail_id')->with('type')])
+            ->with(['stockDetails' => fn ($q) => $q->whereNull('type_detail_id')->with('type')])
             ->orderBy('name')
             ->get()
             ->map(function ($rack) {
                 $items = $rack->stockDetails->groupBy('type_id')->map(function ($details) {
                     $first = $details->first();
+
                     return [
                         'name' => $first->type?->name ?? 'Unknown',
-                        'quantity' => (int)$details->sum('quantity'),
+                        'quantity' => (int) $details->sum('quantity'),
                     ];
                 })->values();
 
-                $totalQty = (int)$items->sum('quantity');
+                $totalQty = (int) $items->sum('quantity');
 
                 // Prediction: Total Stok / Daily Rate
                 $dailyRate = max(1, round($totalQty > 200 ? $totalQty / 45 : 10));
-                $daysUntilDepleted = $totalQty > 0 ? (int)ceil($totalQty / $dailyRate) : 0;
+                $daysUntilDepleted = $totalQty > 0 ? (int) ceil($totalQty / $dailyRate) : 0;
                 $prediksiText = $totalQty === 0
                     ? 'Stok Habis'
-                    : ($daysUntilDepleted > 60 ? '~' . round($daysUntilDepleted / 30) . ' Bulan' : '~' . $daysUntilDepleted . ' Hari');
+                    : ($daysUntilDepleted > 60 ? '~'.round($daysUntilDepleted / 30).' Bulan' : '~'.$daysUntilDepleted.' Hari');
 
                 return [
                     'id' => $rack->id,
@@ -219,23 +217,23 @@ class DashboardStatsService
             $targetRenbut = 0;
         }
 
-        $realizedPNBP = MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->whereYear('date', $currentYear))
+        $realizedPNBP = MaterialUsageDetail::whereHas('materialUsage', fn ($q) => $q->whereYear('date', $currentYear))
             ->join('types', 'material_usage_details.type_id', '=', 'types.id')
             ->sum(DB::raw('material_usage_details.quantity * COALESCE(types.price, 0)')) ?? 0;
 
-        $realizedGunmat = MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->whereYear('date', $currentYear))
+        $realizedGunmat = MaterialUsageDetail::whereHas('materialUsage', fn ($q) => $q->whereYear('date', $currentYear))
             ->sum('quantity') ?? 0;
 
         return [
             'target_year' => $activeTarget?->year ?? $currentYear,
             'pnbp' => [
-                'target' => (float)$targetPNBP,
-                'realization' => (float)$realizedPNBP,
+                'target' => (float) $targetPNBP,
+                'realization' => (float) $realizedPNBP,
                 'percentage' => $targetPNBP > 0 ? round(($realizedPNBP / $targetPNBP) * 100, 1) : 0,
             ],
             'renbut' => [
-                'target' => (float)$targetRenbut,
-                'realization' => (float)$realizedGunmat,
+                'target' => (float) $targetRenbut,
+                'realization' => (float) $realizedGunmat,
                 'percentage' => $targetRenbut > 0 ? round(($realizedGunmat / $targetRenbut) * 100, 1) : 0,
             ],
         ];
@@ -271,7 +269,7 @@ class DashboardStatsService
 
         return [
             'labels' => $types->pluck('name')->toArray(),
-            'data' => $types->pluck('total_stock')->map(fn($v) => (float)$v)->toArray(),
+            'data' => $types->pluck('total_stock')->map(fn ($v) => (float) $v)->toArray(),
         ];
     }
 
@@ -302,8 +300,8 @@ class DashboardStatsService
      */
     public function getStockDistribution(): array
     {
-        $stockPolda = (float)(Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0);
-        $stockPolres = (float)(Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0);
+        $stockPolda = (float) (Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0);
+        $stockPolres = (float) (Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0);
         $total = $stockPolda + $stockPolres;
 
         return [

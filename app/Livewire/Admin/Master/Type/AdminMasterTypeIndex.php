@@ -2,31 +2,49 @@
 
 namespace App\Livewire\Admin\Master\Type;
 
+use App\Models\Type\Type;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Type\Type;
 
 class AdminMasterTypeIndex extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 5;
+
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public bool $isEditMode = false;
 
     public ?string $typeId = null;
+
     public string $name = '';
+
+    public string $unit = 'Unit';
+
     public float $price = 0;
+
     public ?string $description = null;
+
     public bool $is_active = true;
+
     public bool $is_with_serial_number = false;
 
     protected $queryString = ['search' => ['except' => ''], 'perPage' => ['except' => 10]];
 
-    public function updatedSearch() { $this->resetPage(); }
-    public function updatedPerPage() { $this->resetPage(); }
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
 
     public function openCreateModal()
     {
@@ -44,6 +62,7 @@ class AdminMasterTypeIndex extends Component
         $this->typeId = $id;
         $type = Type::findOrFail($id);
         $this->name = $type->name;
+        $this->unit = $type->unit ?? 'Unit';
         $this->price = (float) $type->price;
         $this->description = $type->description;
         $this->is_active = $type->is_active;
@@ -73,6 +92,7 @@ class AdminMasterTypeIndex extends Component
     {
         $this->typeId = null;
         $this->name = '';
+        $this->unit = 'Unit';
         $this->description = null;
         $this->price = 0;
         $this->is_active = true;
@@ -84,6 +104,7 @@ class AdminMasterTypeIndex extends Component
     {
         return [
             'name' => 'required|string|max:255',
+            'unit' => 'required|string|max:30',
             'price' => 'required|numeric',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -105,15 +126,15 @@ class AdminMasterTypeIndex extends Component
         try {
             if ($this->isEditMode) {
                 $type = Type::findOrFail($this->typeId);
-                $type->update(['name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
+                $type->update(['unit' => $this->unit, 'name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
                 session()->flash('success', 'Tipe berhasil diperbarui.');
             } else {
-                Type::create(['name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
+                Type::create(['unit' => $this->unit, 'name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
                 session()->flash('success', 'Tipe berhasil ditambahkan.');
             }
             $this->closeModal();
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -124,7 +145,7 @@ class AdminMasterTypeIndex extends Component
             session()->flash('success', 'Tipe berhasil dihapus.');
             $this->closeModal();
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -132,7 +153,7 @@ class AdminMasterTypeIndex extends Component
     {
         $types = Type::query()
             ->withCount(['typeDetails', 'services'])
-            ->when($this->search, fn($q) => $q->where('name', 'ilike', '%'.$this->search.'%')->orWhere('description', 'ilike', '%'.$this->search.'%'))
+            ->when($this->search, fn ($q) => $q->where('name', 'ilike', '%'.$this->search.'%')->orWhere('description', 'ilike', '%'.$this->search.'%'))
             ->orderBy('created_at', 'asc')
             ->paginate($this->perPage);
 

@@ -14,7 +14,8 @@
                 </div>
             </div>
             <form wire:submit="save" class="p-5 space-y-4">
-                <div>
+                <label class="block mb-4">Satuan material<input wire:model="unit" placeholder="Buku / Lembar / Set" class="block w-full rounded border p-2">@error('unit')<span class="text-red-600">{{ $message }}</span>@enderror</label>
+<div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama <span
                             class="text-red-500">*</span></label>
                     <input type="text" wire:model="name"

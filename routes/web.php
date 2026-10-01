@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Main\Dashoard\MainDashboardIndex;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -34,7 +33,7 @@ Route::get('/dev-check', function () {
         $jemberLSTrashed = \App\Models\LastStock\LastStock::withTrashed()->where('police_station_id', $jember->id)->where('type_id', $bpkbType->id)->with('lastStockDetails')->get();
         $jemberStock = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->where('type_id', $bpkbType->id)->with('stockDetails')->first();
         $jemberUsages = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::where('type_id', $bpkbType->id)
-            ->whereHas('materialUsage', fn($mu) => $mu->where('police_station_id', $jember->id))
+            ->whereHas('materialUsage', fn ($mu) => $mu->where('police_station_id', $jember->id))
             ->get();
         $result['jember_bpkb'] = [
             'last_stocks_trashed' => $jemberLSTrashed->toArray(),
@@ -50,8 +49,8 @@ Route::get('/dev-check', function () {
         $jemberStocks = \App\Models\Stock\Stock::where('police_station_id', $jember->id)->with('type:id,name')->get();
         $jemberLastStocks = \App\Models\LastStock\LastStock::where('police_station_id', $jember->id)->with(['type:id,name', 'lastStockDetails'])->get();
         $result['jember'] = [
-            'stocks' => $jemberStocks->map(fn($s) => ['type' => $s->type?->name, 'qty' => $s->quantity]),
-            'lastStocks' => $jemberLastStocks->map(fn($l) => ['code' => $l->code, 'type' => $l->type?->name, 'qty' => $l->lastStockDetails->sum('quantity')]),
+            'stocks' => $jemberStocks->map(fn ($s) => ['type' => $s->type?->name, 'qty' => $s->quantity]),
+            'lastStocks' => $jemberLastStocks->map(fn ($l) => ['code' => $l->code, 'type' => $l->type?->name, 'qty' => $l->lastStockDetails->sum('quantity')]),
         ];
     }
 
@@ -238,16 +237,19 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polda/rack-assignment/edit/{id}', 'RackAssignment\\Detail\\AdminMenuPoldaRackAssignmentDetailIndex')
             ->name('menu-polda.rack-assignment.edit');
 
-        // Material Usage
-        Route::get('menu-polda/material-usage', 'MaterialUsage\AdminMenuPoldaMaterialUsageIndex')
-            ->name('menu-polda.material-usage');
-        Route::get('menu-polda/material-usage-detail', 'MaterialUsage\AdminMenuPoldaMaterialUsageIndex')
-            ->name('menu-polda.material-usage-detail');
-        Route::get('menu-polda/material-usage/create', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex')
-            ->name('menu-polda.material-usage.create');
-        Route::get('menu-polda/material-usage/{id}/edit', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex')
-            ->name('menu-polda.material-usage.edit');
-        Route::get('menu-polda/material-usage/edit/{id}', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex');
+        // Historical Polda records are accessible only to administrators.
+        Route::middleware(\Spatie\Permission\Middleware\RoleMiddleware::class.':Admin')->group(function () {
+            Route::get('menu-polda/material-usage', 'MaterialUsage\AdminMenuPoldaMaterialUsageIndex')
+                ->name('menu-polda.material-usage');
+            Route::get('menu-polda/material-usage-detail', 'MaterialUsage\AdminMenuPoldaMaterialUsageIndex')
+                ->name('menu-polda.material-usage-detail');
+            Route::get('menu-polda/material-usage/create', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex')
+                ->name('menu-polda.material-usage.create');
+            Route::get('menu-polda/material-usage/{id}/edit', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex')
+                ->name('menu-polda.material-usage.edit');
+            Route::get('menu-polda/material-usage/edit/{id}', 'MaterialUsage\Detail\AdminMenuPoldaMaterialUsageDetailIndex');
+
+        });
 
         // Material Damage
         Route::get('menu-polda/material-damage', 'MaterialDamage\\AdminMenuPoldaMaterialDamageIndex')

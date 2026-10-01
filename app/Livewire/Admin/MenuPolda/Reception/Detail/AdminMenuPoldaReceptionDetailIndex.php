@@ -6,82 +6,117 @@ use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use App\Models\Rack\Rack;
 use App\Models\Reception\Reception;
-use App\Models\Reception\ReceptionDetail;
+use App\Models\Service\Service;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
-use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Models\Service\Service;
-use App\Models\Reception\ReceptionDetailItem;
-use App\Models\Stock\HistoryStockDetail;
 use Livewire\Component;
 
 class AdminMenuPoldaReceptionDetailIndex extends Component
 {
+    use \Livewire\WithFileUploads;
+
+    public $kasiSignatureUpload = null;
+
+    public $directorSignatureUpload = null;
+
+    public string $ordonatur_nrp = '';
+
     // Mode
+    #[\Livewire\Attributes\Locked]
     public ?string $receptionId = null;
+
     public bool $isEditMode = false;
 
     // Main Form
     public string $code = ''; // Nomor SPPM
+
     public string $name = '';
+
     public string $date = ''; // Tanggal BAPPM
+
     public string $type = '';
+
     public ?string $typeId = null;
+
     public bool $is_type_detail = false;
+
     public bool $is_with_serial_number = false;
+
     public ?string $regionalPoliceId = null;
+
     public ?string $policeStationId = null;
+
     public ?string $description = null;
+
     public bool $is_active = true;
 
     // BAPPM & SPPM Fields
     public string $sppm_date = '';
+
     public string $bappm_number = '';
-    
+
     // Commission members
     public string $commission_member_1_name = '';
+
     public string $commission_member_1_rank = '';
+
     public string $commission_member_1_nip = '';
+
     public string $commission_member_1_position = '';
 
     public string $commission_member_2_name = '';
+
     public string $commission_member_2_rank = '';
+
     public string $commission_member_2_nip = '';
+
     public string $commission_member_2_position = '';
 
     public string $commission_member_3_name = '';
+
     public string $commission_member_3_rank = '';
+
     public string $commission_member_3_nip = '';
+
     public string $commission_member_3_position = '';
 
     // Kasi Fasmat
     public string $kasi_fasmat_name = '';
+
     public string $kasi_fasmat_rank = '';
+
     public string $kasi_fasmat_nip = '';
 
     // Ordonatur
     public string $ordonatur_name = '';
+
     public string $ordonatur_rank = '';
 
     // Detail Items
     public array $details = [];
+
     public int $detailCounter = 0;
-    public $services = []; 
+
+    public $services = [];
+
     public array $supportingMaterials = [];
 
     // Dropdowns Data
     public $regionalPolices = [];
+
     public $policeStations = [];
+
     public $types = [];
+
     public $typeDetails = [];
+
     public $racks = [];
 
     public function mount($id = null)
     {
         $this->receptionId = $id;
-        $this->isEditMode = !is_null($id);
+        $this->isEditMode = ! is_null($id);
 
         $user = Auth::user();
 
@@ -120,7 +155,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->kasi_fasmat_nip = $reception->kasi_fasmat_nip ?? '';
             $this->ordonatur_name = $reception->ordonatur_name ?? '';
             $this->ordonatur_rank = $reception->ordonatur_rank ?? '';
-            
+            $this->ordonatur_nrp = $reception->ordonatur_nrp ?? '';
+
             if ($this->typeId) {
                 $typeRef = Type::find($this->typeId);
                 $this->is_type_detail = $typeRef ? $typeRef->typeDetails->isNotEmpty() : false;
@@ -143,7 +179,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                             'type_detail_id' => $item->type_detail_id ?? '',
                             'service_id' => $item->service_id ?? '',
                             'service_detail_id' => $item->service_detail_id ?? '',
-                            'quantity' => (float)$item->quantity,
+                            'quantity' => (float) $item->quantity,
                             'code' => $item->item_code ?? '',
                             'number_serial_first' => $item->number_serial_first ?? '',
                             'number_serial_second' => $item->number_serial_second ?? '',
@@ -163,11 +199,11 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->code = ''; // Users input this manually (Nomor SPPM)
             $this->date = now()->format('Y-m-d');
             $this->sppm_date = now()->format('Y-m-d');
-            
+
             // Generate auto BAPPM number template
             $year = date('Y');
             $monthRoman = $this->getRomanMonth(date('n'));
-            $this->bappm_number = 'BAPPM /       /' . $monthRoman . '/' . $year . '/Ditlantas';
+            $this->bappm_number = 'BAPPM /       /'.$monthRoman.'/'.$year.'/Ditlantas';
 
             // Set default komisi & pejabat TNKB
             $this->commission_member_1_name = 'YANTO MULYANTO P, S.H., S.I.K., M.H., M.Si.';
@@ -189,8 +225,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->kasi_fasmat_rank = 'KOMPOL';
             $this->kasi_fasmat_nip = '84091823';
 
-            $this->ordonatur_name = 'IWAN SAKTIADI, S.I.K., M.M., M.Si';
-            $this->ordonatur_rank = 'BRIGADIR JENDERAL POLISI';
+            $this->ordonatur_name = '';
+            $this->ordonatur_rank = '';
 
             // Role-based: auto-fill regional_police_id for Polda
             if ($user->hasRole('Polda')) {
@@ -210,18 +246,20 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     private function getRomanMonth($month)
     {
         $map = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+
         return $map[$month] ?? 'I';
     }
 
     public function loadSupportingMaterials($typeId)
     {
-        if (!$typeId) {
+        if (! $typeId) {
             $this->supportingMaterials = [];
+
             return;
         }
 
         $children = Type::where('parent_id', $typeId)->where('is_active', true)->orderBy('name')->get();
-        
+
         $existingItems = [];
         if ($this->isEditMode) {
             $reception = Reception::with(['receptionDetails.receptionDetailItems'])->find($this->receptionId);
@@ -242,7 +280,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $this->supportingMaterials[] = [
                 'type_id' => $child->id,
                 'name' => $child->name,
-                'quantity' => $existing ? (float)$existing->quantity : 0,
+                'quantity' => $existing ? (float) $existing->quantity : 0,
                 'description' => $existing ? $existing->description : '',
             ];
         }
@@ -254,31 +292,31 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         if (preg_match('/^details\.(\d+)\.service_id$/', $propertyName, $matches)) {
             $index = $matches[1];
             $serviceId = $this->details[$index]['service_id'];
-            
+
             if ($serviceId) {
                 $service = collect($this->services)->firstWhere('id', $serviceId);
                 $typeDetailId = data_get($service, 'type_detail_id');
-                
+
                 // If the selected service is bound to a specific TypeDetail, auto-select it
                 if ($typeDetailId) {
                     $this->details[$index]['type_detail_id'] = $typeDetailId;
                 }
-                
+
                 // Reset service detail
                 $this->details[$index]['service_detail_id'] = '';
             }
         }
-        
+
         // Clear service_id if type_detail_id changes and current service doesn't belong to it
         if (preg_match('/^details\.(\d+)\.type_detail_id$/', $propertyName, $matches)) {
             $index = $matches[1];
             $typeDetailId = $this->details[$index]['type_detail_id'];
             $serviceId = $this->details[$index]['service_id'];
-            
+
             if ($serviceId) {
                 $service = collect($this->services)->firstWhere('id', $serviceId);
                 $svcTypeDetailId = data_get($service, 'type_detail_id');
-                
+
                 // If the currently selected service doesn't match the newly selected type detail
                 // Or if it's a global service (null type_detail_id) we can keep it, but UI logic is cleaner if we clear
                 if ($svcTypeDetailId !== null && $svcTypeDetailId != $typeDetailId) {
@@ -288,7 +326,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             }
         }
     }
- 
+
     public function updatedTypeId($value)
     {
         if ($value) {
@@ -310,7 +348,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         $this->addDetail();
     }
 
-    public function updatedDetails($value, $key) {
+    public function updatedDetails($value, $key)
+    {
         $parts = explode('.', $key);
         $index = $parts[0] ?? null;
         $field = $parts[1] ?? null;
@@ -319,14 +358,14 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             $sn1 = trim($this->details[$index]['number_serial_first'] ?? '');
             $sn2 = trim($this->details[$index]['number_serial_second'] ?? '');
 
-            if (!empty($sn1) && !empty($sn2)) {
+            if (! empty($sn1) && ! empty($sn2)) {
                 // Extract trailing digits from serial numbers
                 preg_match('/(\d+)$/', $sn1, $match1);
                 preg_match('/(\d+)$/', $sn2, $match2);
 
-                if (!empty($match1[1]) && !empty($match2[1])) {
-                    $num1 = (int)$match1[1];
-                    $num2 = (int)$match2[1];
+                if (! empty($match1[1]) && ! empty($match2[1])) {
+                    $num1 = (int) $match1[1];
+                    $num2 = (int) $match2[1];
                     if ($num2 >= $num1) {
                         $this->details[$index]['quantity'] = ($num2 - $num1) + 1;
                     }
@@ -339,12 +378,12 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     {
         $this->details[] = [
             'id' => null,
-            'type_detail_id' => '', 
+            'type_detail_id' => '',
             'service_id' => 'MAIN_MATERIAL', // Default to Main Material!
-            'service_detail_id' => '', 
-            'quantity' => 0, 
-            'code' => '', 
-            'number_serial_first' => '', 
+            'service_detail_id' => '',
+            'quantity' => 0,
+            'code' => '',
+            'number_serial_first' => '',
             'number_serial_second' => '',
             'is_active' => true,
         ];
@@ -402,7 +441,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
      */
     public function getFilteredTypeDetails($typeId)
     {
-        if (!$typeId) {
+        if (! $typeId) {
             return [];
         }
 
@@ -434,7 +473,7 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         $user = Auth::user();
 
         $rules = [
-            'code' => 'required|string|max:255|unique:receptions,code,' . ($this->receptionId ?? 'NULL') . ',id',
+            'code' => 'required|string|max:255|unique:receptions,code,'.($this->receptionId ?? 'NULL').',id',
             'name' => 'nullable|string|max:255',
             'date' => 'required|date',
             'sppm_date' => 'required|date',
@@ -464,6 +503,9 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             'kasi_fasmat_nip' => 'nullable|string|max:255',
             'ordonatur_name' => 'nullable|string|max:255',
             'ordonatur_rank' => 'nullable|string|max:255',
+            'ordonatur_nrp' => 'nullable|string|max:30',
+            'kasiSignatureUpload' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'directorSignatureUpload' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
 
             // Flat array validation structure
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
@@ -479,11 +521,11 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         ];
 
         // Admin can select regional_police_id, Polda uses their own
-        if (!$user->hasRole('Polda')) {
+        if (! $user->hasRole('Polda')) {
             $rules['regionalPoliceId'] = 'required|exists:regional_police,id';
         }
 
-        if (!$user->hasRole('Polres')) {
+        if (! $user->hasRole('Polres')) {
             $rules['policeStationId'] = 'nullable|exists:police_stations,id';
         }
 
@@ -507,21 +549,72 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
 
     protected function loadTypeData($typeId)
     {
-        if (!$typeId) {
+        if (! $typeId) {
             $this->typeDetails = collect();
             $this->services = collect();
+
             return;
         }
-        
+
         $this->typeDetails = TypeDetail::where('type_id', $typeId)->where('is_active', true)->orderBy('name')->get();
         $this->services = Service::with('details')
             ->where('is_active', true)
-            ->where(function($q) use ($typeId) {
+            ->where(function ($q) use ($typeId) {
                 $q->where('type_id', $typeId)
-                  ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
+                    ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
             })
             ->orderBy('name')
-            ->get();        
+            ->get();
+    }
+
+    private function authorizeReception(): void
+    {
+        $user = auth()->user();
+        abort_unless($user->hasRole(['Admin', 'Polda']), 403);
+        abort_unless($user->hasRole('Admin') || $this->regionalPoliceId === $user->regional_police_id, 403);
+        if ($this->receptionId) {
+            $reception = Reception::findOrFail($this->receptionId);
+            abort_unless($user->hasRole('Admin') || $reception->regional_police_id === $user->regional_police_id, 403);
+        }
+    }
+
+    private function signatureData(): array
+    {
+        $data = [];
+        foreach (['kasiSignatureUpload' => 'kasi_signature', 'directorSignatureUpload' => 'director_signature'] as $field => $column) {
+            if ($this->$field) {
+                $data[$column] = 'data:'.$this->$field->getMimeType().';base64,'.base64_encode(file_get_contents($this->$field->getRealPath()));
+            }
+        }
+
+        return $data;
+    }
+
+    public function saveOfficials(string $section): void
+    {
+        $this->authorizeReception();
+        abort_unless(in_array($section, ['commission', 'officials']), 422);
+        $fields = $section === 'commission'
+            ? array_values(array_filter(array_keys($this->rules()), fn ($key) => str_starts_with($key, 'commission_member_')))
+            : ['kasi_fasmat_name', 'kasi_fasmat_rank', 'kasi_fasmat_nip', 'ordonatur_name', 'ordonatur_rank', 'ordonatur_nrp', 'kasiSignatureUpload', 'directorSignatureUpload'];
+        $this->validate(array_intersect_key($this->rules(), array_flip($fields)));
+        if (! $this->receptionId) {
+            session()->flash('success', 'Isian telah diperiksa. Gunakan Simpan Data untuk menyimpan penerimaan baru.');
+
+            return;
+        }
+        $data = [];
+        foreach ($fields as $field) {
+            if (! str_ends_with($field, 'Upload')) {
+                $data[$field] = $this->$field ?: null;
+            }
+        }
+        if ($section === 'officials') {
+            $data = array_merge($data, $this->signatureData());
+        }
+        Reception::findOrFail($this->receptionId)->update($data);
+        $this->reset('kasiSignatureUpload', 'directorSignatureUpload');
+        session()->flash('success', 'Perubahan '.($section === 'commission' ? 'tim komisi' : 'pejabat dan tanda tangan').' berhasil disimpan.');
     }
 
     public function save()
@@ -566,8 +659,11 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
                 // Ordonatur
                 'ordonatur_name' => $this->ordonatur_name ?: null,
                 'ordonatur_rank' => $this->ordonatur_rank ?: null,
+                'ordonatur_nrp' => $this->ordonatur_nrp ?: null,
             ];
 
+            $headerData = array_merge($headerData, $this->signatureData());
+            $this->authorizeReception();
             \App\Actions\MenuPolda\CreateReceptionAction::run(
                 $headerData,
                 $this->details,
@@ -576,17 +672,18 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             );
 
             session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
+
             return $this->redirect(route('menu-polda.reception'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
     public function render()
     {
         $user = Auth::user();
-        $canSelectRegionalPolice = !$user->hasRole('Polda');
-        $canSelectPoliceStation = !$user->hasRole('Polres');
+        $canSelectRegionalPolice = ! $user->hasRole('Polda');
+        $canSelectPoliceStation = ! $user->hasRole('Polres');
 
         return view('livewire.admin.menu-polda.reception.detail.admin-menu-polda-reception-detail-index', [
             'canSelectRegionalPolice' => $canSelectRegionalPolice,

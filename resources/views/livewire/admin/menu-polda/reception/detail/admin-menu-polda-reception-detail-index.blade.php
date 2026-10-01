@@ -277,6 +277,7 @@
                     </div>
 
                     <!-- Kasi Fasmat & Ordonatur -->
+                    <button type="button" wire:click="saveOfficials('commission')" wire:loading.attr="disabled" class="rounded bg-blue-600 px-4 py-2 text-white">Simpan Tim Komisi</button>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                         <div>
                             <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">KASI FASMAT SBST</h4>
@@ -297,7 +298,7 @@
                         </div>
 
                         <div>
-                            <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">ORDONATUR (DIREKTUR LALU LINTAS)</h4>
+                            <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">DIREKTUR LALU LINTAS</h4>
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap</label>
@@ -307,6 +308,8 @@
                                     <label class="block text-xs font-semibold text-gray-600 mb-1">Pangkat</label>
                                     <input type="text" wire:model="ordonatur_rank" class="w-full px-3 py-1.5 text-xs rounded border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
                                 </div>
+                                <label class="block text-xs">NRP Direktur<input wire:model="ordonatur_nrp" class="block w-full rounded border p-2"></label>
+
                             </div>
                         </div>
                     </div>
@@ -315,6 +318,11 @@
         </div>
     </div>
 
+    <div class="rounded-xl border bg-white p-5 space-y-4">
+        <label class="block">Unggah tanda tangan Kasi (PNG/JPG, maksimal 2 MB)<input type="file" wire:model="kasiSignatureUpload" accept="image/png,image/jpeg" class="block">@error('kasiSignatureUpload')<span class="text-red-600">{{ $message }}</span>@enderror</label>
+        <label class="block">Unggah tanda tangan Direktur (PNG/JPG, maksimal 2 MB)<input type="file" wire:model="directorSignatureUpload" accept="image/png,image/jpeg" class="block">@error('directorSignatureUpload')<span class="text-red-600">{{ $message }}</span>@enderror</label>
+        <button type="button" wire:click="saveOfficials('officials')" wire:loading.attr="disabled" class="rounded bg-blue-600 px-4 py-2 text-white">Simpan Pejabat dan Tanda Tangan</button>
+    </div>
     <!-- Detail Items Card -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
         <div class="p-6">

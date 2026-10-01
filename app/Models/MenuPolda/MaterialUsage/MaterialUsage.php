@@ -16,6 +16,8 @@ class MaterialUsage extends Model
 
     protected $casts = [
         'date' => 'date',
+        'reporting_complete' => 'boolean',
+        'reporting_keys' => 'array',
         'is_active' => 'boolean',
     ];
 

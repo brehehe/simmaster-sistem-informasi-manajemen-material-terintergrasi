@@ -4,37 +4,54 @@ namespace App\Livewire\Admin\MenuPolda\MaterialShipment;
 
 use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use App\Models\Police\PoliceStation;
+use App\Models\Police\RegionalPolice;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
-use App\Models\Police\RegionalPolice;
-use Illuminate\Support\Facades\Storage;
 
 class AdminMenuPoldaMaterialShipmentIndex extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public string $search = '';
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public string $statusFilter = '';
+
     public string $polresFilter = '';
+
     public string $poldaFilter = '';
+
     public int $perPage = 10;
+
     public bool $showDeleteModal = false;
+
     public bool $showDetailModal = false;
+
     public bool $showScanQrModal = false;
+
     public bool $showPickingDetailModal = false;
+
     public ?string $shipmentId = null;
+
     public $selectedShipment = null;
+
     public string $scanInputCode = '';
+
     public $scannedShipment = null;
 
     // Picking form fields (TTD, Foto, Identitas)
-    public string $pickerName     = '';
-    public string $pickerRank     = '';
+    public string $pickerName = '';
+
+    public string $pickerRank = '';
+
     public string $pickerPosition = '';
+
     public string $pickerSignature = ''; // base64 PNG
+
     public $pickerPhoto = null;
 
     public function toJSON()
@@ -52,8 +69,8 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
         $user = auth()->user();
 
         $query = MaterialShipment::with([
-            'senderRegionalPolice', 
-            'receiverPoliceStation', 
+            'senderRegionalPolice',
+            'receiverPoliceStation',
         ])
             ->withCount('materialShipmentDetails')
             ->withSum('materialShipmentDetails', 'quantity')
@@ -67,8 +84,8 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('notes', 'ilike', '%' . $this->search . '%');
+                $q->where('code', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('notes', 'ilike', '%'.$this->search.'%');
             });
         }
 
@@ -123,10 +140,11 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
             if ($shipment) {
                 try {
                     $code = $shipment->code;
+                    $this->authorize('delete', $shipment);
                     $shipment->deleteWithStockReversal();
                     session()->flash('success', "Pengiriman {$code} berhasil dihapus.");
                 } catch (\Exception $e) {
-                    session()->flash('error', 'Gagal menghapus pengiriman: ' . $e->getMessage());
+                    session()->flash('error', 'Gagal menghapus pengiriman: '.$e->getMessage());
                 }
             } else {
                 session()->flash('error', 'Data pengiriman tidak ditemukan.');
@@ -145,7 +163,7 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
             'materialShipmentDetails.stockDetail.service',
             'materialShipmentDetails.stockDetail.serviceDetail',
             'materialShipmentDetails.type',
-            'materialShipmentDetails.typeDetail'
+            'materialShipmentDetails.typeDetail',
         ])->find($id);
         $this->showDetailModal = true;
     }
@@ -169,7 +187,7 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
                 'receiverPoliceStation',
                 'materialShipmentDetails.type',
                 'materialShipmentDetails.typeDetail',
-                'materialShipmentDetails.stockDetail.rack'
+                'materialShipmentDetails.stockDetail.rack',
             ])->find($id);
             if ($this->scannedShipment) {
                 $this->scanInputCode = $this->scannedShipment->code;
@@ -189,17 +207,18 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
 
     private function resetPickingForm(): void
     {
-        $this->pickerName      = '';
-        $this->pickerRank      = '';
-        $this->pickerPosition  = '';
+        $this->pickerName = '';
+        $this->pickerRank = '';
+        $this->pickerPosition = '';
         $this->pickerSignature = '';
-        $this->pickerPhoto     = null;
+        $this->pickerPhoto = null;
     }
 
     public function processScanQr(): void
     {
         if (empty(trim($this->scanInputCode))) {
             session()->flash('error', 'Silakan masukkan atau scan kode QR SPPM.');
+
             return;
         }
 
@@ -208,38 +227,42 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
             'receiverPoliceStation',
             'materialShipmentDetails.type',
             'materialShipmentDetails.typeDetail',
-            'materialShipmentDetails.stockDetail.rack'
+            'materialShipmentDetails.stockDetail.rack',
         ])->where(function ($q) use ($code) {
-            $q->where('code', 'ilike', '%' . $code . '%');
+            $q->where('code', 'ilike', '%'.$code.'%');
             if (\Illuminate\Support\Str::isUuid($code)) {
                 $q->orWhere('id', $code);
             }
         })->first();
 
-        if (!$shipment) {
+        if (! $shipment) {
             session()->flash('error', "Data pengiriman dengan kode '{$code}' tidak ditemukan.");
             $this->scannedShipment = null;
+
             return;
         }
 
+        $this->authorize('view', $shipment);
         $this->scannedShipment = $shipment;
         session()->flash('success', "QR Code Valid! Transaksi SPPM {$shipment->code} ditemukan.");
     }
 
     public function confirmWarehousePicking(): void
     {
-        if (!$this->scannedShipment) return;
+        if (! $this->scannedShipment) {
+            return;
+        }
 
         $this->validate([
-            'pickerName'      => 'required|string|max:200',
-            'pickerRank'      => 'required|string|max:100',
-            'pickerPosition'  => 'required|string|max:200',
+            'pickerName' => 'required|string|max:200',
+            'pickerRank' => 'required|string|max:100',
+            'pickerPosition' => 'required|string|max:200',
             'pickerSignature' => 'required|string',
-            'pickerPhoto'     => 'nullable|file|image|max:5120',
+            'pickerPhoto' => 'nullable|file|image|max:5120',
         ], [
-            'pickerName.required'      => 'Nama pengambil wajib diisi.',
-            'pickerRank.required'      => 'Pangkat wajib diisi.',
-            'pickerPosition.required'  => 'Jabatan wajib diisi.',
+            'pickerName.required' => 'Nama pengambil wajib diisi.',
+            'pickerRank.required' => 'Pangkat wajib diisi.',
+            'pickerPosition.required' => 'Jabatan wajib diisi.',
             'pickerSignature.required' => 'Tanda tangan digital wajib dibuat.',
         ]);
 
@@ -249,24 +272,14 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
                 $photoPath = $this->pickerPhoto->store('shipment-photos', 'public');
             }
 
-            if ($this->scannedShipment->status === 'draft') {
-                $this->scannedShipment->update([
-                    'status'           => 'shipped',
-                    'shipped_at'       => now(),
-                    'picker_name'      => $this->pickerName,
-                    'picker_rank'      => $this->pickerRank,
-                    'picker_position'  => $this->pickerPosition,
-                    'picker_signature' => $this->pickerSignature,
-                    'picker_photo'     => $photoPath,
-                    'picked_at'        => now(),
-                ]);
-                session()->flash('success', "Serah terima material SPPM {$this->scannedShipment->code} berhasil! Status: Terkirim.");
-            } else {
-                session()->flash('info', "SPPM {$this->scannedShipment->code} sudah diverifikasi sebelumnya.");
-            }
+            $this->scannedShipment->recordPicking(auth()->user(), [
+                'picker_name' => $this->pickerName, 'picker_rank' => $this->pickerRank,
+                'picker_position' => $this->pickerPosition, 'picker_signature' => $this->pickerSignature, 'picker_photo' => $photoPath,
+            ]);
+            session()->flash('success', 'Serah terima warehouse berhasil disimpan.');
             $this->closeScanQrModal();
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal memproses verifikasi: ' . $e->getMessage());
+            session()->flash('error', 'Gagal memproses verifikasi: '.$e->getMessage());
         }
     }
 
@@ -278,7 +291,7 @@ class AdminMenuPoldaMaterialShipmentIndex extends Component
             'senderRegionalPolice',
             'materialShipmentDetails.type',
             'materialShipmentDetails.typeDetail',
-            'materialShipmentDetails.stockDetail.rack'
+            'materialShipmentDetails.stockDetail.rack',
         ])->find($id);
         $this->showPickingDetailModal = true;
     }

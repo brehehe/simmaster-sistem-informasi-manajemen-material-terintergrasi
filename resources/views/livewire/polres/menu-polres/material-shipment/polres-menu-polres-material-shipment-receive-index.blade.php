@@ -103,7 +103,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Input Nomor SPPM Manual</label>
                 <div class="flex gap-2">
                     <input wire:model="searchCode" type="text"
-                        placeholder="Contoh: SPPM/SHP-20260721-001..."
+                        placeholder="Contoh: SPPM/123/VII/LOG.3.6.7./2026"
                         class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                         wire:keydown.enter="searchByCode">
                     <button wire:loading.attr="disabled" wire:click="searchByCode" type="button"
@@ -247,7 +247,7 @@
                 <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 p-4 rounded-2xl">
                     <label class="block text-xs font-bold text-blue-900 mb-2">Input Nomor SPPM Manual:</label>
                     <div class="flex items-center gap-2">
-                        <input type="text" x-model="$wire.searchCode" placeholder="Contoh: SPPM/SHP-20260721-001"
+                        <input type="text" x-model="$wire.searchCode" placeholder="Contoh: SPPM/123/VII/LOG.3.6.7./2026"
                             @keydown.enter="$wire.searchByCode(); closeScanner();"
                             class="w-full px-3.5 py-2.5 text-xs font-mono font-bold rounded-xl border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white">
                         <button type="button" @click="$wire.searchByCode(); closeScanner();"

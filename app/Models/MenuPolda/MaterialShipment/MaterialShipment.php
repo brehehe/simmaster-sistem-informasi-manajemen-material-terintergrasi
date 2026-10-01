@@ -60,28 +60,29 @@ class MaterialShipment extends Model
             $regionalPolice = RegionalPolice::withTrashed()->find($regionalPoliceId);
             if ($regionalPolice) {
                 $name = strtoupper(substr(preg_replace('/[^A-Z]/i', '', $regionalPolice->name), 0, 3));
-                $prefix .= '-' . $name;
+                $prefix .= '-'.$name;
             }
         }
 
-        $fullPrefix = $prefix . '-' . $date . '-';
+        $fullPrefix = $prefix.'-'.$date.'-';
         $existingCodes = self::withTrashed()
-            ->where('code', 'ilike', $fullPrefix . '%')
+            ->where('code', 'ilike', $fullPrefix.'%')
             ->pluck('code')
             ->map(function ($c) {
-                if (preg_match('/-(\d+)$/', trim((string)$c), $matches)) {
+                if (preg_match('/-(\d+)$/', trim((string) $c), $matches)) {
                     return (int) $matches[1];
                 }
+
                 return 0;
             })
             ->filter()
             ->toArray();
 
-        $nextNumber = !empty($existingCodes) ? (max($existingCodes) + 1) : 1;
-        $code = $fullPrefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        $nextNumber = ! empty($existingCodes) ? (max($existingCodes) + 1) : 1;
+        $code = $fullPrefix.str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
         while (self::withTrashed()->where('code', $code)->exists()) {
             $nextNumber++;
-            $code = $fullPrefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+            $code = $fullPrefix.str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
         }
 
         return $code;
@@ -92,13 +93,39 @@ class MaterialShipment extends Model
      */
     public function markAsShipped()
     {
-        if ($this->status !== 'draft') {
-            throw new \Exception('Only draft shipments can be marked as shipped.');
-        }
+        DB::transaction(function () {
+            $locked = self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== 'draft') {
+                throw new \RuntimeException('Hanya draft dapat dikirim.');
+            }
+            app(\App\Services\ShipmentStockService::class)->deduct($locked);
+            $locked->update(['status' => 'shipped', 'shipped_at' => now()]);
+        });
+        $this->refresh();
+    }
 
-        $this->status = 'shipped';
-        $this->shipped_at = now();
-        $this->save();
+    public function recordPicking(User $user, array $data): void
+    {
+        abort_unless($user->hasRole(['Admin', 'Polda', 'Warehouse']) && $user->can('view', $this), 403);
+        validator($data, [
+            'picker_name' => 'required|string|max:200', 'picker_rank' => 'required|string|max:100',
+            'picker_position' => 'required|string|max:200', 'picker_signature' => ['required', 'string', 'max:1000000', 'regex:~^data:image/png;base64,[A-Za-z0-9+/=]+$~'],
+        ])->validate();
+        $bytes = base64_decode(explode(',', $data['picker_signature'], 2)[1], true);
+        if (! $bytes || ! @getimagesizefromstring($bytes)) {
+            throw new \RuntimeException('Tanda tangan tidak valid.');
+        }
+        DB::transaction(function () use ($data) {
+            $shipment = self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+            if (! in_array($shipment->status, ['draft', 'shipped']) || $shipment->picked_at) {
+                throw new \RuntimeException('SPPM sudah diproses warehouse atau diterima.');
+            }
+            app(\App\Services\ShipmentStockService::class)->deduct($shipment);
+            $shipment->update(array_intersect_key($data, array_flip(['picker_name', 'picker_rank', 'picker_position', 'picker_signature', 'picker_photo'])) + [
+                'status' => 'shipped', 'shipped_at' => $shipment->shipped_at ?? now(), 'picked_at' => now(),
+            ]);
+        });
+        $this->refresh();
     }
 
     /**
@@ -106,30 +133,21 @@ class MaterialShipment extends Model
      */
     public function markAsReceived(User $user)
     {
-        if ($this->status !== 'shipped') {
-            throw new \Exception('Only shipped shipments can be marked as received.');
-        }
-
         DB::transaction(function () use ($user) {
+            $locked = self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== 'shipped' || ! $locked->picked_at) {
+                throw new \RuntimeException('SPPM harus dipindai warehouse sebelum diterima.');
+            }
+            if (! $user->hasRole('Admin') && $user->police_station_id !== $locked->receiver_police_station_id) {
+                abort(403);
+            }
+            PoliceStation::whereKey($locked->receiver_police_station_id)->lockForUpdate()->firstOrFail();
+            // Legacy dispatched documents may not have deducted stock yet.
+            app(\App\Services\ShipmentStockService::class)->deduct($locked);
+            $this->setRawAttributes($locked->getAttributes());
+            $this->unsetRelation('materialShipmentDetails');
             foreach ($this->materialShipmentDetails as $detail) {
-                // 1. DEDUCT stock from Polda
-                $poldaStock = Stock::where('regional_police_id', $this->sender_regional_police_id)
-                    ->where('type_id', $detail->type_id)
-                    ->where('type_detail_id', $detail->type_detail_id)
-                    ->first();
-
-                if ($poldaStock) {
-                    $poldaStock->quantity -= $detail->quantity;
-                    $poldaStock->save();
-                }
-
-                if ($detail->stock_detail_id) {
-                    $poldaStockDetail = StockDetail::find($detail->stock_detail_id);
-                    if ($poldaStockDetail) {
-                        $poldaStockDetail->quantity -= $detail->quantity;
-                        $poldaStockDetail->save();
-                    }
-                }
+                $poldaStockDetail = $detail->stock_detail_id ? StockDetail::find($detail->stock_detail_id) : null;
 
                 // 2. ADD stock to Polres
                 $polresStock = Stock::firstOrCreate(
@@ -137,6 +155,8 @@ class MaterialShipment extends Model
                         'police_station_id' => $this->receiver_police_station_id,
                         'type_id' => $detail->type_id,
                         'type_detail_id' => $detail->type_detail_id,
+                        'service_id' => $poldaStockDetail?->service_id,
+                        'service_detail_id' => $poldaStockDetail?->service_detail_id,
                     ],
                     [
                         'quantity' => 0,
@@ -145,10 +165,7 @@ class MaterialShipment extends Model
                     ]
                 );
 
-                $polresStock->quantity += $detail->quantity;
-                $polresStock->save();
-
-                $poldaStockDetail = $detail->stock_detail_id ? StockDetail::find($detail->stock_detail_id) : null;
+                $polresStock->increment('quantity', $detail->quantity);
 
                 StockDetail::create([
                     'stock_id' => $polresStock->id,
@@ -168,22 +185,6 @@ class MaterialShipment extends Model
                 ]);
 
                 // 3. Create history records
-                HistoryStock::create([
-                    'code' => HistoryStock::generateCode(),
-                    'material_shipment_id' => $this->id,
-                    'type_id' => $detail->type_id,
-                    'type_detail_id' => $detail->type_detail_id,
-                    'service_id' => $poldaStockDetail?->service_id,
-                    'service_detail_id' => $poldaStockDetail?->service_detail_id,
-                    'regional_police_id' => $this->sender_regional_police_id,
-                    'police_station_id' => null,
-                    'date' => now(),
-                    'status_type' => 'out',
-                    'quantity' => -$detail->quantity,
-                    'description' => "Shipment to Polres ({$this->receiverPoliceStation?->name}): {$this->code}",
-                    'is_active' => true,
-                ]);
-
                 HistoryStock::create([
                     'code' => HistoryStock::generateCode(),
                     'material_shipment_id' => $this->id,
@@ -213,70 +214,14 @@ class MaterialShipment extends Model
      */
     public function deleteWithStockReversal(): void
     {
+        if ($this->status !== 'draft' || $this->stock_deducted_at) {
+            throw new \RuntimeException('SPPM yang sudah dikirim tidak dapat dihapus. Gunakan koreksi stok dengan jejak audit.');
+        }
         DB::transaction(function () {
-            // Revert stock if shipment was received by Polres
-            if ($this->status === 'received') {
-                foreach ($this->materialShipmentDetails as $detail) {
-                    // 1. Return deducted stock back to Polda
-                    $poldaStock = Stock::where('regional_police_id', $this->sender_regional_police_id)
-                        ->where('type_id', $detail->type_id)
-                        ->where(function ($q) use ($detail) {
-                            if ($detail->type_detail_id) {
-                                $q->where('type_detail_id', $detail->type_detail_id);
-                            } else {
-                                $q->whereNull('type_detail_id');
-                            }
-                        })
-                        ->first();
-
-                    if ($poldaStock) {
-                        $poldaStock->quantity += $detail->quantity;
-                        $poldaStock->save();
-                    }
-
-                    if ($detail->stock_detail_id) {
-                        $poldaStockDetail = StockDetail::find($detail->stock_detail_id);
-                        if ($poldaStockDetail) {
-                            $poldaStockDetail->quantity += $detail->quantity;
-                            $poldaStockDetail->save();
-                        }
-                    }
-
-                    // 2. Deduct added stock from Polres
-                    $polresStock = Stock::where('police_station_id', $this->receiver_police_station_id)
-                        ->where('type_id', $detail->type_id)
-                        ->where(function ($q) use ($detail) {
-                            if ($detail->type_detail_id) {
-                                $q->where('type_detail_id', $detail->type_detail_id);
-                            } else {
-                                $q->whereNull('type_detail_id');
-                            }
-                        })
-                        ->first();
-
-                    if ($polresStock) {
-                        $polresStock->quantity = max(0, $polresStock->quantity - $detail->quantity);
-                        $polresStock->save();
-                    }
-
-                    // Remove the stock detail that was created at Polres on receive
-                    StockDetail::where('police_station_id', $this->receiver_police_station_id)
-                        ->where('type_id', $detail->type_id)
-                        ->where(function ($q) use ($detail) {
-                            if ($detail->type_detail_id) {
-                                $q->where('type_detail_id', $detail->type_detail_id);
-                            } else {
-                                $q->whereNull('type_detail_id');
-                            }
-                        })
-                        ->where('description', 'like', "%{$this->code}%")
-                        ->forceDelete();
-                }
-
-                // Delete any HistoryStock associated with this shipment code (clean reversal without creating new history)
-                HistoryStock::where('description', 'like', "%{$this->code}%")->forceDelete();
+            $locked = self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== 'draft' || $locked->stock_deducted_at) {
+                throw new \RuntimeException('SPPM sudah diproses.');
             }
-
             // Cleanup any uploaded picking photo
             if ($this->picker_photo && Storage::disk('public')->exists($this->picker_photo)) {
                 Storage::disk('public')->delete($this->picker_photo);
