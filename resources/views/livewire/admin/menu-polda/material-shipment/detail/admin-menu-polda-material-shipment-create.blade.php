@@ -231,23 +231,34 @@
 
                                 @if($is_with_serial_number)
                                     <td class="px-2 py-3 align-top">
-                                        <div wire:ignore wire:key="stock-key-{{ $index }}-{{ md5(json_encode($stockOptions[$index] ?? [])) }}">
-                                            <select x-data x-init="
-                                                const selectize = $($el).selectize({
-                                                    dropdownParent: 'body',
-                                                    allowClear: true,
-                                                    onChange: function(val) {
-                                                        @this.set('details.{{ $index }}.selected_stock_key', val);
-                                                    }
-                                                })[0].selectize;
-                                            " wire:model="details.{{ $index }}.selected_stock_key" @disabled($shipmentId)
-                                                class="w-full text-xs rounded border border-gray-300 disabled:bg-gray-100 disabled:text-gray-500">
-                                                <option value="">-- Pilih Barang --</option>
-                                                @foreach($stockOptions[$index] ?? [] as $opt)
-                                                    <option value="{{ $opt['key'] }}">{{ $opt['key'] }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        @php
+                                            $rowHasSerial = collect($stockOptions[$index] ?? [])->contains(function($opt) {
+                                                return ($opt['key'] ?? '') !== '- | - | -' && ($opt['key'] ?? '') !== '';
+                                            });
+                                        @endphp
+                                        @if($rowHasSerial)
+                                            <div wire:ignore wire:key="stock-key-{{ $index }}-{{ md5(json_encode($stockOptions[$index] ?? [])) }}">
+                                                <select x-data x-init="
+                                                    const selectize = $($el).selectize({
+                                                        dropdownParent: 'body',
+                                                        allowClear: true,
+                                                        onChange: function(val) {
+                                                            @this.set('details.{{ $index }}.selected_stock_key', val);
+                                                        }
+                                                    })[0].selectize;
+                                                " wire:model="details.{{ $index }}.selected_stock_key" @disabled($shipmentId)
+                                                    class="w-full text-xs rounded border border-gray-300 disabled:bg-gray-100 disabled:text-gray-500">
+                                                    <option value="">-- Pilih Barang --</option>
+                                                    @foreach($stockOptions[$index] ?? [] as $opt)
+                                                        <option value="{{ $opt['key'] }}">{{ $opt['key'] }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        @else
+                                            <div class="py-2 px-3 text-xs bg-gray-50 text-gray-500 rounded border border-gray-200 text-center italic">
+                                                Non-Seri (Pendukung)
+                                            </div>
+                                        @endif
                                         @error("details.{$index}.stock_detail_id") <p class="text-red-500 text-[10px] mt-1">{{ $message }}</p> @enderror
                                     </td>
                                 @endif

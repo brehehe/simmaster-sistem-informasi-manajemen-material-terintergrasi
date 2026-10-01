@@ -216,13 +216,18 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
             ];
         })->values()->toArray();
 
-        // For non-serial-number types: auto-set available_quantity and stock_detail_id
-        // since the user doesn't pick a specific item
-        if (!$this->is_with_serial_number) {
+        // For non-serial-number types or items without serial numbers (e.g. material pendukung like blangko):
+        // auto-set available_quantity and stock_detail_id since the user doesn't pick a specific serial item
+        $hasSerial = $stocks->contains(function ($s) {
+            return !empty($s->number_serial_first) || !empty($s->number_serial_second) || (!empty($s->code) && $s->code !== '-');
+        });
+
+        if (!$this->is_with_serial_number || !$hasSerial) {
             $totalQty = (int) $stocks->sum('quantity');
             $this->details[$index]['available_quantity'] = $totalQty;
-            if ($stocks->count() === 1) {
+            if ($stocks->isNotEmpty()) {
                 $this->details[$index]['stock_detail_id'] = $stocks->first()->id;
+                $this->details[$index]['selected_stock_key'] = $this->generateStockKey($stocks->first());
             }
         }
     }

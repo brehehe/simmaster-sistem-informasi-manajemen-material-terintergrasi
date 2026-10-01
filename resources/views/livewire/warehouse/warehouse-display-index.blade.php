@@ -63,14 +63,26 @@
     </div>
 
     {{-- Live Summary Metrics --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <div :class="darkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-md'" class="border rounded-2xl p-4 flex items-center justify-between transition-colors">
-            <div>
-                <div class="text-xs font-semibold uppercase tracking-wider" :class="darkMode ? 'text-slate-400' : 'text-slate-500'">Total Stok Tersedia</div>
-                <div class="text-3xl font-black mt-1 font-mono" :class="darkMode ? 'text-white' : 'text-slate-900'">{{ number_format($totalStockQty, 0, ',', '.') }}</div>
-                <div class="text-[10px] text-emerald-500 font-semibold mt-1">✓ Terakumulasi di Gudang</div>
+            <div class="min-w-0 flex-1">
+                <div class="text-[10px] font-semibold uppercase tracking-wider" :class="darkMode ? 'text-slate-400' : 'text-slate-500'">PNBP Realisasi {{ now()->year }}</div>
+                <div class="text-sm font-black mt-1 font-mono leading-tight" :class="darkMode ? 'text-white' : 'text-slate-900'">Rp {{ number_format($realizedPNBP, 0, ',', '.') }}</div>
+                <div class="text-[10px] text-emerald-500 font-semibold mt-1">✓ Realisasi PNBP Tahun Berjalan</div>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-2xl font-bold">
+            <div class="ml-2 w-10 h-10 shrink-0 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-xl font-bold">
+                💰
+            </div>
+        </div>
+
+        {{-- Box Stok PNBP (Unit Gunmat) --}}
+        <div :class="darkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200 shadow-md'" class="border rounded-2xl p-4 flex items-center justify-between transition-colors">
+            <div class="min-w-0 flex-1">
+                <div class="text-[10px] font-semibold uppercase tracking-wider" :class="darkMode ? 'text-slate-400' : 'text-slate-500'">Stok PNBP {{ now()->year }}</div>
+                <div class="text-sm font-black mt-1 font-mono leading-tight text-violet-500">{{ number_format($realizedGunmat, 0, ',', '.') }} <span class="text-xs font-semibold">unit</span></div>
+                <div class="text-[10px] text-violet-400 font-semibold mt-1">✓ Total Material Gunmat</div>
+            </div>
+            <div class="ml-2 w-10 h-10 shrink-0 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-500 flex items-center justify-center text-xl font-bold">
                 📦
             </div>
         </div>

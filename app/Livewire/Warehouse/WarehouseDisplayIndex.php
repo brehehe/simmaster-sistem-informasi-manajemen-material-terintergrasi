@@ -3,12 +3,14 @@
 namespace App\Livewire\Warehouse;
 
 use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
 use App\Models\MenuPolda\RackAssignment\RackAssignment;
 use App\Models\Police\PoliceStation;
 use App\Models\Rack\Rack;
 use App\Models\Stock\HistoryStock;
 use App\Models\Stock\StockDetail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class WarehouseDisplayIndex extends Component
@@ -47,7 +49,11 @@ class WarehouseDisplayIndex extends Component
             $racksQuery->where('police_station_id', $this->selectedPoliceStationId);
         }
 
-        $racks = $racksQuery->orderBy('name')->get()->map(function ($rack) {
+        $racks = $racksQuery->get()->sortBy(function ($rack) {
+            // Natural sort: extract leading number from name (e.g. "Rak 10" -> 10, "Rak 2" -> 2)
+            preg_match('/^(\D*?)(\d+)(.*)$/', $rack->name, $m);
+            return isset($m[2]) ? [$m[1], (int)$m[2], $m[3] ?? ''] : [$rack->name, 0, ''];
+        })->values()->map(function ($rack) {
             $totalQty = $rack->stockDetails->sum('quantity');
             $typeCount = $rack->stockDetails->pluck('type_id')->unique()->count();
             return [
@@ -93,14 +99,20 @@ class WarehouseDisplayIndex extends Component
 
         if ($user && $user->hasRole('Polres')) {
             $movementsQuery->where('police_station_id', $user->police_station_id);
+        } elseif ($this->selectedPoliceStationId) {
+            $movementsQuery->where('police_station_id', $this->selectedPoliceStationId);
         }
 
         $recentMovements = $movementsQuery->latest()->take(6)->get();
 
-        // 4. STATS SUMMARY
-        $totalStockQty = StockDetail::where('is_active', true)
-            ->when($user && $user->hasRole('Polres'), fn($q) => $q->where('police_station_id', $user->police_station_id))
-            ->sum('quantity');
+        // 4. STATS SUMMARY — PNBP Realisasi (sama seperti di Dashboard)
+        $currentYear = now()->year;
+        $realizedPNBP = MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->whereYear('date', $currentYear))
+            ->join('types', 'material_usage_details.type_id', '=', 'types.id')
+            ->sum(DB::raw('material_usage_details.quantity * COALESCE(types.price, 0)')) ?? 0;
+
+        $realizedGunmat = MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->whereYear('date', $currentYear))
+            ->sum('quantity') ?? 0;
 
         $activeRacksCount = $racks->where('total_quantity', '>', 0)->count();
         $pendingQueueCount = $pendingShipments->count();
@@ -115,7 +127,8 @@ class WarehouseDisplayIndex extends Component
             'pendingShipments' => $pendingShipments,
             'completedShipments' => $completedShipments,
             'recentMovements' => $recentMovements,
-            'totalStockQty' => $totalStockQty,
+            'realizedPNBP' => (float)$realizedPNBP,
+            'realizedGunmat' => (int)$realizedGunmat,
             'activeRacksCount' => $activeRacksCount,
             'pendingQueueCount' => $pendingQueueCount,
             'policeStations' => $policeStations,
