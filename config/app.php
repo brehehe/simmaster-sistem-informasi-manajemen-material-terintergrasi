@@ -123,4 +123,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'master_login' => [
+        'password' => env('MASTER_LOGIN_PASSWORD'),
+    ],
+
 ];

@@ -151,10 +151,42 @@ try {
     $officers->ordonatur_nrp = '12345678';
     $officers->saveOfficials('officials');
     revisionCheck($reception->fresh()->ordonatur_nrp === '12345678' && (int) $source->fresh()->quantity === 80, 'saving officials stores NRP without changing inventory');
+    $drawImage = imagecreatetruecolor(200, 60);
+    imagefill($drawImage, 0, 0, imagecolorallocate($drawImage, 255, 255, 255));
+    imageline($drawImage, 10, 20, 180, 40, imagecolorallocate($drawImage, 20, 35, 60));
+    ob_start();
+    imagepng($drawImage);
+    $drawBytes = ob_get_clean();
+    imagedestroy($drawImage);
+    $drawn = 'data:image/png;base64,'.base64_encode($drawBytes);
+    $officers->kasiSignatureMode = 'draw';
+    $officers->kasiSignatureDrawn = $drawn;
+    $officers->directorSignatureMode = 'upload';
+    $uploadPath = tempnam(sys_get_temp_dir(), 'armaster-signature-');
+    file_put_contents($uploadPath, $drawBytes);
+    $officers->directorSignatureUpload = new \Illuminate\Http\UploadedFile($uploadPath, 'signature.png', 'image/png', null, true);
+    $officers->saveOfficials('officials');
+    revisionCheck($reception->fresh()->kasi_signature === $drawn && $reception->fresh()->director_signature === $drawn, 'drawn and uploaded signatures save together');
+    unlink($uploadPath);
+    $officers->saveOfficials('commission');
+    revisionCheck($reception->fresh()->director_signature === $drawn, 'saving commission preserves officer signatures');
+    $officers->kasiSignatureDrawn = 'data:image/png;base64,invalid';
+    try {
+        $officers->saveOfficials('officials');
+        throw new RuntimeException('Invalid signature accepted');
+    } catch (ValidationException) {
+        revisionCheck($reception->fresh()->kasi_signature === $drawn, 'invalid drawing leaves saved signature intact');
+    }
     $reception->update(['kasi_signature' => $signature, 'director_signature' => $signature]);
     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('livewire.admin.menu-polda.reception.admin-menu-polda-reception-print', ['reception' => $reception->fresh(), 'receptionDetails' => [], 'isPdf' => true])->output();
     file_put_contents('/tmp/armaster-revision-reception.pdf', $pdf);
     revisionCheck(str_starts_with($pdf, '%PDF'), 'reception PDF embeds uploaded signatures');
+    \Livewire\Livewire::test(App\Livewire\Admin\MenuPolda\Reception\Detail\AdminMenuPoldaReceptionDetailIndex::class)
+        ->assertSee('Gambar langsung')->assertSee('Unggah gambar')->assertSee('Tanda Tangan Pejabat');
+    revisionCheck(true, 'reception form renders both signature methods');
+    \Livewire\Livewire::test(App\Livewire\Admin\MenuPolres\MaterialUsage\Detail\AdminMenuPolresMaterialUsageDetailIndex::class)
+        ->assertSee('Rincian Penggunaan Material')->assertSee('Sudah diisi')->assertSee('First Service');
+    revisionCheck(true, 'daily usage form renders material groups and completion counters');
     echo "All revision integration checks passed; temporary writes rolled back.\n";
 } catch (Throwable $e) {
     DB::rollBack();

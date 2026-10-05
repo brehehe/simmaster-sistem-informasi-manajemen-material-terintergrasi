@@ -20,6 +20,20 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
 
     public $directorSignatureUpload = null;
 
+    public string $kasiSignatureMode = 'upload';
+
+    public string $directorSignatureMode = 'upload';
+
+    public string $kasiSignatureDrawn = '';
+
+    public string $directorSignatureDrawn = '';
+
+    #[\Livewire\Attributes\Locked]
+    public ?string $savedKasiSignature = null;
+
+    #[\Livewire\Attributes\Locked]
+    public ?string $savedDirectorSignature = null;
+
     public string $ordonatur_nrp = '';
 
     // Mode
@@ -130,6 +144,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             // Edit mode - load existing data
             $reception = Reception::with(['receptionDetails.receptionDetailItems'])->findOrFail($id);
 
+            $this->savedKasiSignature = $reception->kasi_signature;
+            $this->savedDirectorSignature = $reception->director_signature;
             $this->code = $reception->code;
             $this->name = $reception->name;
             $this->date = $reception->date->format('Y-m-d');
@@ -504,8 +520,12 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
             'ordonatur_name' => 'nullable|string|max:255',
             'ordonatur_rank' => 'nullable|string|max:255',
             'ordonatur_nrp' => 'nullable|string|max:30',
-            'kasiSignatureUpload' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
-            'directorSignatureUpload' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'kasiSignatureMode' => 'required|in:upload,draw',
+            'directorSignatureMode' => 'required|in:upload,draw',
+            'kasiSignatureDrawn' => 'nullable|string|max:2800000',
+            'directorSignatureDrawn' => 'nullable|string|max:2800000',
+            'kasiSignatureUpload' => 'exclude_unless:kasiSignatureMode,upload|nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'directorSignatureUpload' => 'exclude_unless:directorSignatureMode,upload|nullable|image|mimes:png,jpg,jpeg|max:2048',
 
             // Flat array validation structure
             'details.*.type_detail_id' => 'nullable|exists:type_details,id',
@@ -581,9 +601,14 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
     private function signatureData(): array
     {
         $data = [];
-        foreach (['kasiSignatureUpload' => 'kasi_signature', 'directorSignatureUpload' => 'director_signature'] as $field => $column) {
-            if ($this->$field) {
-                $data[$column] = 'data:'.$this->$field->getMimeType().';base64,'.base64_encode(file_get_contents($this->$field->getRealPath()));
+        foreach (['kasi' => 'kasi_signature', 'director' => 'director_signature'] as $person => $column) {
+            $mode = $person.'SignatureMode';
+            $drawn = $person.'SignatureDrawn';
+            $upload = $person.'SignatureUpload';
+            if ($this->$mode === 'draw' && $this->$drawn !== '') {
+                $data[$column] = app(\App\Services\DrawnSignatureService::class)->validate($this->$drawn, $drawn);
+            } elseif ($this->$mode === 'upload' && $this->$upload) {
+                $data[$column] = 'data:'.$this->$upload->getMimeType().';base64,'.base64_encode(file_get_contents($this->$upload->getRealPath()));
             }
         }
 
@@ -596,8 +621,9 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         abort_unless(in_array($section, ['commission', 'officials']), 422);
         $fields = $section === 'commission'
             ? array_values(array_filter(array_keys($this->rules()), fn ($key) => str_starts_with($key, 'commission_member_')))
-            : ['kasi_fasmat_name', 'kasi_fasmat_rank', 'kasi_fasmat_nip', 'ordonatur_name', 'ordonatur_rank', 'ordonatur_nrp', 'kasiSignatureUpload', 'directorSignatureUpload'];
+            : ['kasi_fasmat_name', 'kasi_fasmat_rank', 'kasi_fasmat_nip', 'ordonatur_name', 'ordonatur_rank', 'ordonatur_nrp', 'kasiSignatureUpload', 'directorSignatureUpload', 'kasiSignatureMode', 'directorSignatureMode', 'kasiSignatureDrawn', 'directorSignatureDrawn'];
         $this->validate(array_intersect_key($this->rules(), array_flip($fields)));
+        $signatures = $section === 'officials' ? $this->signatureData() : [];
         if (! $this->receptionId) {
             session()->flash('success', 'Isian telah diperiksa. Gunakan Simpan Data untuk menyimpan penerimaan baru.');
 
@@ -605,15 +631,20 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         }
         $data = [];
         foreach ($fields as $field) {
-            if (! str_ends_with($field, 'Upload')) {
+            if (! str_contains($field, 'Signature')) {
                 $data[$field] = $this->$field ?: null;
             }
         }
         if ($section === 'officials') {
-            $data = array_merge($data, $this->signatureData());
+            $data = array_merge($data, $signatures);
         }
         Reception::findOrFail($this->receptionId)->update($data);
-        $this->reset('kasiSignatureUpload', 'directorSignatureUpload');
+        $saved = Reception::findOrFail($this->receptionId);
+        $this->savedKasiSignature = $saved->kasi_signature;
+        $this->savedDirectorSignature = $saved->director_signature;
+        if ($section === 'officials') {
+            $this->reset('kasiSignatureUpload', 'directorSignatureUpload');
+        }
         session()->flash('success', 'Perubahan '.($section === 'commission' ? 'tim komisi' : 'pejabat dan tanda tangan').' berhasil disimpan.');
     }
 

@@ -1,12 +1,12 @@
 <div>
     <!-- Header -->
     <div class="mb-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-blue-600">
-                    {{ $isEditMode ? 'Edit' : 'Tambah' }} Penerimaan Barang
+                    {{ $isEditMode ? 'Edit' : 'Tambah' }} Penerimaan Material
                 </h1>
-                <p class="text-gray-500 mt-1">{{ $isEditMode ? 'Perbarui' : 'Buat' }} data Penerimaan Barang</p>
+                <p class="text-gray-500 mt-1">{{ $isEditMode ? 'Perbarui' : 'Buat' }} data Penerimaan Material</p>
             </div>
             <a href="{{ route('menu-polda.reception') }}" 
                 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
@@ -32,6 +32,17 @@
         </div>
     @endif
 
+    @if(session()->has('success'))
+        <div role="status" class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">{{ session('success') }}</div>
+    @endif
+    @if($errors->any())
+        <div role="alert" class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Periksa kembali isian formulir. {{ $errors->first() }}</div>
+    @endif
+    <div class="mb-6 grid gap-3 sm:grid-cols-3">
+        @foreach(['Informasi penerimaan', 'Tim komisi & tanda tangan', 'Rincian material'] as $step)
+            <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-3"><span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">{{ $loop->iteration }}</span><span class="text-sm font-semibold text-blue-900">{{ $step }}</span></div>
+        @endforeach
+    </div>
     <!-- Main Form Card -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden mb-6">
         <div class="p-6">
@@ -193,13 +204,13 @@
             </div>
 
             <!-- Accordion for Tim Komisi & Pejabat BAPPM -->
-            <div x-data="{ openKomisi: false }" class="mt-6 border border-gray-200 rounded-xl overflow-hidden">
-                <button type="button" @click="openKomisi = !openKomisi" class="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+            <div x-data="{ openKomisi: true }" class="mt-6 border border-gray-200 rounded-xl overflow-hidden">
+                <button type="button" @click="openKomisi = !openKomisi" :aria-expanded="openKomisi" class="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
                     <span class="flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        Tim Komisi & Pejabat Penandatangan BAPPM (Klik untuk Ubah)
+                        Tim Komisi & Pejabat Penandatangan BAPPM
                     </span>
                     <svg class="h-5 w-5 text-gray-500 transition-transform duration-200" :class="openKomisi ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -277,7 +288,7 @@
                     </div>
 
                     <!-- Kasi Fasmat & Ordonatur -->
-                    <button type="button" wire:click="saveOfficials('commission')" wire:loading.attr="disabled" class="rounded bg-blue-600 px-4 py-2 text-white">Simpan Tim Komisi</button>
+                    @if($receptionId)<button type="button" wire:click="saveOfficials('commission')" wire:loading.attr="disabled" class="rounded bg-blue-600 px-4 py-2 text-white">Simpan Tim Komisi</button>@else<p class="text-xs text-gray-500">Tim komisi disimpan bersama dokumen melalui tombol Simpan Data.</p>@endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                         <div>
                             <h4 class="font-bold text-gray-900 mb-3 text-sm pb-1 border-b border-gray-100">KASI FASMAT SBST</h4>
@@ -318,10 +329,23 @@
         </div>
     </div>
 
-    <div class="rounded-xl border bg-white p-5 space-y-4">
-        <label class="block">Unggah tanda tangan Kasi (PNG/JPG, maksimal 2 MB)<input type="file" wire:model="kasiSignatureUpload" accept="image/png,image/jpeg" class="block">@error('kasiSignatureUpload')<span class="text-red-600">{{ $message }}</span>@enderror</label>
-        <label class="block">Unggah tanda tangan Direktur (PNG/JPG, maksimal 2 MB)<input type="file" wire:model="directorSignatureUpload" accept="image/png,image/jpeg" class="block">@error('directorSignatureUpload')<span class="text-red-600">{{ $message }}</span>@enderror</label>
-        <button type="button" wire:click="saveOfficials('officials')" wire:loading.attr="disabled" class="rounded bg-blue-600 px-4 py-2 text-white">Simpan Pejabat dan Tanda Tangan</button>
+    <div class="mb-6 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
+        <div class="border-b border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50/50 p-5 sm:p-6">
+            <h2 class="text-xl font-bold text-gray-900">Tanda Tangan Pejabat</h2>
+            <p class="mt-1 text-sm text-gray-500">Gambar langsung atau unggah tanda tangan Kasi dan Direktur. Hasil tersimpan akan tercantum pada PDF BAPPM.</p>
+        </div>
+        <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-2">
+            <x-reception-signature person="kasi" title="Tanda tangan Kasi" :saved="$savedKasiSignature" :upload="$kasiSignatureUpload" />
+            <x-reception-signature person="director" title="Tanda tangan Direktur" :saved="$savedDirectorSignature" :upload="$directorSignatureUpload" />
+        </div>
+        <div class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-xs text-gray-500">{{ $receptionId ? 'Perubahan disimpan untuk dokumen penerimaan ini.' : 'Pejabat dan tanda tangan akan disimpan bersama penerimaan melalui tombol Simpan Data.' }}</p>
+            @if($receptionId)
+                <button type="button" wire:click="saveOfficials('officials')" wire:loading.attr="disabled" class="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 disabled:opacity-50">
+                    <span wire:loading.remove wire:target="saveOfficials">Simpan Pejabat & Tanda Tangan</span><span wire:loading wire:target="saveOfficials">Menyimpan…</span>
+                </button>
+            @endif
+        </div>
     </div>
     <!-- Detail Items Card -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
@@ -507,7 +531,7 @@
     @endif
 
     <!-- Action Buttons -->
-    <div class="mt-6 flex items-center justify-end gap-3">
+    <div class="sticky bottom-0 z-10 mt-6 flex items-center justify-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-lg">
         <a href="{{ route('menu-polda.reception') }}" 
             class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
             {{ $receptionId ? 'Kembali' : 'Batal' }}
