@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Master\Type;
 
 use App\Models\Type\Type;
+use App\Models\User\UserType;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -129,8 +130,50 @@ class AdminMasterTypeIndex extends Component
                 $type->update(['unit' => $this->unit, 'name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
                 session()->flash('success', 'Tipe berhasil diperbarui.');
             } else {
-                Type::create(['unit' => $this->unit, 'name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
-                session()->flash('success', 'Tipe berhasil ditambahkan.');
+                $type = Type::create(['unit' => $this->unit, 'name' => $this->name, 'description' => $this->description, 'price' => $this->price, 'is_active' => $this->is_active, 'is_with_serial_number' => $this->is_with_serial_number]);
+
+                // Otomatis sinkronkan tipe baru ke user types umum (BAMAT dan SIE FASMAT)
+                foreach (['BAMAT', 'SIE FASMAT'] as $utName) {
+                    $ut = UserType::where('name', $utName)->first();
+                    if ($ut) {
+                        $current = $ut->types ?? [];
+                        if (!in_array($type->id, $current)) {
+                            $current[] = $type->id;
+                            $ut->update(['types' => $current]);
+                        }
+                    }
+                }
+
+                // Sinkronkan ke seksi / baur terkait berdasarkan kategori nama
+                $upperName = strtoupper($type->name);
+                $targetUserTypes = [];
+                if (str_contains($upperName, 'TNKB') || str_contains($upperName, 'NRKB') || str_contains($upperName, 'TCKB')) {
+                    $targetUserTypes = array_merge($targetUserTypes, ['BAURTNKB', 'SIE TNKB']);
+                }
+                if (str_contains($upperName, 'BPKB') || str_contains($upperName, 'MUTASI')) {
+                    $targetUserTypes = array_merge($targetUserTypes, ['BAURBPKB', 'SIE BPKB']);
+                }
+                if (str_contains($upperName, 'STNK')) {
+                    $targetUserTypes = array_merge($targetUserTypes, ['BAURSTNK', 'SIE STNK']);
+                }
+                if (str_contains($upperName, 'SIM')) {
+                    $targetUserTypes = array_merge($targetUserTypes, ['BAURSIMCARD', 'SIE SIM']);
+                }
+                if (str_contains($upperName, 'STCK')) {
+                    $targetUserTypes = array_merge($targetUserTypes, ['BAURSTCK']);
+                }
+                foreach (array_unique($targetUserTypes) as $utName) {
+                    $ut = UserType::where('name', $utName)->first();
+                    if ($ut) {
+                        $current = $ut->types ?? [];
+                        if (!in_array($type->id, $current)) {
+                            $current[] = $type->id;
+                            $ut->update(['types' => $current]);
+                        }
+                    }
+                }
+
+                session()->flash('success', 'Tipe berhasil ditambahkan dan disinkronkan ke hak akses pengguna.');
             }
             $this->closeModal();
         } catch (\Exception $e) {
@@ -141,7 +184,13 @@ class AdminMasterTypeIndex extends Component
     public function delete()
     {
         try {
-            Type::findOrFail($this->typeId)->delete();
+            $type = Type::findOrFail($this->typeId);
+            UserType::all()->each(function ($ut) use ($type) {
+                if ($ut->types && in_array($type->id, $ut->types)) {
+                    $ut->update(['types' => array_values(array_diff($ut->types, [$type->id]))]);
+                }
+            });
+            $type->delete();
             session()->flash('success', 'Tipe berhasil dihapus.');
             $this->closeModal();
         } catch (\Exception $e) {

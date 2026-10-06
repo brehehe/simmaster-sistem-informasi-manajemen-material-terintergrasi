@@ -22,7 +22,7 @@ class UserTypeSeeder extends Seeder
         // Define user types with their corresponding type IDs
         $datas = [
             'BAMAT' => [$allTypeIds, 1], // BAMAT has access to all types
-            'BAURTNKB' => [$getTypeIds(['TNKB REG', 'TNKB LISTRIK', 'NRKB NOPIL', 'NRKB NOPIL LISTRIK']),2],
+            'BAURTNKB' => [Type::where('name', 'like', '%TNKB%')->orWhere('name', 'like', '%NRKB%')->orWhere('name', 'like', '%TCKB%')->pluck('id')->toArray(), 2],
             'BAURBPKB' => [$getTypeIds(['E-BPKB', 'BPKB', 'MUTASI']),2],
             'BAURSTNK' => [$getTypeIds(['STNK']),2],
             'BAURSTCK' => [$getTypeIds(['STCK']),2],
