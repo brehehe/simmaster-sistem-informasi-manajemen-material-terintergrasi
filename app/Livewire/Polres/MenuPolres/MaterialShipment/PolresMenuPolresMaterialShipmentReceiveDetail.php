@@ -2,13 +2,22 @@
 
 namespace App\Livewire\Polres\MenuPolres\MaterialShipment;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
 use Livewire\Component;
 
 class PolresMenuPolresMaterialShipmentReceiveDetail extends Component
 {
+    use AuthorizesPolresData;
+
     public string $shipmentId;
+
     public ?MaterialShipment $shipment = null;
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function mount($id)
     {
@@ -24,16 +33,22 @@ class PolresMenuPolresMaterialShipmentReceiveDetail extends Component
             'materialShipmentDetails.rack',
             'materialShipmentDetails.stockDetail.service',
             'materialShipmentDetails.stockDetail.serviceDetail',
-        ])
-            ->where('id', $id)
-            ->where('receiver_police_station_id', $user->police_station_id)
-            ->firstOrFail();
+        ])->where('id', $id);
+
+        if (! $user->hasRole('Admin')) {
+            $query->where('receiver_police_station_id', $user->police_station_id);
+        }
+
+        $this->shipment = $query->firstOrFail();
+        $this->authorizePoliceStation($this->shipment->receiver_police_station_id);
     }
 
     public function confirmReceipt()
     {
+        $this->authorizePoliceStation($this->shipment->receiver_police_station_id);
         if ($this->shipment->status !== 'shipped') {
             session()->flash('error', 'Hanya pengiriman dengan status "Terkirim" yang bisa dikonfirmasi.');
+
             return;
         }
 
@@ -51,7 +66,7 @@ class PolresMenuPolresMaterialShipmentReceiveDetail extends Component
 
             return $this->redirect(route('menu-polres.material-shipment.receive'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Error: ' . $e->getMessage());
+            session()->flash('error', 'Error: '.$e->getMessage());
         }
     }
 

@@ -2,16 +2,16 @@
 
 namespace App\Livewire\Admin\MenuPolres\MaterialUsageDetail;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use App\Models\Type\Type;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail;
-use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
+use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class AdminMenuPolresMaterialUsageDetailIndex extends Component
 {
@@ -36,7 +36,13 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public $usageType = '';
 
     public bool $showDeleteModal = false;
+
     public ?string $materialUsageId = null;
+
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole(['Admin', 'Polres']), 403);
+    }
 
     public function openDeleteModal($id = null)
     {
@@ -59,6 +65,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
                 $materialUsage = MaterialUsage::with('materialUsageDetails')->find($this->materialUsageId);
                 if ($materialUsage) {
+                    $this->authorize('delete', $materialUsage);
                     // Restore stock & delete history
                     $stockService->deleteMaterialUsage($materialUsage);
 
@@ -73,7 +80,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 }
             } catch (\Exception $e) {
                 DB::rollBack();
-                session()->flash('error', 'Terjadi kesalahan saat menghapus: ' . $e->getMessage());
+                session()->flash('error', 'Terjadi kesalahan saat menghapus: '.$e->getMessage());
             }
         }
         $this->closeModal();
@@ -82,31 +89,54 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public function mount()
     {
         // Default: tampilkan hari ini
-        if (!$this->dateFrom && !$this->dateTo) {
+        if (! $this->dateFrom && ! $this->dateTo) {
             $this->dateFrom = now()->format('Y-m-d');
-            $this->dateTo   = now()->format('Y-m-d');
+            $this->dateTo = now()->format('Y-m-d');
         }
     }
 
     public function setDatePreset(string $preset)
     {
-        match($preset) {
-            'today'      => [$this->dateFrom, $this->dateTo] = [now()->format('Y-m-d'), now()->format('Y-m-d')],
-            'yesterday'  => [$this->dateFrom, $this->dateTo] = [now()->subDay()->format('Y-m-d'), now()->subDay()->format('Y-m-d')],
-            'this_week'  => [$this->dateFrom, $this->dateTo] = [now()->startOfWeek()->format('Y-m-d'), now()->endOfWeek()->format('Y-m-d')],
+        match ($preset) {
+            'today' => [$this->dateFrom, $this->dateTo] = [now()->format('Y-m-d'), now()->format('Y-m-d')],
+            'yesterday' => [$this->dateFrom, $this->dateTo] = [now()->subDay()->format('Y-m-d'), now()->subDay()->format('Y-m-d')],
+            'this_week' => [$this->dateFrom, $this->dateTo] = [now()->startOfWeek()->format('Y-m-d'), now()->endOfWeek()->format('Y-m-d')],
             'this_month' => [$this->dateFrom, $this->dateTo] = [now()->startOfMonth()->format('Y-m-d'), now()->endOfMonth()->format('Y-m-d')],
-            'all'        => [$this->dateFrom, $this->dateTo] = ['', ''],
-            default      => null,
+            'all' => [$this->dateFrom, $this->dateTo] = ['', ''],
+            default => null,
         };
         $this->resetPage();
     }
 
-    public function updatedPoliceStationId() { $this->resetPage(); }
-    public function updatedTypeId() { $this->resetPage(); }
-    public function updatedTypeDetailId() { $this->resetPage(); }
-    public function updatedDateFrom() { $this->resetPage(); }
-    public function updatedDateTo() { $this->resetPage(); }
-    public function updatedUsageType() { $this->resetPage(); }
+    public function updatedPoliceStationId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTypeDetailId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedUsageType()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
@@ -116,13 +146,13 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $scopedPoliceStationId = null;
         if ($user->hasRole('Admin') && $this->policeStationId) {
             $scopedPoliceStationId = $this->policeStationId;
-        } elseif (!$user->hasRole('Admin')) {
+        } elseif (! $user->hasRole('Admin')) {
             $scopedPoliceStationId = $user->police_station_id;
         }
 
         // Type query
         $typeQuery = Type::query();
-        if ($user->userType && !empty($user->userType->types)) {
+        if ($user->userType && ! empty($user->userType->types)) {
             $typeQuery->whereIn('id', $user->userType->types);
         }
         if ($this->typeId) {
@@ -139,7 +169,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         }
 
         $allTypes = Type::query();
-        if ($user->userType && !empty($user->userType->types)) {
+        if ($user->userType && ! empty($user->userType->types)) {
             $allTypes->whereIn('id', $user->userType->types);
         }
         $allTypes = $allTypes->orderBy('name')->get();
@@ -149,7 +179,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
             $tdQuery = TypeDetail::query();
-            if ($user->userType && !empty($user->userType->types)) {
+            if ($user->userType && ! empty($user->userType->types)) {
                 $tdQuery->whereIn('type_id', $user->userType->types);
             }
             $typeDetails = $tdQuery->orderBy('name')->get();
@@ -157,7 +187,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
 
         // Count totals for summary header
         $totalUsageCount = 0;
-        $totalQty        = 0;
+        $totalQty = 0;
 
         foreach ($types as $type) {
             $detailQuery = MaterialUsageDetail::query()
@@ -172,8 +202,8 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                         $q->whereDate('date', '<=', $this->dateTo);
                     }
                 })
-                ->when($this->typeDetailId, fn($q) => $q->where('type_detail_id', $this->typeDetailId))
-                ->when($this->usageType, fn($q) => $q->where('usage_type', $this->usageType))
+                ->when($this->typeDetailId, fn ($q) => $q->where('type_detail_id', $this->typeDetailId))
+                ->when($this->usageType, fn ($q) => $q->where('usage_type', $this->usageType))
                 ->with([
                     'typeDetail',
                     'materialUsageDetailItems.service',
@@ -183,9 +213,11 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
                 ->where('type_id', $type->id)
                 ->orderBy('created_at', 'desc');
 
-            $details = $detailQuery->paginate(10, ['*'], 'page_' . $type->id);
+            $details = $detailQuery->paginate(10, ['*'], 'page_'.$type->id);
 
-            if ($details->isEmpty()) continue;
+            if ($details->isEmpty()) {
+                continue;
+            }
 
             $services = \App\Models\Service\Service::with(['details'])
                 ->where('type_id', $type->id)->get();
@@ -193,25 +225,25 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
             $hasTypeDetails = $type->typeDetails()->exists();
 
             $groupTotalQty = $details->sum('quantity');
-            $totalQty      += $groupTotalQty;
+            $totalQty += $groupTotalQty;
             $totalUsageCount += $details->total();
 
             $typeGroups[] = [
-                'type'           => $type,
-                'details'        => $details,
-                'services'       => $services,
+                'type' => $type,
+                'details' => $details,
+                'services' => $services,
                 'hasTypeDetails' => $hasTypeDetails,
-                'groupTotalQty'  => $groupTotalQty,
+                'groupTotalQty' => $groupTotalQty,
             ];
         }
 
         return view('livewire.admin.menu-polres.material-usage-detail.admin-menu-polres-material-usage-detail-index', [
-            'typeGroups'      => $typeGroups,
-            'policeStations'  => $policeStations,
-            'allTypes'        => $allTypes,
-            'typeDetails'     => $typeDetails,
+            'typeGroups' => $typeGroups,
+            'policeStations' => $policeStations,
+            'allTypes' => $allTypes,
+            'typeDetails' => $typeDetails,
             'totalUsageCount' => $totalUsageCount,
-            'totalQty'        => $totalQty,
+            'totalQty' => $totalQty,
         ])->layout('components.layouts.main.app');
     }
 }

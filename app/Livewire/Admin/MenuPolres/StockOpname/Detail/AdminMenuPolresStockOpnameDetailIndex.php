@@ -2,13 +2,22 @@
 
 namespace App\Livewire\Admin\MenuPolres\StockOpname\Detail;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\StockOpname\StockOpname;
 use Livewire\Component;
 
 class AdminMenuPolresStockOpnameDetailIndex extends Component
 {
+    use AuthorizesPolresData;
+
     public StockOpname $opname;
+
     public $showApproveModal = false;
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function mount($id)
     {
@@ -20,12 +29,15 @@ class AdminMenuPolresStockOpnameDetailIndex extends Component
             'checkedByUser',
             'approvedByUser',
         ])->findOrFail($id);
+        $this->authorizePoliceStation($this->opname->police_station_id);
     }
 
     public function markAsCompleted()
     {
+        $this->authorizePoliceStation($this->opname->police_station_id);
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa di-complete.');
+
             return;
         }
 
@@ -37,8 +49,10 @@ class AdminMenuPolresStockOpnameDetailIndex extends Component
 
     public function openApproveModal()
     {
+        $this->authorizePoliceStation($this->opname->police_station_id);
         if ($this->opname->status !== 'completed') {
             session()->flash('error', 'Hanya stock opname dengan status completed yang bisa di-approve.');
+
             return;
         }
 
@@ -52,9 +66,11 @@ class AdminMenuPolresStockOpnameDetailIndex extends Component
 
     public function approve()
     {
+        $this->authorizePoliceStation($this->opname->police_station_id);
         if ($this->opname->status !== 'completed') {
             session()->flash('error', 'Hanya stock opname dengan status completed yang bisa di-approve.');
             $this->closeModal();
+
             return;
         }
 
@@ -65,7 +81,7 @@ class AdminMenuPolresStockOpnameDetailIndex extends Component
             session()->flash('success', 'Stock opname berhasil di-approve dan stock telah disesuaikan.');
             $this->closeModal();
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal approve stock opname: ' . $e->getMessage());
+            session()->flash('error', 'Gagal approve stock opname: '.$e->getMessage());
             $this->closeModal();
         }
     }

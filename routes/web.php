@@ -292,8 +292,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polres/mutation-stock', 'MutationStock\\AdminMenuPolresMutationStockIndex')
             ->name('menu-polres.mutation-stock');
 
-        Route::get('menu-polres/mutation-stock/edit/{id}', 'MutationStock\\Detail\\AdminMenuPolresMutationStockDetailIndex')
+        Route::get('menu-polres/mutation-stock/{id}/edit', 'MutationStock\\Detail\\AdminMenuPolresMutationStockDetailIndex')
             ->name('menu-polres.mutation-stock.edit');
+        Route::get('menu-polres/mutation-stock/edit/{id}', 'MutationStock\\Detail\\AdminMenuPolresMutationStockDetailIndex');
 
         Route::get('menu-polres/mutation-stock/create', 'MutationStock\\Detail\\AdminMenuPolresMutationStockDetailIndex')
             ->name('menu-polres.mutation-stock.create');
@@ -301,8 +302,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('menu-polres/last-stock', 'LastStock\\AdminMenuPolresLastStockIndex')
             ->name('menu-polres.last-stock');
 
-        Route::get('menu-polres/last-stock/edit/{id}', 'LastStock\\Detail\\AdminMenuPolresLastStockDetailIndex')
+        Route::get('menu-polres/last-stock/{id}/edit', 'LastStock\\Detail\\AdminMenuPolresLastStockDetailIndex')
             ->name('menu-polres.last-stock.edit');
+        Route::get('menu-polres/last-stock/edit/{id}', 'LastStock\\Detail\\AdminMenuPolresLastStockDetailIndex');
 
         Route::get('menu-polres/last-stock/create', 'LastStock\\Detail\\AdminMenuPolresLastStockDetailIndex')
             ->name('menu-polres.last-stock.create');
@@ -321,8 +323,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polres.rack-assignment');
         Route::get('menu-polres/rack-assignment/create', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
             ->name('menu-polres.rack-assignment.create');
-        Route::get('menu-polres/rack-assignment/edit/{id}', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
+        Route::get('menu-polres/rack-assignment/{id}/edit', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex')
             ->name('menu-polres.rack-assignment.edit');
+        Route::get('menu-polres/rack-assignment/edit/{id}', 'RackAssignment\\Detail\\AdminMenuPolresRackAssignmentDetailIndex');
 
         // Material Usage
         Route::get('menu-polres/material-usage', 'MaterialUsage\\AdminMenuPolresMaterialUsageIndex')
@@ -340,24 +343,27 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
             ->name('menu-polres.material-damage');
         Route::get('menu-polres/material-damage/create', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
             ->name('menu-polres.material-damage.create');
-        Route::get('menu-polres/material-damage/edit/{id}', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
+        Route::get('menu-polres/material-damage/{id}/edit', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex')
             ->name('menu-polres.material-damage.edit');
+        Route::get('menu-polres/material-damage/edit/{id}', 'MaterialDamage\\Detail\\AdminMenuPolresMaterialDamageDetailIndex');
 
         // Material Subsidy (Subsidi Silang)
         Route::get('menu-polres/material-subsidy', 'MaterialSubsidy\\AdminMenuPolresMaterialSubsidyIndex')
             ->name('menu-polres.material-subsidy');
         Route::get('menu-polres/material-subsidy/create', 'MaterialSubsidy\\Detail\\AdminMenuPolresMaterialSubsidyDetailIndex')
             ->name('menu-polres.material-subsidy.create');
-        Route::get('menu-polres/material-subsidy/edit/{id}', 'MaterialSubsidy\\Detail\\AdminMenuPolresMaterialSubsidyDetailIndex')
+        Route::get('menu-polres/material-subsidy/{id}/edit', 'MaterialSubsidy\\Detail\\AdminMenuPolresMaterialSubsidyDetailIndex')
             ->name('menu-polres.material-subsidy.edit');
+        Route::get('menu-polres/material-subsidy/edit/{id}', 'MaterialSubsidy\\Detail\\AdminMenuPolresMaterialSubsidyDetailIndex');
 
         // Stock Opname
         Route::get('menu-polres/stock-opname', 'StockOpname\\AdminMenuPolresStockOpnameIndex')
             ->name('menu-polres.stock-opname');
         Route::get('menu-polres/stock-opname/create', 'StockOpname\\Create\\AdminMenuPolresStockOpnameCreateIndex')
             ->name('menu-polres.stock-opname.create');
-        Route::get('menu-polres/stock-opname/edit/{id}', 'StockOpname\\Edit\\AdminMenuPolresStockOpnameEditIndex')
+        Route::get('menu-polres/stock-opname/{id}/edit', 'StockOpname\\Edit\\AdminMenuPolresStockOpnameEditIndex')
             ->name('menu-polres.stock-opname.edit');
+        Route::get('menu-polres/stock-opname/edit/{id}', 'StockOpname\\Edit\\AdminMenuPolresStockOpnameEditIndex');
         Route::get('menu-polres/stock-opname/detail/{id}', 'StockOpname\\Detail\\AdminMenuPolresStockOpnameDetailIndex')
             ->name('menu-polres.stock-opname.detail');
 

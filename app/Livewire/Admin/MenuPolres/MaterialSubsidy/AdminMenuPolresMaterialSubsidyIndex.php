@@ -2,15 +2,22 @@
 
 namespace App\Livewire\Admin\MenuPolres\MaterialSubsidy;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
 use App\Models\Police\PoliceStation;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\Attributes\Url;
 
 class AdminMenuPolresMaterialSubsidyIndex extends Component
 {
+    use AuthorizesPolresData;
     use WithPagination;
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public string $search = '';
 
@@ -29,10 +36,13 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
     public int $perPage = 10;
 
     public bool $showDeleteModal = false;
+
     public bool $showDetailModal = false;
+
     public bool $showConfirmModal = false;
 
     public ?string $subsidyId = null;
+
     public $selectedSubsidy = null;
 
     public function toJSON()
@@ -69,7 +79,7 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
         ])->where('is_active', true);
 
         // Role-based filtering
-        if ($user->hasRole('Polres') || !empty($user->police_station_id)) {
+        if ($user->hasRole('Polres') || ! empty($user->police_station_id)) {
             $query->where('police_station_id', $user->police_station_id);
         } elseif ($user->hasRole('Admin') && $this->policeStationId) {
             $query->where('police_station_id', $this->policeStationId);
@@ -77,9 +87,9 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('recipient_name', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('notes', 'ilike', '%' . $this->search . '%');
+                $q->where('code', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('recipient_name', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('notes', 'ilike', '%'.$this->search.'%');
             });
         }
 
@@ -104,18 +114,21 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
 
         // Summary counts
         $totalSubsidies = (clone $query)->count();
-        $totalItems = (clone $query)->get()->sum(fn($s) => $s->materialSubsidyDetails->sum('quantity'));
+        $totalItems = (clone $query)->get()->sum(fn ($s) => $s->materialSubsidyDetails->sum('quantity'));
 
         return view('livewire.admin.menu-polres.material-subsidy.admin-menu-polres-material-subsidy-index', [
-            'subsidies'      => $subsidies,
+            'subsidies' => $subsidies,
             'policeStations' => $policeStations,
             'totalSubsidies' => $totalSubsidies,
-            'totalItems'     => $totalItems,
+            'totalItems' => $totalItems,
         ])->layout('components.layouts.main.app');
     }
 
     public function viewDetail(string $id): void
     {
+        $subsidy = MaterialSubsidy::findOrFail($id);
+        $this->authorizePoliceStation($subsidy->police_station_id);
+
         $this->subsidyId = $id;
         $this->selectedSubsidy = MaterialSubsidy::with([
             'regionalPolice',
@@ -136,6 +149,9 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
 
     public function openConfirmModal(string $id): void
     {
+        $subsidy = MaterialSubsidy::findOrFail($id);
+        $this->authorizePoliceStation($subsidy->police_station_id);
+
         $this->subsidyId = $id;
         $this->selectedSubsidy = MaterialSubsidy::with([
             'regionalPolice',
@@ -155,23 +171,25 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
 
     public function confirmSubsidy(): void
     {
-        if (!$this->subsidyId) {
+        if (! $this->subsidyId) {
             return;
         }
 
         try {
             $subsidy = MaterialSubsidy::find($this->subsidyId);
-            if (!$subsidy) {
+            if (! $subsidy) {
                 session()->flash('error', 'Data subsidi tidak ditemukan.');
                 $this->closeConfirmModal();
+
                 return;
             }
 
+            $this->authorizePoliceStation($subsidy->police_station_id);
             $subsidy->confirm(auth()->user());
 
             session()->flash('success', 'Subsidi silang berhasil dikonfirmasi! Stok Polres telah berkurang secara otomatis.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal mengonfirmasi subsidi: ' . $e->getMessage());
+            session()->flash('error', 'Gagal mengonfirmasi subsidi: '.$e->getMessage());
         }
 
         $this->closeConfirmModal();
@@ -179,6 +197,9 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
 
     public function openDeleteModal(string $id): void
     {
+        $subsidy = MaterialSubsidy::findOrFail($id);
+        $this->authorizePoliceStation($subsidy->police_station_id);
+
         $this->subsidyId = $id;
         $this->showDeleteModal = true;
     }
@@ -191,12 +212,13 @@ class AdminMenuPolresMaterialSubsidyIndex extends Component
 
     public function deleteSubsidy(): void
     {
-        if (!$this->subsidyId) {
+        if (! $this->subsidyId) {
             return;
         }
 
         $subsidy = MaterialSubsidy::find($this->subsidyId);
         if ($subsidy) {
+            $this->authorizePoliceStation($subsidy->police_station_id);
             if ($subsidy->status === 'confirmed') {
                 session()->flash('error', 'Subsidi yang sudah dikonfirmasi tidak dapat dihapus.');
             } else {

@@ -78,13 +78,23 @@
                     @enderror
                 </div>
 
-                <!-- Sender (Read-only, always current police station) -->
+                <!-- Sender -->
                 <div class="md:col-span-2 p-4 rounded-xl bg-blue-50 border border-blue-200">
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Pengirim</h3>
-                    <input type="text"
-                        value="{{ auth()->user()->policeStation->name ?? '' }}"
-                        readonly
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-medium cursor-not-allowed">
+                    @if (auth()->user()->hasRole('Admin'))
+                        <select wire:model.live="sender_police_station_id"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                            <option value="">-- Pilih Polres Pengirim --</option>
+                            @foreach ($policeStations as $station)
+                                <option value="{{ $station->id }}">{{ $station->name }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <input type="text"
+                            value="{{ auth()->user()->policeStation->name ?? '' }}"
+                            readonly
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-medium cursor-not-allowed">
+                    @endif
                 </div>
 
                 <!-- RECEIVER SECTION -->

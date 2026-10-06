@@ -5,16 +5,25 @@ namespace App\Services;
 use App\Models\MenuPolda\MaterialUsage\MaterialUsage;
 use App\Models\Police\PoliceStation;
 use App\Models\Service\Service;
+use App\Models\Service\ServiceDetail;
+use App\Models\Stock\Stock;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;
+use App\Models\Type\TypeDetail;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DailyMaterialUsageService
 {
-    public function catalog(?array $allowedTypes = null, bool $includeSupporting = false): array
+    public function catalog(?array $allowedTypes = null, bool $includeSupporting = false, ?MaterialUsage $editing = null): array
     {
+        // Keep existing TNKB operator assignments valid after a material correction.
+        if ($allowedTypes) {
+            $legacyNames = Type::whereIn('id', $allowedTypes)->pluck('name');
+            $targetNames = $legacyNames->map(fn ($name) => StockAdjustmentService::MATERIAL_CORRECTIONS[$name] ?? null)->filter();
+            $allowedTypes = array_values(array_unique(array_merge($allowedTypes, Type::whereIn('name', $targetNames)->pluck('id')->all())));
+        }
         $types = Type::with(['typeDetails' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
             ->where('is_active', true)->when($allowedTypes, fn ($q) => $q->whereIn('id', $allowedTypes))->orderBy('name')->get();
         $services = Service::with(['details' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
@@ -47,6 +56,40 @@ class DailyMaterialUsageService
             }
         }
 
+        if ($editing) {
+            $editing->loadMissing('materialUsageDetails.materialUsageDetailItems');
+            $items = $editing->materialUsageDetails->flatMap->materialUsageDetailItems;
+            $legacyTypes = Type::withTrashed()->whereIn('id', $items->pluck('type_id')->filter()->unique())->get()->keyBy('id');
+            $legacyTypeDetails = TypeDetail::withTrashed()->whereIn('id', $items->pluck('type_detail_id')->filter()->unique())->get()->keyBy('id');
+            $legacyServices = Service::withTrashed()->whereIn('id', $items->pluck('service_id')->filter()->unique())->get()->keyBy('id');
+            $legacyServiceDetails = ServiceDetail::withTrashed()->whereIn('id', $items->pluck('service_detail_id')->filter()->unique())->get()->keyBy('id');
+
+            foreach ($items as $item) {
+                $row = [
+                    'type_id' => $item->type_id,
+                    'type_detail_id' => $item->type_detail_id,
+                    'service_id' => $item->service_id,
+                    'service_detail_id' => $item->service_detail_id,
+                ];
+                $key = self::key($row);
+                if (isset($rows[$key])) {
+                    continue;
+                }
+
+                $type = $legacyTypes->get($item->type_id);
+                $parts = [
+                    $type?->name ?? 'Material lama',
+                    $legacyServices->get($item->service_id)?->name ?? $legacyTypeDetails->get($item->type_detail_id)?->name,
+                    $legacyServiceDetails->get($item->service_detail_id)?->name,
+                ];
+                $rows[$key] = $row + [
+                    'label' => collect($parts)->filter()->implode(' / '),
+                    'unit' => $type?->unit ?? 'Unit',
+                    'legacy' => true,
+                ];
+            }
+        }
+
         return $rows;
     }
 
@@ -58,7 +101,11 @@ class DailyMaterialUsageService
     public function save(User $user, string $stationId, string $date, array $quantities, string $description = '', ?string $id = null): MaterialUsage
     {
         abort_unless($user->hasRole('Admin') || ($user->hasRole('Polres') && $user->police_station_id === $stationId), 403);
-        $catalog = $this->catalog($user->hasRole('Admin') ? null : $user->userType?->types);
+        $editing = $id ? MaterialUsage::with('materialUsageDetails.materialUsageDetailItems')->findOrFail($id) : null;
+        if ($editing) {
+            abort_unless($user->can('update', $editing) && $editing->police_station_id === $stationId, 403);
+        }
+        $catalog = $this->catalog($user->hasRole('Admin') ? null : $user->userType?->types, false, $editing);
         $rules = ['date' => 'required|date_format:Y-m-d|before_or_equal:'.now('Asia/Jakarta')->toDateString(), 'quantities' => 'required|array'];
         foreach ($catalog as $key => $row) {
             $rules['quantities.'.$key] = 'required|integer|min:0|max:999999999';
@@ -74,13 +121,6 @@ class DailyMaterialUsageService
             $usage = $id ? MaterialUsage::whereKey($id)->lockForUpdate()->firstOrFail() : new MaterialUsage;
             if ($id) {
                 abort_unless($user->can('update', $usage) && $usage->police_station_id === $stationId, 403);
-                foreach ($usage->materialUsageDetails as $oldDetail) {
-                    foreach ($oldDetail->materialUsageDetailItems as $oldItem) {
-                        if ($oldItem->service_id !== null && ! isset($catalog[self::key($oldItem->toArray())])) {
-                            throw ValidationException::withMessages(['quantities' => 'Laporan memuat material di luar daftar aktif/akses Anda. Hubungi admin untuk koreksi.']);
-                        }
-                    }
-                }
                 app(StockService::class)->deleteMaterialUsage($usage);
                 foreach ($usage->materialUsageDetails as $detail) {
                     $detail->materialUsageDetailItems()->delete();
@@ -105,8 +145,10 @@ class DailyMaterialUsageService
                 'is_active' => true, 'reporting_complete' => true, 'reporting_keys' => array_keys($catalog)])->save();
             foreach ($catalog as $key => $row) {
                 $remaining = (int) $quantities[$key];
-                $stocks = $remaining === 0 ? collect() : StockDetail::where('police_station_id', $stationId)->whereNull('regional_police_id')
-                    ->where('type_id', $row['type_id'])->where('is_active', true)->where('quantity', '>', 0)
+                $stocks = $remaining === 0 ? collect() : StockDetail::where('police_station_id', $stationId)
+                    ->whereNull('regional_police_id')
+                    ->where('type_id', $row['type_id'])
+                    ->where('is_active', true)
                     ->where(function ($q) use ($row) {
                         $q->where('type_detail_id', $row['type_detail_id']);
                         if ($row['type_detail_id']) {
@@ -125,10 +167,12 @@ class DailyMaterialUsageService
                             $q->orWhereNull('service_detail_id');
                         }
                     })
-                    ->orderBy('created_at')->orderBy('id')->lockForUpdate()->get();
-                if ($remaining > $stocks->sum('quantity')) {
-                    throw ValidationException::withMessages(['quantities.'.$key => 'Stok tidak mencukupi untuk '.$row['label'].'.']);
-                }
+                    ->orderByDesc('quantity')
+                    ->orderBy('created_at')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
                 $allocations = [];
                 if ($remaining === 0) {
                     $allocations[] = [null, 0];
@@ -137,9 +181,19 @@ class DailyMaterialUsageService
                     if ($remaining === 0) {
                         break;
                     }
-                    $take = min($remaining, (int) $stock->quantity);
+                    $take = min($remaining, max(0, (int) $stock->quantity));
+                    if ($take === 0) {
+                        continue;
+                    }
                     $allocations[] = [$stock, $take];
                     $remaining -= $take;
+                }
+                if ($remaining > 0) {
+                    $debtor = $stocks->first(fn ($stock) => $stock->type_detail_id === $row['type_detail_id']
+                        && $stock->service_id === $row['service_id']
+                        && $stock->service_detail_id === $row['service_detail_id']
+                    ) ?? $this->debtStock($stationId, $row);
+                    $allocations[] = [$debtor, $remaining];
                 }
                 foreach ($allocations as [$stock, $quantity]) {
                     $data = ['type_id' => $row['type_id'], 'type_detail_id' => $row['type_detail_id'],
@@ -149,14 +203,34 @@ class DailyMaterialUsageService
                     $detail = $usage->materialUsageDetails()->create($data);
                     $detail->materialUsageDetailItems()->create($data + ['material_usage_id' => $usage->id,
                         'service_id' => $row['service_id'], 'service_detail_id' => $row['service_detail_id']]);
-                    // Deduct immediately so another service cannot reuse the same batch capacity.
                     $single = clone $usage;
                     $single->setRelation('materialUsageDetails', collect([$detail]));
-                    app(StockService::class)->processMaterialUsage($single);
+                    app(StockService::class)->processMaterialUsage($single, allowNegative: true);
                 }
             }
 
             return $usage->refresh();
         });
+    }
+
+    private function debtStock(string $stationId, array $row): StockDetail
+    {
+        $attributes = [
+            'type_id' => $row['type_id'],
+            'type_detail_id' => $row['type_detail_id'],
+            'service_id' => $row['service_id'],
+            'service_detail_id' => $row['service_detail_id'],
+            'regional_police_id' => null,
+            'police_station_id' => $stationId,
+        ];
+        $stock = Stock::firstOrCreate($attributes, ['quantity' => 0, 'is_active' => true]);
+        $stock->update(['is_active' => true]);
+
+        return StockDetail::create($attributes + [
+            'stock_id' => $stock->id,
+            'quantity' => 0,
+            'description' => 'Saldo otomatis dari penggunaan material',
+            'is_active' => true,
+        ]);
     }
 }

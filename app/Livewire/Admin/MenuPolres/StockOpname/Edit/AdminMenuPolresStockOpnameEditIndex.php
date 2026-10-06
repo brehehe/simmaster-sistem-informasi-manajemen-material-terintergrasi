@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\MenuPolres\StockOpname\Edit;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\StockOpname\StockOpname;
 use App\Models\StockOpname\StockOpnameDetail;
 use DB;
@@ -9,9 +10,14 @@ use Livewire\Component;
 
 class AdminMenuPolresStockOpnameEditIndex extends Component
 {
+    use AuthorizesPolresData;
+
     public StockOpname $opname;
+
     public $opname_date;
+
     public $notes;
+
     public $stockDetails = [];
 
     protected $rules = [
@@ -20,16 +26,23 @@ class AdminMenuPolresStockOpnameEditIndex extends Component
         'stockDetails.*.notes' => 'nullable|string',
     ];
 
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
+
     public function mount($id)
     {
         $this->opname = StockOpname::with([
             'stockOpnameDetails',
             'policeStation',
         ])->findOrFail($id);
+        $this->authorizePoliceStation($this->opname->police_station_id);
 
         // Check if opname is draft
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa diedit.');
+
             return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
         }
 
@@ -75,8 +88,10 @@ class AdminMenuPolresStockOpnameEditIndex extends Component
 
         // Re-check status
         $this->opname->refresh();
+        $this->authorizePoliceStation($this->opname->police_station_id);
         if ($this->opname->status !== 'draft') {
             session()->flash('error', 'Hanya stock opname dengan status draft yang bisa diedit.');
+
             return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
         }
 
@@ -89,9 +104,18 @@ class AdminMenuPolresStockOpnameEditIndex extends Component
 
             // Update stock opname details
             foreach ($this->stockDetails as $detail) {
-                StockOpnameDetail::where('id', $detail['id'])->update([
-                    'physical_quantity' => $detail['physical_quantity'],
-                    'difference' => $detail['difference'],
+                $storedDetail = StockOpnameDetail::where('id', $detail['id'])
+                    ->where('stock_opname_id', $this->opname->id)
+                    ->first();
+
+                if (! $storedDetail) {
+                    throw new \RuntimeException('Rincian stock opname tidak valid.');
+                }
+
+                $physicalQuantity = (float) $detail['physical_quantity'];
+                $storedDetail->update([
+                    'physical_quantity' => $physicalQuantity,
+                    'difference' => $physicalQuantity - (float) $storedDetail->system_quantity,
                     'notes' => $detail['notes'],
                 ]);
             }

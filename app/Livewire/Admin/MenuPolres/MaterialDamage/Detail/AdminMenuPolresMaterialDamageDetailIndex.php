@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Admin\MenuPolres\MaterialDamage\Detail;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
 use App\Models\Police\PoliceStation;
-use App\Models\Rack\Rack;
+use App\Models\Service\Service;
 use App\Models\Stock\StockDetail;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
-use App\Models\Service\Service;
 use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,16 +16,25 @@ use Livewire\Component;
 
 class AdminMenuPolresMaterialDamageDetailIndex extends Component
 {
+    use AuthorizesPolresData;
+
     public ?string $materialDamageId = null;
+
     public bool $isEditMode = false;
 
     // Header fields
     public string $code = '';
+
     public ?string $date = null;
+
     public ?string $policeStationId = null;
+
     public string $status = 'reported';
+
     public string $description = '';
+
     public string $officerName = '';
+
     public string $officerRank = '';
 
     public function toJSON()
@@ -38,6 +47,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
     // UI Flags
     public bool $is_type_detail = false;
+
     public bool $is_with_serial_number = false;
 
     // Details array (batch/flat rows)
@@ -48,14 +58,18 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
     // Dropdown data
     public $typeDetails = [];
+
     public $services = [];
+
     public $policeStations = [];
+
     public $racks = [];
 
     protected StockService $stockService;
 
     public function boot(StockService $stockService)
     {
+        $this->authorizePolresMenu();
         $this->stockService = $stockService;
     }
 
@@ -67,11 +81,11 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
 
         $user = Auth::user();
-        if ($user->hasRole('Polres') || !empty($user->police_station_id)) {
+        if ($user->hasRole('Polres') || ! empty($user->police_station_id)) {
             $this->policeStationId = $user->police_station_id;
         }
         // Pre-fill officer name from user
-        if (!$this->isEditMode) {
+        if (! $this->isEditMode) {
             $this->officerName = $user->name ?? '';
         }
 
@@ -86,11 +100,12 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
     protected function loadTypeData($typeId)
     {
-        if (!$typeId) {
+        if (! $typeId) {
             $this->is_type_detail = false;
             $this->is_with_serial_number = false;
             $this->typeDetails = collect();
             $this->services = collect();
+
             return;
         }
 
@@ -103,7 +118,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             ->where('is_active', true)
             ->where(function ($q) use ($typeId) {
                 $q->where('type_id', $typeId)
-                  ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
+                    ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
             })
             ->orderBy('name')
             ->get();
@@ -127,6 +142,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
     protected function loadMaterialDamage()
     {
         $materialDamage = MaterialDamage::with(['materialDamageDetails.stockDetail'])->findOrFail($this->materialDamageId);
+        $this->authorizePoliceStation($materialDamage->police_station_id);
 
         $this->code = $materialDamage->code;
         $this->date = $materialDamage->date->format('Y-m-d');
@@ -163,6 +179,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                 'number_serial_first' => $detail->number_serial_first ?? '',
                 'number_serial_second' => $detail->number_serial_second ?? '',
                 'quantity' => (float) $detail->quantity,
+                'original_quantity' => (float) $detail->quantity,
                 'available_quantity' => $stockDetail ? $stockDetail->quantity + (float) $detail->quantity : 0,
                 'damage_type' => $detail->damage_type ?? 'damaged',
                 'reason' => $detail->reason ?? '',
@@ -189,6 +206,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             'number_serial_first' => '',
             'number_serial_second' => '',
             'quantity' => 0,
+            'original_quantity' => 0,
             'available_quantity' => 0,
             'damage_type' => 'damaged',
             'reason' => '',
@@ -211,7 +229,9 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
     public function updatedDetails($value, $key)
     {
         $parts = explode('.', $key);
-        if (count($parts) !== 2) return;
+        if (count($parts) !== 2) {
+            return;
+        }
         [$index, $field] = $parts;
 
         if ($field === 'service_id' && $value) {
@@ -244,10 +264,10 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                 $this->details[$index]['item_code'] = $option['item_code'] ?? '';
                 $this->details[$index]['number_serial_first'] = $option['number_serial_first'] ?? '';
                 $this->details[$index]['number_serial_second'] = $option['number_serial_second'] ?? '';
-                if (!empty($option['type_detail_id']) && empty($this->details[$index]['type_detail_id'])) {
+                if (! empty($option['type_detail_id']) && empty($this->details[$index]['type_detail_id'])) {
                     $this->details[$index]['type_detail_id'] = $option['type_detail_id'];
                 }
-                if (!empty($option['service_id']) && empty($this->details[$index]['service_id'])) {
+                if (! empty($option['service_id']) && empty($this->details[$index]['service_id'])) {
                     $this->details[$index]['service_id'] = $option['service_id'];
                 }
             } else {
@@ -258,8 +278,9 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
     public function loadStockOptions($index)
     {
-        if (!$this->typeId || !$this->policeStationId || !isset($this->details[$index])) {
+        if (! $this->typeId || ! $this->policeStationId || ! isset($this->details[$index])) {
             $this->stockOptions[$index] = [];
+
             return;
         }
 
@@ -269,13 +290,18 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             ->where('police_station_id', $this->policeStationId)
             ->where('type_id', $this->typeId)
             ->where('is_active', true)
-            ->where('quantity', '>', 0);
+            ->where(function ($query) use ($detail) {
+                $query->where('quantity', '>', 0);
+                if (! empty($detail['stock_detail_id'])) {
+                    $query->orWhere('id', $detail['stock_detail_id']);
+                }
+            });
 
-        if (!empty($detail['type_detail_id'])) {
+        if (! empty($detail['type_detail_id'])) {
             $query->where('type_detail_id', $detail['type_detail_id']);
         }
 
-        if (!empty($detail['service_id'])) {
+        if (! empty($detail['service_id'])) {
             $query->where('service_id', $detail['service_id']);
             if (empty($detail['service_detail_id'])) {
                 $query->whereNull('service_detail_id');
@@ -286,8 +312,12 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
         $stocks = $query->orderBy('created_at', 'desc')->get();
 
-        $this->stockOptions[$index] = $stocks->map(function ($s) {
+        $this->stockOptions[$index] = $stocks->map(function ($s) use ($detail) {
             $rackName = $s->rack ? $s->rack->name : 'Tanpa Rak';
+            $availableQuantity = (float) $s->quantity;
+            if (($detail['stock_detail_id'] ?? null) === $s->id) {
+                $availableQuantity += (float) ($detail['original_quantity'] ?? 0);
+            }
             $serialPart = '';
             if ($s->number_serial_first && $s->number_serial_second) {
                 $serialPart = "{$s->number_serial_first} s/d {$s->number_serial_second}";
@@ -296,14 +326,14 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
             } elseif ($s->code) {
                 $serialPart = "Kode: {$s->code}";
             } else {
-                $serialPart = "Batch " . substr($s->id, 0, 6);
+                $serialPart = 'Batch '.substr($s->id, 0, 6);
             }
 
-            $label = "{$serialPart} (Stok: " . (int)$s->quantity . " | {$rackName})";
+            $label = "{$serialPart} (Stok: ".(int) $s->quantity." | {$rackName})";
 
             return [
                 'stock_detail_id' => $s->id,
-                'quantity' => (float) $s->quantity,
+                'quantity' => $availableQuantity,
                 'item_code' => $s->code ?? '',
                 'number_serial_first' => $s->number_serial_first ?? '',
                 'number_serial_second' => $s->number_serial_second ?? '',
@@ -358,30 +388,59 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
     public function save()
     {
+        $user = Auth::user();
+        if ($user->hasRole('Polres')) {
+            $this->policeStationId = $user->police_station_id;
+        }
+
+        if ($this->isEditMode) {
+            $existingDamage = MaterialDamage::findOrFail($this->materialDamageId);
+            $this->authorizePoliceStation($existingDamage->police_station_id);
+        }
         $this->validate();
+        $this->authorizePoliceStation($this->policeStationId);
 
         $hasError = false;
         $stockUsedCounts = [];
+        $restoredQuantities = [];
+
+        foreach ($this->details as $detail) {
+            $stockId = $detail['stock_detail_id'] ?? null;
+            if ($stockId) {
+                $restoredQuantities[$stockId] = ($restoredQuantities[$stockId] ?? 0)
+                    + (float) ($detail['original_quantity'] ?? 0);
+            }
+        }
 
         foreach ($this->details as $index => $detail) {
             $stockId = $detail['stock_detail_id'] ?? null;
-            $qty = (float)($detail['quantity'] ?? 0);
-            $avail = (float)($detail['available_quantity'] ?? 0);
+            $qty = (float) ($detail['quantity'] ?? 0);
+            $stockDetail = $stockId ? StockDetail::find($stockId) : null;
+            $avail = $stockDetail
+                ? (float) $stockDetail->quantity + ($restoredQuantities[$stockId] ?? 0)
+                : 0;
 
-            if ($qty <= 0) {
-                $this->addError("details.{$index}.quantity", "Jumlah harus minimal 1.");
+            if (! $stockDetail
+                || $stockDetail->police_station_id !== $this->policeStationId
+                || $stockDetail->type_id !== $this->typeId) {
+                $this->addError("details.{$index}.stock_detail_id", 'Stok harus berasal dari material dan Polres yang dipilih.');
                 $hasError = true;
             }
 
-            if ($avail > 0 && $qty > $avail) {
+            if ($qty <= 0) {
+                $this->addError("details.{$index}.quantity", 'Jumlah harus minimal 1.');
+                $hasError = true;
+            }
+
+            if ($qty > $avail) {
                 $this->addError("details.{$index}.quantity", "Jumlah ({$qty}) melebihi stok tersedia ({$avail}).");
                 $hasError = true;
             }
 
             if ($stockId) {
                 $stockUsedCounts[$stockId] = ($stockUsedCounts[$stockId] ?? 0) + $qty;
-                if ($avail > 0 && $stockUsedCounts[$stockId] > $avail) {
-                    $this->addError("details.{$index}.stock_detail_id", "Total jumlah untuk stok ini melebihi stok yang ada.");
+                if ($stockUsedCounts[$stockId] > $avail) {
+                    $this->addError("details.{$index}.stock_detail_id", 'Total jumlah untuk stok ini melebihi stok yang ada.');
                     $hasError = true;
                 }
             }
@@ -389,6 +448,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
         if ($hasError) {
             session()->flash('error', 'Silakan periksa kembali isian formulir. Ada data yang belum sesuai.');
+
             return;
         }
 
@@ -423,12 +483,12 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
                     $materialDamage->materialDamageDetails()->create([
                         'stock_detail_id' => $stockDetail->id,
                         'type_id' => $this->typeId,
-                        'type_detail_id' => !empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
+                        'type_detail_id' => ! empty($detail['type_detail_id']) ? $detail['type_detail_id'] : null,
                         'rack_id' => $stockDetail->rack_id,
                         'item_code' => $detail['item_code'] ?? ($stockDetail->code ?? ''),
                         'number_serial_first' => $detail['number_serial_first'] ?? ($stockDetail->number_serial_first ?? ''),
                         'number_serial_second' => $detail['number_serial_second'] ?? ($stockDetail->number_serial_second ?? ''),
-                        'quantity' => (float)$detail['quantity'],
+                        'quantity' => (float) $detail['quantity'],
                         'damage_type' => $detail['damage_type'] ?? 'damaged',
                         'reason' => $detail['reason'] ?? '',
                         'description' => $detail['notes'] ?? ($detail['description'] ?? ''),
@@ -444,7 +504,7 @@ class AdminMenuPolresMaterialDamageDetailIndex extends Component
 
             return $this->redirect(route('menu-polres.material-damage'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 

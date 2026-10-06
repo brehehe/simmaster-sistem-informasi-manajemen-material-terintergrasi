@@ -21,7 +21,20 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasRole('Admin') ? '4' : '3' }} gap-4">
+            @if (auth()->user()->hasRole('Admin'))
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Polres</label>
+                    <select wire:model.live="policeStationId"
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                        <option value="">Semua Polres</option>
+                        @foreach ($policeStations as $station)
+                            <option value="{{ $station->id }}">{{ $station->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
             <!-- Filter Status -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>

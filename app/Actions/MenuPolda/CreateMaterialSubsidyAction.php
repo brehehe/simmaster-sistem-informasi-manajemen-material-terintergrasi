@@ -3,7 +3,6 @@
 namespace App\Actions\MenuPolda;
 
 use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidy;
-use App\Models\MenuPolda\MaterialSubsidy\MaterialSubsidyDetail;
 use Illuminate\Support\Facades\DB;
 
 class CreateMaterialSubsidyAction
@@ -17,10 +16,13 @@ class CreateMaterialSubsidyAction
         ?string $subsidyId = null
     ): MaterialSubsidy {
         return DB::transaction(function () use ($headerData, $items, $subsidyId) {
-            $isEditMode = !empty($subsidyId);
+            $isEditMode = ! empty($subsidyId);
 
             if ($isEditMode) {
                 $subsidy = MaterialSubsidy::findOrFail($subsidyId);
+                if ($subsidy->status !== 'draft') {
+                    throw new \RuntimeException('Hanya subsidi berstatus draft yang dapat diedit.');
+                }
                 $subsidy->update($headerData);
                 $subsidy->materialSubsidyDetails()->delete();
             } else {
@@ -40,9 +42,9 @@ class CreateMaterialSubsidyAction
 
                 $subsidy->materialSubsidyDetails()->create([
                     'type_id' => $item['type_id'],
-                    'type_detail_id' => !empty($item['type_detail_id']) ? $item['type_detail_id'] : null,
-                    'stock_detail_id' => !empty($item['stock_detail_id']) ? $item['stock_detail_id'] : null,
-                    'quantity' => (float)$item['quantity'],
+                    'type_detail_id' => ! empty($item['type_detail_id']) ? $item['type_detail_id'] : null,
+                    'stock_detail_id' => ! empty($item['stock_detail_id']) ? $item['stock_detail_id'] : null,
+                    'quantity' => (float) $item['quantity'],
                     'notes' => $item['notes'] ?? '',
                 ]);
             }
@@ -59,6 +61,6 @@ class CreateMaterialSubsidyAction
         array $items,
         ?string $subsidyId = null
     ): MaterialSubsidy {
-        return (new self())->execute($headerData, $items, $subsidyId);
+        return (new self)->execute($headerData, $items, $subsidyId);
     }
 }

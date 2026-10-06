@@ -10,7 +10,7 @@
                         </svg>
                     </a>
                     <h1 class="text-3xl font-bold text-blue-600">
-                        {{ $isEditMode ? 'Detail' : 'Penugasan Rak Baru' }}
+                        {{ $isEditMode ? 'Edit Penugasan Rak' : 'Penugasan Rak Baru' }}
                     </h1>
                 </div>
                 <p class="text-gray-500 ml-14">Pindahkan material ke/dari rak di Polres</p>
@@ -50,13 +50,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="date" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
+                    <input type="date" wire:model="date" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500">
                     @error('date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih SPPM (Penerimaan Material)</label>
-                    <select wire:model.live="materialShipmentId" @disabled($isEditMode)
+                    <select wire:model.live="materialShipmentId"
                         class="w-full px-3 py-2 text-sm rounded-lg border border-purple-200 bg-purple-50/40 text-purple-900 font-semibold focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 disabled:bg-gray-100 disabled:text-gray-500">
                         <option value="">-- Pilih Kode SPPM Terbaru / Unassigned --</option>
                         @foreach ($availableSppms as $sppm)
@@ -70,7 +70,7 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Polres <span class="text-red-500">*</span></label>
                         <div wire:ignore wire:key="select-police-station-{{ rand() }}">
-                            <select id="select-police-station" wire:model="policeStationId" @disabled($isEditMode)
+                            <select id="select-police-station" wire:model="policeStationId"
                                 x-data x-init="
                                     setTimeout(() => {
                                         const el = $($el).selectize({
@@ -102,7 +102,7 @@
                         Material Utama <span class="text-red-500">*</span>
                     </label>
                     <div wire:ignore wire:key="select-type-id-{{ rand() }}">
-                        <select id="select-type-id" wire:model="typeId" @disabled($isEditMode)
+                        <select id="select-type-id" wire:model="typeId"
                             x-data x-init="
                                 setTimeout(() => {
                                     const el = $($el).selectize({
@@ -124,7 +124,7 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi (Opsional)</label>
-                    <textarea wire:model="description" rows="2" @disabled($isEditMode) class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Catatan penugasan rak..."></textarea>
+                    <textarea wire:model="description" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Catatan penugasan rak..."></textarea>
                 </div>
             </div>
         </div>
@@ -139,7 +139,6 @@
                 </svg>
                 Detail Penugasan Rak
             </h2>
-            @if (!$isEditMode)
                 <button wire:loading.attr="disabled" wire:click="addDetail" type="button"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -147,7 +146,6 @@
                     </svg>
                     Tambah Item
                 </button>
-            @endif
         </div>
 
         <div class="p-0">
@@ -168,9 +166,7 @@
                             <th class="px-3 py-3 font-semibold text-xs min-w-[140px] bg-green-50">Rak Tujuan</th>
                             <th class="px-3 py-3 font-semibold text-xs w-28 text-center bg-blue-50">Tersedia</th>
                             <th class="px-3 py-3 font-semibold text-xs w-24">Jumlah <span class="text-red-500">*</span></th>
-                            @if (!$isEditMode)
                                 <th class="px-3 py-3 font-semibold w-16 text-center text-xs">Aksi</th>
-                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -193,7 +189,7 @@
 
                                 @if($is_type_detail)
                                     <td class="px-3 py-3 align-top">
-                                        <select wire:model.live="details.{{ $index }}.type_detail_id" @disabled($isEditMode)
+                                        <select wire:model.live="details.{{ $index }}.type_detail_id"
                                             class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                                             <option value="">-- Semua Detail --</option>
                                             @foreach($this->typeDetails as $td)
@@ -204,7 +200,7 @@
                                 @endif
 
                                 <td class="px-3 py-3 align-top">
-                                    <select wire:model.live="details.{{ $index }}.service_id" @disabled($isEditMode)
+                                    <select wire:model.live="details.{{ $index }}.service_id"
                                         class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                                         <option value="">-- Semua Service --</option>
                                         @foreach($filteredServices as $svc)
@@ -214,7 +210,7 @@
                                 </td>
 
                                 <td class="px-3 py-3 align-top">
-                                    <select wire:model.live="details.{{ $index }}.service_detail_id" @disabled($isEditMode)
+                                    <select wire:model.live="details.{{ $index }}.service_detail_id"
                                         class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                                         <option value="">-- Semua --</option>
                                         @foreach($filteredServiceDetails as $sdt)
@@ -234,7 +230,7 @@
                                                         @this.set('details.{{ $index }}.selected_stock_key', val);
                                                     }
                                                 })[0].selectize;
-                                            " wire:model="details.{{ $index }}.selected_stock_key" @disabled($isEditMode)
+                                            " wire:model="details.{{ $index }}.selected_stock_key"
                                                 class="w-full text-xs rounded border border-gray-300 disabled:bg-gray-100">
                                                 <option value="">-- Pilih Barang --</option>
                                                 @foreach($stockOptions[$index] ?? [] as $opt)
@@ -255,7 +251,7 @@
 
                                 <!-- To Rack (user select) -->
                                 <td class="px-3 py-3 align-top bg-green-50/30">
-                                    <select wire:model.live="details.{{ $index }}.to_rack_id" @disabled($isEditMode)
+                                    <select wire:model.live="details.{{ $index }}.to_rack_id"
                                         class="w-full px-2 py-2 text-xs rounded border border-gray-300 focus:border-green-500 disabled:bg-gray-100 disabled:text-gray-500">
                                         <option value="">— Tanpa Rak —</option>
                                         @foreach($racks as $rack)
@@ -276,14 +272,13 @@
                                 <td class="px-3 py-3 align-top">
                                     <input type="number" min="1" step="1" max="{{ $detail['available_quantity'] }}"
                                         wire:model.live="details.{{ $index }}.quantity"
-                                        placeholder="Qty" @disabled($isEditMode)
+                                        placeholder="Qty"
                                         class="w-full px-2 py-2 text-xs font-bold text-center rounded border border-blue-300 focus:border-blue-500 bg-blue-50 disabled:bg-gray-100 disabled:text-gray-400 text-blue-700">
                                     @error("details.{$index}.quantity")
                                         <p class="text-red-500 text-[10px] mt-1 text-center">{{ $message }}</p>
                                     @enderror
                                 </td>
 
-                                @if (!$isEditMode)
                                     <td class="px-3 py-3 text-center align-top pt-4">
                                         @if (count($details) > 1)
                                             <button wire:loading.attr="disabled" type="button" wire:click="removeDetail({{ $index }})"
@@ -292,7 +287,6 @@
                                             </button>
                                         @endif
                                     </td>
-                                @endif
                             </tr>
                         @empty
                             <tr>
@@ -308,13 +302,11 @@
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row items-center justify-end gap-3 mt-4">
         <a href="{{ route('menu-polres.rack-assignment') }}"  class="w-full sm:w-auto px-8 py-3 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all text-center">Batal</a>
-        @if (!$isEditMode)
             <button wire:loading.attr="disabled" wire:click="save" type="button"
                 class="w-full sm:w-auto px-10 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-xl shadow-blue-500/30 transition-all transform hover:scale-105 text-center">
-                <span wire:loading.remove wire:target="save">💾 Simpan Penugasan</span>
+                <span wire:loading.remove wire:target="save">{{ $isEditMode ? '💾 Simpan Perubahan' : '💾 Simpan Penugasan' }}</span>
                 <span wire:loading wire:target="save">Menyimpan...</span>
             </button>
-        @endif
     </div>
 
     <script>

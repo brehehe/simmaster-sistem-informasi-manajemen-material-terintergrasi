@@ -97,7 +97,20 @@
             <h2 class="text-2xl font-bold text-gray-800">Cari Pengiriman</h2>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 {{ auth()->user()->hasRole('Admin') ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }} gap-4">
+            @if (auth()->user()->hasRole('Admin'))
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Polres Penerima</label>
+                    <select wire:model.live="policeStationId"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                        <option value="">Semua Polres</option>
+                        @foreach ($policeStations as $station)
+                            <option value="{{ $station->id }}">{{ $station->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
             <!-- Manual Input Nomor SPPM -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Input Nomor SPPM Manual</label>

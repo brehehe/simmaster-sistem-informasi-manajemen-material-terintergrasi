@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Stock\StockDetail;
-use App\Models\Stock\Stock;
 use App\Models\Stock\HistoryStock;
+use App\Models\Stock\Stock;
+use App\Models\Stock\StockDetail;
 use App\Models\StockOpname\StockOpname;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -23,9 +23,74 @@ class StockAdjustmentService
     public function stocks(User $user, string $scope, string $owner)
     {
         $this->authorizeOwner($user, $scope, $owner);
+
         return StockDetail::query()->where('is_active', true)
             ->where($scope === 'polda' ? 'regional_police_id' : 'police_station_id', $owner)
             ->whereNull($scope === 'polda' ? 'police_station_id' : 'regional_police_id');
+    }
+
+    public const MATERIAL_CORRECTIONS = [
+        'NRKB NOPIL' => 'TNKB NRKB PILIHAN PUTIH',
+        'NRKB NOPIL LISTRIK' => 'TNKB NRKB PILIHAN LISTRIK PUTIH',
+    ];
+
+    public static function expandMaterialTypes(?array $typeIds): ?array
+    {
+        if (! $typeIds) {
+            return $typeIds;
+        }
+
+        $legacyNames = \App\Models\Type\Type::whereIn('id', $typeIds)->pluck('name');
+        $targetNames = $legacyNames
+            ->map(fn ($name) => self::MATERIAL_CORRECTIONS[$name] ?? null)
+            ->filter();
+        $targetIds = \App\Models\Type\Type::whereIn('name', $targetNames)->pluck('id')->all();
+
+        return array_values(array_unique(array_merge($typeIds, $targetIds)));
+    }
+
+    public function correctMaterial(User $user, string $scope, string $owner, string $stockId, string $expected, string $reason, string $token): StockOpname
+    {
+        $this->authorizeOwner($user, $scope, $owner);
+        abort_unless($user->hasRole('Admin'), 403);
+
+        return DB::transaction(function () use ($user, $scope, $owner, $stockId, $expected, $reason, $token) {
+            $source = $this->stocks($user, $scope, $owner)->whereKey($stockId)->lockForUpdate()->firstOrFail();
+            $targetName = self::MATERIAL_CORRECTIONS[$source->type?->name] ?? null;
+            $target = $targetName ? \App\Models\Type\Type::where('name', $targetName)->where('is_active', true)->first() : null;
+            if (! $target) {
+                throw ValidationException::withMessages(['stockId' => 'Koreksi tersedia untuk NRKB NOPIL dan NRKB NOPIL LISTRIK dengan material TNKB tujuan aktif.']);
+            }
+            if ($existing = StockOpname::withTrashed()->find($token)) {
+                abort_unless((string) $existing->checked_by === (string) $user->id && $existing->stockOpnameDetails()->where('stock_detail_id', $stockId)->exists(), 403);
+
+                return $existing;
+            }
+            if ((float) $source->quantity <= 0) {
+                throw ValidationException::withMessages(['quantity' => 'Perbaiki saldo menjadi positif sebelum memindahkan material.']);
+            }
+            $quantity = $source->quantity;
+            $note = 'Pemindahan '.$source->type->name.' → '.$targetName.' | '.$reason;
+            $record = $this->apply($user, $scope, $owner, $stockId, $expected, '0', $note, $token);
+            $attributes = ['type_id' => $target->id, 'type_detail_id' => null,
+                'service_id' => null, 'service_detail_id' => null,
+                'police_station_id' => $source->police_station_id, 'regional_police_id' => $source->regional_police_id];
+            $stock = Stock::firstOrCreate($attributes, ['quantity' => 0, 'is_active' => true]);
+            $stock->increment('quantity', $quantity);
+            $stock->update(['is_active' => true]);
+            $batch = StockDetail::create($attributes + ['stock_id' => $stock->id, 'quantity' => $quantity,
+                'rack_id' => $source->rack_id, 'code' => $source->code,
+                'number_serial_first' => $source->number_serial_first, 'number_serial_second' => $source->number_serial_second, 'is_active' => true]);
+            $record->stockOpnameDetails()->create(['stock_detail_id' => $batch->id, 'type_id' => $target->id,
+                'rack_id' => $batch->rack_id, 'code' => $batch->code ?? '', 'system_quantity' => 0,
+                'physical_quantity' => $quantity, 'notes' => $note, 'is_active' => true]);
+            HistoryStock::create(['code' => HistoryStock::generateCode(), 'type_id' => $target->id,
+                'police_station_id' => $source->police_station_id, 'regional_police_id' => $source->regional_police_id,
+                'rack_id' => $source->rack_id, 'date' => today()->toDateString(), 'status_type' => 'in',
+                'quantity' => $quantity, 'description' => $record->code.' | '.$note, 'is_active' => true]);
+
+            return $record;
+        }, 3);
     }
 
     public function apply(User $user, string $scope, string $owner, string $stockId, string $expected, string $quantity, string $reason, string $token): StockOpname
@@ -43,6 +108,7 @@ class StockAdjustmentService
             if ($existing) {
                 abort_unless((string) $existing->checked_by === (string) $user->id &&
                     $existing->stockOpnameDetails()->where('stock_detail_id', $stockId)->exists(), 403);
+
                 return $existing;
             }
             if (round((float) $detail->quantity * 100) !== round((float) $expected * 100)) {
@@ -78,6 +144,7 @@ class StockAdjustmentService
             ]);
             $detail->update(['quantity' => $quantity]);
             $stock->increment('quantity', $difference);
+
             return $record;
         }, 3);
     }

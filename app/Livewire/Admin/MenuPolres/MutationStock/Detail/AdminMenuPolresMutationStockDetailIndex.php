@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Admin\MenuPolres\MutationStock\Detail;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MutationStock\MutationStock;
-use App\Models\MenuPolda\MutationStock\MutationStockDetail;
 use App\Models\Police\PoliceStation;
 use App\Models\Police\RegionalPolice;
 use App\Models\Stock\StockDetail;
@@ -14,9 +14,14 @@ use Livewire\Component;
 
 class AdminMenuPolresMutationStockDetailIndex extends Component
 {
+    use AuthorizesPolresData;
+
     public ?string $mutationId = null;
+
     public bool $isEditMode = false;
+
     public string $code = '';
+
     public string $mutation_date = '';
 
     // Sender (always current police station)
@@ -24,19 +29,28 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
 
     // Receiver fields (can be Polda or Polres)
     public ?string $receiver_regional_police_id = null;
+
     public ?string $receiver_police_station_id = null;
+
     public string $receiver_type = 'polres'; // 'polda' or 'polres'
 
     public string $notes = '';
+
     public array $details = [];
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function mount($id = null)
     {
         $this->mutation_date = now()->format('Y-m-d');
         $user = auth()->user();
 
-        // Auto-set sender as current police station
-        $this->sender_police_station_id = $user->police_station_id;
+        $this->sender_police_station_id = $user->hasRole('Admin')
+            ? null
+            : $user->police_station_id;
 
         if ($id) {
             $this->mutationId = $id;
@@ -51,7 +65,9 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
     protected function loadMutation($id)
     {
         $mutation = MutationStock::with('mutationStockDetails')->findOrFail($id);
+        $this->authorizePoliceStation($mutation->sender_police_station_id);
 
+        $this->sender_police_station_id = $mutation->sender_police_station_id;
         $this->code = $mutation->code;
         $this->mutation_date = Carbon::parse($mutation->mutation_date)->format('Y-m-d');
         $this->notes = $mutation->notes ?? '';
@@ -108,7 +124,7 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
         $parts = explode('.', $key);
         if (count($parts) === 2 && $parts[1] === 'stock_detail_id') {
             $index = $parts[0];
-            if (!empty($value)) {
+            if (! empty($value)) {
                 $stockDetail = StockDetail::with(['type', 'typeDetail'])->find($value);
                 if ($stockDetail) {
                     $this->details[$index]['type_id'] = $stockDetail->type_id;
@@ -129,7 +145,19 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
 
     public function save($send = false)
     {
+        $user = auth()->user();
+        if ($user->hasRole('Polres')) {
+            $this->sender_police_station_id = $user->police_station_id;
+        }
+
+        if ($this->isEditMode) {
+            $existingMutation = MutationStock::findOrFail($this->mutationId);
+            $this->authorizePoliceStation($existingMutation->sender_police_station_id);
+            abort_unless($existingMutation->status === 'draft', 409);
+        }
+
         $this->validate([
+            'sender_police_station_id' => 'required|exists:police_stations,id',
             'mutation_date' => 'required|date',
             'receiver_type' => 'required|in:polda,polres',
             'details' => 'required|array|min:1',
@@ -142,13 +170,26 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
             'details.*.quantity.min' => 'Quantity minimal 1',
         ]);
 
+        $this->authorizePoliceStation($this->sender_police_station_id);
+
+        foreach ($this->details as $index => $detail) {
+            $stockDetail = StockDetail::find($detail['stock_detail_id'] ?? null);
+            if (! $stockDetail || $stockDetail->police_station_id !== $this->sender_police_station_id) {
+                $this->addError("details.{$index}.stock_detail_id", 'Stok harus berasal dari Polres pengirim.');
+
+                return;
+            }
+        }
+
         // Validate receiver selection
-        if ($this->receiver_type === 'polda' && !$this->receiver_regional_police_id) {
+        if ($this->receiver_type === 'polda' && ! $this->receiver_regional_police_id) {
             session()->flash('error', 'Polda penerima harus dipilih');
+
             return;
         }
-        if ($this->receiver_type === 'polres' && !$this->receiver_police_station_id) {
+        if ($this->receiver_type === 'polres' && ! $this->receiver_police_station_id) {
             session()->flash('error', 'Polres penerima harus dipilih');
+
             return;
         }
 
@@ -178,7 +219,7 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
 
             return $this->redirect(route('menu-polres.mutation-stock'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Error: ' . $e->getMessage());
+            session()->flash('error', 'Error: '.$e->getMessage());
         }
     }
 

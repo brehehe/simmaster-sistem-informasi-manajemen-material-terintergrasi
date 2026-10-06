@@ -37,7 +37,7 @@ function revisionUser(string $role, ?string $station = null, ?string $region = n
 }
 DB::beginTransaction();
 try {
-    foreach (['types', 'type_details', 'services', 'service_details', 'regional_police', 'police_stations', 'stocks', 'stock_details', 'material_usages', 'material_usage_details', 'material_usage_detail_items', 'material_shipments', 'material_shipment_details', 'history_stocks', 'receptions'] as $table) {
+    foreach (['types', 'type_details', 'services', 'service_details', 'regional_police', 'police_stations', 'stocks', 'stock_details', 'material_usages', 'material_usage_details', 'material_usage_detail_items', 'material_shipments', 'material_shipment_details', 'history_stocks', 'receptions', 'last_stocks', 'last_stock_details'] as $table) {
         DB::statement('CREATE TEMP TABLE '.$table.' (LIKE public.'.$table.' INCLUDING ALL) ON COMMIT DROP');
     }
     $region = RegionalPolice::create(['name' => 'Test Region', 'is_active' => true]);
@@ -49,6 +49,25 @@ try {
     $batch = StockDetail::create(['stock_id' => $stock->id, 'type_id' => $type->id, 'police_station_id' => $station->id, 'quantity' => 10, 'number_serial_first' => '001', 'number_serial_second' => '010', 'is_active' => true]);
     $user = revisionUser('Polres', $station->id);
     Auth::setUser($user);
+    $initialStockForm = new App\Livewire\Admin\MenuPolres\LastStock\Detail\AdminMenuPolresLastStockDetailIndex;
+    $initialStockForm->mount();
+    revisionCheck($initialStockForm->policeStationId === $station->id && collect($initialStockForm->types)->contains('id', $type->id), 'initial stock input is available for the signed-in Polres');
+
+    $otherStationForStock = PoliceStation::create(['name' => 'Other Stock Station', 'regional_police_id' => $region->id, 'is_active' => true]);
+    $foreignInitialStock = App\Models\LastStock\LastStock::create([
+        'code' => 'LS-FOREIGN',
+        'date' => '2026-01-01',
+        'type_id' => $type->id,
+        'police_station_id' => $otherStationForStock->id,
+        'regional_police_id' => $region->id,
+        'is_active' => true,
+    ]);
+    try {
+        (new App\Livewire\Admin\MenuPolres\LastStock\Detail\AdminMenuPolresLastStockDetailIndex)->mount($foreignInitialStock->id);
+        throw new RuntimeException('Foreign initial stock edit accepted');
+    } catch (Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        revisionCheck($e->getStatusCode() === 403, 'Polres cannot edit another station initial stock');
+    }
     $service = new DailyMaterialUsageService;
     $catalog = $service->catalog();
     $keys = array_keys($catalog);
@@ -68,18 +87,43 @@ try {
     } catch (ValidationException) {
         revisionCheck((int) $batch->fresh()->quantity === 7, 'duplicate date and coverage cannot deduct twice');
     }
-    try {
-        $service->save($user, $station->id, '2026-01-02', [$keys[0] => 5, $keys[1] => 5]);
-        throw new RuntimeException('Overspend accepted');
-    } catch (ValidationException) {
-        revisionCheck((int) $batch->fresh()->quantity === 7 && MaterialUsage::count() === 1, 'shared-batch overspend rolls back all rows');
+    $debtUsage = $service->save($user, $station->id, '2026-02-01', [$keys[0] => 5, $keys[1] => 5]);
+    revisionCheck((int) StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->sum('quantity') === -3, 'usage above available stock is saved as a negative balance');
+    app(App\Services\StockService::class)->deleteMaterialUsage($debtUsage);
+    foreach ($debtUsage->materialUsageDetails as $debtDetail) {
+        $debtDetail->materialUsageDetailItems()->delete();
     }
+    $debtUsage->materialUsageDetails()->delete();
+    $debtUsage->delete();
     $service->save($user, $station->id, '2026-01-01', [$keys[0] => 1, $keys[1] => 1], '', $usage->id);
     revisionCheck((int) $batch->fresh()->quantity === 8, 'editing restores original stock exactly once');
     $trend = (new App\Services\DashboardStatsService)->getDailyPnbpGunmatTrend(1, 2026);
     revisionCheck($trend['pnbp'][0] == 300 && $trend['gunmat'][0] == 2, 'PNBP uses service tariffs and Gunmat uses actual quantities');
     $calendar = (new App\Services\ReportingComplianceService)->calendar('2026-01-01', '2026-01-02');
-    revisionCheck($calendar['rows'][0]['cells']['2026-01-01']['complete'] && ! $calendar['rows'][0]['cells']['2026-01-02']['reported'], 'calendar distinguishes complete and missing days');
+    $calendarStation = collect($calendar['rows'])->firstWhere('id', $station->id);
+    revisionCheck($calendarStation['cells']['2026-01-01']['complete'] && ! $calendarStation['cells']['2026-01-02']['reported'], 'calendar distinguishes complete and missing days');
+    // Historical deficits may be edited, reduced, or increased and remain auditable.
+    $batch->update(['quantity' => -5]);
+    $stock->update(['quantity' => -5]);
+    $service->save($user, $station->id, '2026-01-01', [$keys[0] => 0, $keys[1] => 1], '', $usage->id);
+    revisionCheck((int) StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->sum('quantity') === -4, 'reducing usage repairs a negative balance by the exact delta');
+    $service->save($user, $station->id, '2026-01-01', [$keys[0] => 0, $keys[1] => 1], '', $usage->id);
+    revisionCheck((int) StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->sum('quantity') === -4, 'unchanged negative-stock report does not deduct twice');
+    $service->save($user, $station->id, '2026-01-01', [$keys[0] => 0, $keys[1] => 2], '', $usage->id);
+    revisionCheck((int) StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->sum('quantity') === -5, 'increased usage remains saved as a larger negative balance');
+
+    $svc1->update(['is_active' => false]);
+    $legacyCatalog = $service->catalog(null, false, $usage->fresh('materialUsageDetails.materialUsageDetailItems'));
+    revisionCheck(isset($legacyCatalog[$keys[0]]), 'previous transaction retains inactive material row for editing');
+    $service->save($user, $station->id, '2026-01-01', [$keys[0] => 0, $keys[1] => 1], '', $usage->id);
+    revisionCheck((int) StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->sum('quantity') === -4, 'previous-date transaction with changed catalog remains editable');
+    $svc1->update(['is_active' => true]);
+
+    StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->update(['quantity' => 0]);
+    Stock::where('police_station_id', $station->id)->where('type_id', $type->id)->update(['quantity' => 0]);
+    $batch->update(['quantity' => 8]);
+    $stock->update(['quantity' => 8]);
+
     $other = revisionUser('Polres', (string) Str::uuid());
     try {
         $service->save($other, $station->id, '2026-01-01', [$keys[0] => 0, $keys[1] => 0]);
@@ -90,6 +134,9 @@ try {
 
     $admin = revisionUser('Admin');
     Auth::setUser($admin);
+    $admin->setRelation('userType', (new App\Models\User\UserType)->forceFill(['types' => [(string) Str::uuid()]]));
+    $usageIndex = (new App\Livewire\Admin\MenuPolres\MaterialUsage\AdminMenuPolresMaterialUsageIndex)->render();
+    revisionCheck($usageIndex->getData()['materialUsages']->total() > 0, 'admin usage list is not restricted by an assigned material type');
     $source = Stock::create(['type_id' => $type->id, 'regional_police_id' => $region->id, 'quantity' => 100, 'is_active' => true]);
     $sourceBatch = StockDetail::create(['stock_id' => $source->id, 'type_id' => $type->id, 'regional_police_id' => $region->id, 'quantity' => 100, 'number_serial_first' => 'A000001', 'number_serial_second' => 'A000100', 'is_active' => true]);
     $header = ['code' => 'SPPM/1/VII/LOG.3.6.7./2026', 'shipment_date' => '2026-10-01', 'sender_regional_police_id' => $region->id, 'receiver_police_station_id' => $station->id, 'status' => 'draft', 'is_active' => true];
@@ -184,9 +231,10 @@ try {
     \Livewire\Livewire::test(App\Livewire\Admin\MenuPolda\Reception\Detail\AdminMenuPoldaReceptionDetailIndex::class)
         ->assertSee('Gambar langsung')->assertSee('Unggah gambar')->assertSee('Tanda Tangan Pejabat');
     revisionCheck(true, 'reception form renders both signature methods');
-    \Livewire\Livewire::test(App\Livewire\Admin\MenuPolres\MaterialUsage\Detail\AdminMenuPolresMaterialUsageDetailIndex::class)
-        ->assertSee('Rincian Penggunaan Material')->assertSee('Sudah diisi')->assertSee('First Service');
-    revisionCheck(true, 'daily usage form renders material groups and completion counters');
+    $usageForm = \Livewire\Livewire::test(App\Livewire\Admin\MenuPolres\MaterialUsage\Detail\AdminMenuPolresMaterialUsageDetailIndex::class)
+        ->assertSee('Rincian Penggunaan Material')->assertSee('Sudah diisi')->assertSee('First Service')
+        ->assertSee('Seluruh kolom otomatis berisi 0');
+    revisionCheck(collect($usageForm->get('quantities'))->every(fn ($quantity) => $quantity === 0), 'daily usage form initializes all quantities with zero');
     echo "All revision integration checks passed; temporary writes rolled back.\n";
 } catch (Throwable $e) {
     DB::rollBack();

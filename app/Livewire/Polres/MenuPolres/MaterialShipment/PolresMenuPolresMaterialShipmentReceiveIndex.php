@@ -2,17 +2,29 @@
 
 namespace App\Livewire\Polres\MenuPolres\MaterialShipment;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MaterialShipment\MaterialShipment;
+use App\Models\Police\PoliceStation;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PolresMenuPolresMaterialShipmentReceiveIndex extends Component
 {
+    use AuthorizesPolresData;
     use WithPagination;
 
     public string $searchCode = '';
+
     public string $statusFilter = '';
+
+    public string $policeStationId = '';
+
     public int $perPage = 10;
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function paginationView()
     {
@@ -23,17 +35,25 @@ class PolresMenuPolresMaterialShipmentReceiveIndex extends Component
     {
         if (empty($this->searchCode)) {
             session()->flash('error', 'Silakan masukkan nomor SPPM.');
+
             return;
         }
 
         $user = auth()->user();
 
-        $shipment = MaterialShipment::where('code', 'ilike', '%'.trim($this->searchCode).'%')
-            ->where('receiver_police_station_id', $user->police_station_id)
-            ->first();
+        $query = MaterialShipment::where('code', 'ilike', '%'.trim($this->searchCode).'%');
+        if ($user->hasRole('Admin')) {
+            if ($this->policeStationId) {
+                $query->where('receiver_police_station_id', $this->policeStationId);
+            }
+        } else {
+            $query->where('receiver_police_station_id', $user->police_station_id);
+        }
+        $shipment = $query->first();
 
-        if (!$shipment) {
-            session()->flash('error', 'Pengiriman dengan nomor SPPM "' . $this->searchCode . '" tidak ditemukan.');
+        if (! $shipment) {
+            session()->flash('error', 'Pengiriman dengan nomor SPPM "'.$this->searchCode.'" tidak ditemukan.');
+
             return;
         }
 
@@ -46,8 +66,15 @@ class PolresMenuPolresMaterialShipmentReceiveIndex extends Component
 
         $query = MaterialShipment::query()
             ->with(['senderRegionalPolice', 'receiverPoliceStation', 'materialShipmentDetails'])
-            ->where('receiver_police_station_id', $user->police_station_id)
             ->where('is_active', true);
+
+        if ($user->hasRole('Admin')) {
+            if ($this->policeStationId) {
+                $query->where('receiver_police_station_id', $this->policeStationId);
+            }
+        } else {
+            $query->where('receiver_police_station_id', $user->police_station_id);
+        }
 
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
@@ -66,6 +93,9 @@ class PolresMenuPolresMaterialShipmentReceiveIndex extends Component
 
         return view('livewire.polres.menu-polres.material-shipment.polres-menu-polres-material-shipment-receive-index', [
             'materialShipments' => $materialShipments,
+            'policeStations' => $user->hasRole('Admin')
+                ? PoliceStation::where('is_active', true)->orderBy('name')->get()
+                : collect(),
         ])->layout('components.layouts.main.app');
     }
 }

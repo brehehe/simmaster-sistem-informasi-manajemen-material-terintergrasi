@@ -2,36 +2,66 @@
 
 namespace App\Livewire\Admin\MenuPolres\StockOpname\Create;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
+use App\Models\Police\PoliceStation;
 use App\Models\Stock\StockDetail;
 use App\Models\StockOpname\StockOpname;
-use App\Models\StockOpname\StockOpnameDetail;
-use DB;
 use Livewire\Component;
 
 class AdminMenuPolresStockOpnameCreateIndex extends Component
 {
+    use AuthorizesPolresData;
+
     public $police_station_id = '';
+
     public $opname_date = '';
+
     public $notes = '';
+
     public $stocksLoaded = false;
+
     public $stockDetails = [];
 
+    public $policeStations = [];
+
     protected $rules = [
+        'police_station_id' => 'required|exists:police_stations,id',
         'opname_date' => 'required|date',
         'stockDetails.*.physical_quantity' => 'required|numeric|min:0',
         'stockDetails.*.notes' => 'nullable|string',
     ];
 
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
+
     public function mount()
     {
         $this->opname_date = today()->format('Y-m-d');
-        $this->police_station_id = auth()->user()->police_station_id;
+        $this->police_station_id = $this->policeStationForUser();
+        $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
+    }
+
+    public function updatedPoliceStationId(): void
+    {
+        $this->stocksLoaded = false;
+        $this->stockDetails = [];
     }
 
     public function loadStock()
     {
-        if (!$this->police_station_id) {
+        if (! $this->police_station_id) {
             session()->flash('error', 'Police station tidak ditemukan.');
+
+            return;
+        }
+
+        $this->authorizePoliceStation($this->police_station_id);
+
+        if (! PoliceStation::whereKey($this->police_station_id)->where('is_active', true)->exists()) {
+            session()->flash('error', 'Police station tidak aktif atau tidak ditemukan.');
+
             return;
         }
 
@@ -46,6 +76,7 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
 
         if ($stocks->isEmpty()) {
             session()->flash('error', 'Tidak ada stock yang ditemukan untuk police station Anda.');
+
             return;
         }
 
@@ -86,11 +117,42 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
 
     public function save()
     {
+        if (auth()->user()->hasRole('Polres')) {
+            $this->police_station_id = auth()->user()->police_station_id;
+        }
         $this->validate();
+        $this->authorizePoliceStation($this->police_station_id);
 
-        if (!$this->stocksLoaded || empty($this->stockDetails)) {
+        if (! $this->stocksLoaded || empty($this->stockDetails)) {
             session()->flash('error', 'Silakan load stock terlebih dahulu sebelum menyimpan.');
+
             return;
+        }
+
+        foreach ($this->stockDetails as $index => $detail) {
+            $stockDetail = StockDetail::with(['type', 'typeDetail', 'rack'])
+                ->whereKey($detail['stock_detail_id'] ?? null)
+                ->where('police_station_id', $this->police_station_id)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $stockDetail) {
+                $this->addError("stockDetails.{$index}.physical_quantity", 'Stok tidak valid untuk Polres yang dipilih.');
+
+                return;
+            }
+
+            $physicalQuantity = (float) ($detail['physical_quantity'] ?? 0);
+            $this->stockDetails[$index] = array_merge($detail, [
+                'type_id' => $stockDetail->type_id,
+                'type_detail_id' => $stockDetail->type_detail_id,
+                'rack_id' => $stockDetail->rack_id,
+                'code' => $stockDetail->code,
+                'number_serial_first' => $stockDetail->number_serial_first,
+                'number_serial_second' => $stockDetail->number_serial_second,
+                'system_quantity' => (float) $stockDetail->quantity,
+                'difference' => $physicalQuantity - (float) $stockDetail->quantity,
+            ]);
         }
 
         try {
@@ -112,11 +174,11 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
                 $this->stockDetails
             );
 
-            session()->flash('success', 'Stock opname berhasil dibuat dengan kode: ' . $opname->code);
+            session()->flash('success', 'Stock opname berhasil dibuat dengan kode: '.$opname->code);
 
             return $this->redirect(route('menu-polres.stock-opname'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 

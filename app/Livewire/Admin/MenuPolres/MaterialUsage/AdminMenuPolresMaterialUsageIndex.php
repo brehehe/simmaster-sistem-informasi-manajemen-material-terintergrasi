@@ -39,6 +39,11 @@ class AdminMenuPolresMaterialUsageIndex extends Component
 
     public $materialUsageId = null;
 
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole(['Admin', 'Polres']), 403);
+    }
+
     public function mount()
     {
         // Display list table
@@ -47,6 +52,9 @@ class AdminMenuPolresMaterialUsageIndex extends Component
     public function render()
     {
         $user = auth()->user();
+        $allowedTypes = $user->hasRole('Admin')
+            ? null
+            : \App\Services\StockAdjustmentService::expandMaterialTypes($user->userType?->types);
 
         // Load filter options
         $policeStations = [];
@@ -55,8 +63,8 @@ class AdminMenuPolresMaterialUsageIndex extends Component
         }
 
         $allTypes = Type::query();
-        if ($user->userType && ! empty($user->userType->types)) {
-            $allTypes->whereIn('id', $user->userType->types);
+        if ($allowedTypes) {
+            $allTypes->whereIn('id', $allowedTypes);
         }
         $allTypes = $allTypes->orderBy('name')->get();
 
@@ -65,8 +73,8 @@ class AdminMenuPolresMaterialUsageIndex extends Component
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
             $tdQuery = TypeDetail::query();
-            if ($user->userType && ! empty($user->userType->types)) {
-                $tdQuery->whereIn('type_id', $user->userType->types);
+            if ($allowedTypes) {
+                $tdQuery->whereIn('type_id', $allowedTypes);
             }
             $typeDetails = $tdQuery->orderBy('name')->get();
         }
@@ -79,8 +87,8 @@ class AdminMenuPolresMaterialUsageIndex extends Component
             ->with(['materialUsage', 'materialUsage.policeStation', 'type', 'typeDetail'])
             ->where('material_usages.is_active', true);
 
-        if ($user->userType && ! empty($user->userType->types)) {
-            $query->whereIn('material_usage_details.type_id', $user->userType->types);
+        if ($allowedTypes) {
+            $query->whereIn('material_usage_details.type_id', $allowedTypes);
         }
 
         // Role-based filtering

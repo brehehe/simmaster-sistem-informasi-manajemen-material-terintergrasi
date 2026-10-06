@@ -2,20 +2,35 @@
 
 namespace App\Livewire\Admin\MenuPolres\StockOpname;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
+use App\Models\Police\PoliceStation;
 use App\Models\StockOpname\StockOpname;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class AdminMenuPolresStockOpnameIndex extends Component
 {
+    use AuthorizesPolresData;
     use WithPagination;
 
     public $search = '';
+
     public $statusFilter = '';
+
+    public $policeStationId = '';
+
     public $startDate = '';
+
     public $endDate = '';
+
     public $showDeleteModal = false;
+
     public $deleteId = '';
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function paginationView()
     {
@@ -54,6 +69,9 @@ class AdminMenuPolresStockOpnameIndex extends Component
     public function delete()
     {
         $opname = StockOpname::find($this->deleteId);
+        if ($opname) {
+            $this->authorizePoliceStation($opname->police_station_id);
+        }
 
         if ($opname && $opname->status === 'draft') {
             $opname->delete();
@@ -67,13 +85,22 @@ class AdminMenuPolresStockOpnameIndex extends Component
 
     public function render()
     {
+        $user = auth()->user();
         $query = StockOpname::with(['policeStation', 'checkedByUser', 'approvedByUser'])
-            ->where('police_station_id', auth()->user()->police_station_id)
+            ->whereNotNull('police_station_id')
             ->orderBy('created_at', 'desc');
+
+        if ($user->hasRole('Admin')) {
+            if ($this->policeStationId) {
+                $query->where('police_station_id', $this->policeStationId);
+            }
+        } else {
+            $query->where('police_station_id', $user->police_station_id);
+        }
 
         // Search by code
         if ($this->search) {
-            $query->where('code', 'ilike', '%' . $this->search . '%');
+            $query->where('code', 'ilike', '%'.$this->search.'%');
         }
 
         // Filter by status
@@ -93,6 +120,9 @@ class AdminMenuPolresStockOpnameIndex extends Component
 
         return view('livewire.admin.menu-polres.stock-opname.admin-menu-polres-stock-opname-index', [
             'opnames' => $opnames,
+            'policeStations' => $user->hasRole('Admin')
+                ? PoliceStation::where('is_active', true)->orderBy('name')->get()
+                : collect(),
         ])->layout('components.layouts.main.app');
     }
 }

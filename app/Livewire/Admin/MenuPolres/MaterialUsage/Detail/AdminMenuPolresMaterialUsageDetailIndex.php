@@ -31,13 +31,16 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         $this->materialUsageId = $id;
         $this->date = now('Asia/Jakarta')->toDateString();
         $this->policeStationId = auth()->user()->police_station_id ?? '';
-        $this->quantities = array_fill_keys(array_keys($this->catalog()), '');
+        $usage = null;
         if ($id) {
             $usage = MaterialUsage::with('materialUsageDetails.materialUsageDetailItems')->findOrFail($id);
             $this->authorize('update', $usage);
             $this->date = $usage->date->toDateString();
             $this->policeStationId = $usage->police_station_id;
             $this->description = $usage->description ?? '';
+        }
+        $this->quantities = array_fill_keys(array_keys($this->catalog($usage)), 0);
+        if ($usage) {
             foreach ($usage->materialUsageDetails as $detail) {
                 foreach ($detail->materialUsageDetailItems as $item) {
                     $key = DailyMaterialUsageService::key($item->toArray());
@@ -49,11 +52,19 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
         }
     }
 
-    private function catalog(): array
+    private function catalog(?MaterialUsage $editing = null): array
     {
         $user = auth()->user();
 
-        return app(DailyMaterialUsageService::class)->catalog($user->hasRole('Admin') ? null : $user->userType?->types);
+        if (! $editing && $this->materialUsageId) {
+            $editing = MaterialUsage::with('materialUsageDetails.materialUsageDetailItems')->findOrFail($this->materialUsageId);
+        }
+
+        return app(DailyMaterialUsageService::class)->catalog(
+            $user->hasRole('Admin') ? null : $user->userType?->types,
+            false,
+            $editing,
+        );
     }
 
     public function save()

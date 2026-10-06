@@ -2,13 +2,22 @@
 
 namespace App\Livewire\Admin\MenuPolres\MutationStock\Receive;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MutationStock\MutationStock;
 use Livewire\Component;
 
 class AdminMenuPolresMutationStockReceiveDetail extends Component
 {
+    use AuthorizesPolresData;
+
     public string $mutationId;
+
     public ?MutationStock $mutation = null;
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function mount($id)
     {
@@ -24,16 +33,20 @@ class AdminMenuPolresMutationStockReceiveDetail extends Component
             'mutationStockDetails.typeDetail',
         ])->where('id', $id);
 
-        // Verify user is the receiver
-        $query->where('receiver_police_station_id', $user->police_station_id);
+        if (! $user->hasRole('Admin')) {
+            $query->where('receiver_police_station_id', $user->police_station_id);
+        }
 
         $this->mutation = $query->firstOrFail();
+        $this->authorizePoliceStation($this->mutation->receiver_police_station_id);
     }
 
     public function confirmReceipt()
     {
+        $this->authorizePoliceStation($this->mutation->receiver_police_station_id);
         if ($this->mutation->status !== 'sent') {
             session()->flash('error', 'Hanya mutasi dengan status "Terkirim" yang bisa dikonfirmasi.');
+
             return;
         }
 
@@ -52,7 +65,7 @@ class AdminMenuPolresMutationStockReceiveDetail extends Component
 
             return $this->redirect(route('menu-polres.mutation-stock.receive'), navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'Error: ' . $e->getMessage());
+            session()->flash('error', 'Error: '.$e->getMessage());
         }
     }
 

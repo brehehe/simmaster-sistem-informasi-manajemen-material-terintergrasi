@@ -47,14 +47,24 @@
         <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden mb-6">
             <div class="p-6 space-y-5">
                 <h2 class="text-xl font-bold text-gray-900">Detail Penyesuaian</h2>
+                @if (auth()->user()->hasRole('Admin'))
+                    <label class="flex items-start gap-3 text-sm text-gray-700">
+                        <input type="checkbox" wire:model.live="correctMaterial" class="mt-1 rounded border-gray-300 text-blue-600">
+                        <span>Pindahkan seluruh saldo NRKB NOPIL ke TNKB NRKB PILIHAN PUTIH, atau NRKB NOPIL LISTRIK ke TNKB NRKB PILIHAN LISTRIK PUTIH. Saldo sumber menjadi 0; riwayat lama tetap tersimpan.</span>
+                    </label>
+                @endif
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div><p class="text-sm font-semibold text-gray-700 mb-2">Saldo sebelum</p><p class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-600">{{ $expected !== '' ? $expected : '—' }}</p></div>
             <div>
                 <label for="adjustment-quantity" class="block text-sm font-semibold text-gray-700 mb-2">Saldo akhir <span class="text-red-500">*</span></label>
+                @if ($correctMaterial)
+                    <p class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">0 (seluruh saldo dipindahkan)</p>
+                @else
                 <input id="adjustment-quantity" type="number" step="0.01" wire:model.live.debounce.400ms="quantity" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white" required>
+                @endif
                 @error('quantity')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
-            <div><p class="text-sm font-semibold text-gray-700 mb-2">Selisih penyesuaian</p><p class="bg-blue-50 border border-blue-200 text-blue-700 rounded-lg px-3 py-2 text-sm font-semibold">{{ is_numeric($quantity) && is_numeric($expected) ? number_format((float) $quantity - (float) $expected, 2, ',', '.') : '—' }}</p></div>
+            <div><p class="text-sm font-semibold text-gray-700 mb-2">Selisih penyesuaian</p><p class="bg-blue-50 border border-blue-200 text-blue-700 rounded-lg px-3 py-2 text-sm font-semibold">{{ is_numeric($quantity) && is_numeric($expected) ? number_format(($correctMaterial ? 0 : (float) $quantity) - (float) $expected, 2, ',', '.') : '—' }}</p></div>
         </div>
         <div>
             <label for="adjustment-reason" class="block text-sm font-semibold text-gray-700 mb-2">Alasan penyesuaian <span class="text-red-500">*</span></label>

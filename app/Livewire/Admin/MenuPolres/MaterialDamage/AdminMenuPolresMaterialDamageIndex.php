@@ -2,18 +2,20 @@
 
 namespace App\Livewire\Admin\MenuPolres\MaterialDamage;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MaterialDamage\MaterialDamage;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\Url;
 use App\Models\Police\PoliceStation;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class AdminMenuPolresMaterialDamageIndex extends Component
 {
+    use AuthorizesPolresData;
     use WithPagination;
 
     #[Url]
@@ -32,14 +34,21 @@ class AdminMenuPolresMaterialDamageIndex extends Component
     public $endDate = '';
 
     public $search = '';
+
     public $perPage = 10;
 
     public $showDeleteModal = false;
+
     public $materialDamageId = null;
 
     public function toJSON()
     {
         return [];
+    }
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
     }
 
     public function render()
@@ -53,7 +62,7 @@ class AdminMenuPolresMaterialDamageIndex extends Component
         }
 
         $allTypes = Type::query();
-        if ($user->userType && !empty($user->userType->types)) {
+        if (! $user->hasRole('Admin') && $user->userType && ! empty($user->userType->types)) {
             $allTypes->whereIn('id', $user->userType->types);
         }
         $allTypes = $allTypes->orderBy('name')->get();
@@ -63,12 +72,11 @@ class AdminMenuPolresMaterialDamageIndex extends Component
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
             $tdQuery = TypeDetail::query();
-            if ($user->userType && !empty($user->userType->types)) {
+            if (! $user->hasRole('Admin') && $user->userType && ! empty($user->userType->types)) {
                 $tdQuery->whereIn('type_id', $user->userType->types);
             }
             $typeDetails = $tdQuery->orderBy('name')->get();
         }
-
 
         $query = \App\Models\MenuPolda\MaterialDamage\MaterialDamageDetail::query()
             ->select('material_damage_details.*')
@@ -78,7 +86,7 @@ class AdminMenuPolresMaterialDamageIndex extends Component
             ->with(['materialDamage', 'materialDamage.policeStation', 'type', 'typeDetail'])
             ->where('material_damages.is_active', true);
 
-        if ($user->userType && !empty($user->userType->types)) {
+        if (! $user->hasRole('Admin') && $user->userType && ! empty($user->userType->types)) {
             $query->whereIn('material_damage_details.type_id', $user->userType->types);
         }
 
@@ -137,12 +145,14 @@ class AdminMenuPolresMaterialDamageIndex extends Component
             'materialDamages' => $materialDamages,
             'policeStations' => $policeStations,
             'allTypes' => $allTypes,
-            'typeDetails' => $typeDetails
+            'typeDetails' => $typeDetails,
         ])->layout('components.layouts.main.app');
     }
 
     public function openDeleteModal($id)
     {
+        $materialDamage = MaterialDamage::findOrFail($id);
+        $this->authorizePoliceStation($materialDamage->police_station_id);
         $this->materialDamageId = $id;
         $this->showDeleteModal = true;
     }
@@ -161,6 +171,7 @@ class AdminMenuPolresMaterialDamageIndex extends Component
 
                 $materialDamage = MaterialDamage::with('materialDamageDetails')->find($this->materialDamageId);
                 if ($materialDamage) {
+                    $this->authorizePoliceStation($materialDamage->police_station_id);
                     // Restore stock & delete history
                     $stockService->deleteMaterialDamage($materialDamage);
 
@@ -172,7 +183,7 @@ class AdminMenuPolresMaterialDamageIndex extends Component
                 }
             } catch (\Exception $e) {
                 DB::rollBack();
-                session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
             }
         }
         $this->closeModal();

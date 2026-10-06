@@ -9,10 +9,7 @@ use App\Models\Reception\ReceptionDetail;
 use App\Models\Stock\HistoryStock;
 use App\Models\Stock\Stock;
 use App\Models\Stock\StockDetail;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 
 class StockService
 {
@@ -115,26 +112,32 @@ class StockService
         }
 
         if ($lastStockDetail->code === null || $lastStockDetail->code === '') {
-            $query->where(function($q) { $q->whereNull('code')->orWhere('code', ''); });
+            $query->where(function ($q) {
+                $q->whereNull('code')->orWhere('code', '');
+            });
         } else {
             $query->where('code', $lastStockDetail->code);
         }
 
         if ($lastStockDetail->number_serial_first === null || $lastStockDetail->number_serial_first === '') {
-            $query->where(function($q) { $q->whereNull('number_serial_first')->orWhere('number_serial_first', ''); });
+            $query->where(function ($q) {
+                $q->whereNull('number_serial_first')->orWhere('number_serial_first', '');
+            });
         } else {
             $query->where('number_serial_first', $lastStockDetail->number_serial_first);
         }
 
         if ($lastStockDetail->number_serial_second === null || $lastStockDetail->number_serial_second === '') {
-            $query->where(function($q) { $q->whereNull('number_serial_second')->orWhere('number_serial_second', ''); });
+            $query->where(function ($q) {
+                $q->whereNull('number_serial_second')->orWhere('number_serial_second', '');
+            });
         } else {
             $query->where('number_serial_second', $lastStockDetail->number_serial_second);
         }
 
         $stockDetail = $query->first();
 
-        if (!$stockDetail) {
+        if (! $stockDetail) {
             $trashed = (clone $query)->onlyTrashed()->first();
             if ($trashed) {
                 $trashed->restore();
@@ -149,6 +152,7 @@ class StockService
                 $stockDetail->rack_id = $lastStockDetail->rack_id;
             }
             $stockDetail->save();
+
             return $stockDetail;
         }
 
@@ -187,13 +191,13 @@ class StockService
             'service_id' => $lastStockDetail->service_id,
             'service_detail_id' => $lastStockDetail->service_detail_id,
             'regional_police_id' => $stock->regional_police_id,
-            'serial_number' => $lastStockDetail?->code ? Str::ucfirst($lastStockDetail->code) . ' ' . $lastStockDetail->number_serial_first . ' ' . $lastStockDetail->number_serial_second : null,
+            'serial_number' => $lastStockDetail?->code ? Str::ucfirst($lastStockDetail->code).' '.$lastStockDetail->number_serial_first.' '.$lastStockDetail->number_serial_second : null,
             'police_station_id' => $stock->police_station_id,
             'rack_id' => $lastStockDetail->rack_id,
             'date' => $lastStock->date,
             'status_type' => 'last',
             'quantity' => $lastStockDetail->quantity,
-            'description' => $lastStockDetail->description ?? 'Stock from last stock: ' . $lastStock->name,
+            'description' => $lastStockDetail->description ?? 'Stock from last stock: '.$lastStock->name,
             'is_active' => true,
         ]);
     }
@@ -205,7 +209,7 @@ class StockService
     {
         // Must load relation if not already loaded
         $reception->loadMissing('receptionDetails.receptionDetailItems');
-        
+
         foreach ($reception->receptionDetails as $receptionDetail) {
             foreach ($receptionDetail->receptionDetailItems as $item) {
                 // Find or create stock record
@@ -251,7 +255,9 @@ class StockService
         foreach (['code' => 'item_code', 'number_serial_first' => 'number_serial_first', 'number_serial_second' => 'number_serial_second'] as $dbCol => $modelProperty) {
             $val = $item->$modelProperty;
             if ($val === null || $val === '') {
-                $query->where(function($q) use ($dbCol) { $q->whereNull($dbCol)->orWhere($dbCol, ''); });
+                $query->where(function ($q) use ($dbCol) {
+                    $q->whereNull($dbCol)->orWhere($dbCol, '');
+                });
             } else {
                 $query->where($dbCol, $val);
             }
@@ -262,6 +268,7 @@ class StockService
         if ($stockDetail) {
             $stockDetail->quantity += $item->quantity;
             $stockDetail->save();
+
             return $stockDetail;
         }
 
@@ -301,13 +308,13 @@ class StockService
             'service_id' => $item->service_id,
             'service_detail_id' => $item->service_detail_id,
             'regional_police_id' => $reception->regional_police_id,
-            'serial_number' => $item->item_code ? Str::ucfirst($item->item_code) . ' ' . $item->number_serial_first . ' ' . $item->number_serial_second : null,
+            'serial_number' => $item->item_code ? Str::ucfirst($item->item_code).' '.$item->number_serial_first.' '.$item->number_serial_second : null,
             'police_station_id' => $reception->police_station_id,
             'rack_id' => $receptionDetail->rack_id ?? null,
             'date' => $reception->date,
             'status_type' => 'in',
             'quantity' => $item->quantity,
-            'description' => $item->description ?? 'Stock from reception: ' . $reception->name,
+            'description' => $item->description ?? 'Stock from reception: '.$reception->name,
             'is_active' => true,
         ]);
     }
@@ -321,7 +328,7 @@ class StockService
         ?string $regionalPoliceId,
         ?string $policeStationId,
         float $quantity,
-        string $description = null
+        ?string $description = null
     ): Stock {
         if ($policeStationId) {
             $regionalPoliceId = null;
@@ -334,7 +341,7 @@ class StockService
             ->firstOrFail();
 
         if ($stock->quantity < $quantity) {
-            throw new \Exception('Insufficient stock. Available: ' . $stock->quantity . ', Required: ' . $quantity);
+            throw new \Exception('Insufficient stock. Available: '.$stock->quantity.', Required: '.$quantity);
         }
 
         $stock->quantity -= $quantity;
@@ -347,7 +354,7 @@ class StockService
             'type_detail_id' => $typeDetailId,
             'regional_police_id' => $regionalPoliceId,
             'police_station_id' => $policeStationId,
-            'serial_number' => $stock?->code ? Str::ucfirst($stock->code) . ' ' . $stock->number_serial_first . ' ' . $stock->number_serial_second : null,
+            'serial_number' => $stock?->code ? Str::ucfirst($stock->code).' '.$stock->number_serial_first.' '.$stock->number_serial_second : null,
             'date' => now(),
             'status_type' => 'out',
             'quantity' => -$quantity,
@@ -450,7 +457,9 @@ class StockService
 
                 $regId = $rackAssignment->regional_police_id;
                 $polId = $rackAssignment->police_station_id;
-                if ($polId) $regId = null;
+                if ($polId) {
+                    $regId = null;
+                }
 
                 HistoryStock::create([
                     'code' => HistoryStock::generateCode(),
@@ -458,13 +467,13 @@ class StockService
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
                     'regional_police_id' => $regId,
-                    'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
+                    'serial_number' => $detail->item_code.' '.$detail->number_serial_first.' '.$detail->number_serial_second,
                     'police_station_id' => $polId,
                     'rack_id' => $detail->from_rack_id, // Source Rack
                     'date' => $rackAssignment->date,
                     'status_type' => 'out', // Out from source
                     'quantity' => $detail->quantity,
-                    'description' => 'Rack move OUT: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
+                    'description' => 'Rack move OUT: '.$fromRackName.' → '.$toRackName.' ('.$detail->quantity.' units)',
                     'is_active' => true,
                 ]);
 
@@ -474,13 +483,13 @@ class StockService
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
                     'regional_police_id' => $regId,
-                    'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
+                    'serial_number' => $detail->item_code.' '.$detail->number_serial_first.' '.$detail->number_serial_second,
                     'police_station_id' => $polId,
                     'rack_id' => $detail->to_rack_id, // Destination Rack
                     'date' => $rackAssignment->date,
                     'status_type' => 'in', // In to destination
                     'quantity' => $detail->quantity,
-                    'description' => 'Rack move IN: ' . $fromRackName . ' → ' . $toRackName . ' (' . $detail->quantity . ' units)',
+                    'description' => 'Rack move IN: '.$fromRackName.' → '.$toRackName.' ('.$detail->quantity.' units)',
                     'is_active' => true,
                 ]);
             }
@@ -490,13 +499,13 @@ class StockService
     /**
      * Process material usage - reduce stock quantity (BATCH)
      */
-    public function processMaterialUsage($materialUsage): void
+    public function processMaterialUsage($materialUsage, bool $allowNegative = false): void
     {
         foreach ($materialUsage->materialUsageDetails as $detail) {
             // Reduce stock detail quantity
             $stockDetail = StockDetail::whereKey($detail->stock_detail_id)->lockForUpdate()->first();
             if ($stockDetail) {
-                if ($detail->quantity < 0 || ($detail->quantity > 0 && $detail->quantity > $stockDetail->quantity)) {
+                if ($detail->quantity < 0 || (! $allowNegative && $detail->quantity > 0 && $detail->quantity > $stockDetail->quantity)) {
                     throw new \RuntimeException('Jumlah pemakaian melebihi stok tersedia atau bernilai negatif.');
                 }
                 $stockDetail->quantity -= $detail->quantity;
@@ -521,13 +530,13 @@ class StockService
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
                     'regional_police_id' => $regId,
-                    'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
+                    'serial_number' => $detail->item_code.' '.$detail->number_serial_first.' '.$detail->number_serial_second,
                     'police_station_id' => $polId,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialUsage->date,
                     'status_type' => 'out',
                     'quantity' => $detail->quantity,
-                    'description' => 'Material ' . $detail->usage_type . ' - ' . ($detail->description ?? ''),
+                    'description' => 'Material '.$detail->usage_type.' - '.($detail->description ?? ''),
                     'is_active' => true,
                 ]);
             }
@@ -567,18 +576,19 @@ class StockService
                     'type_id' => $detail->type_id,
                     'type_detail_id' => $detail->type_detail_id,
                     'regional_police_id' => $regId,
-                    'serial_number' => $detail->item_code . ' ' . $detail->number_serial_first . ' ' . $detail->number_serial_second,
+                    'serial_number' => $detail->item_code.' '.$detail->number_serial_first.' '.$detail->number_serial_second,
                     'police_station_id' => $polId,
                     'rack_id' => $detail->rack_id,
                     'date' => $materialDamage->date,
-                    'status_type'=>'out',
+                    'status_type' => 'out',
                     'quantity' => $detail->quantity,
-                    'description' => 'Material ' . $damageTypeLabel . ': ' . $detail->reason,
+                    'description' => 'Material '.$damageTypeLabel.': '.$detail->reason,
                     'is_active' => true,
                 ]);
             }
         }
     }
+
     /**
      * Delete reception stock and history
      */
@@ -617,11 +627,13 @@ class StockService
 
                 // 3. Reduce aggregated stock
                 $stock = Stock::find($item->stock_id ?? $stockDetail->stock_id ?? null);
-                if (!$stock) {
+                if (! $stock) {
                     // Fallback to query
                     $regId = $reception->regional_police_id;
                     $polId = $reception->police_station_id;
-                    if ($polId) $regId = null;
+                    if ($polId) {
+                        $regId = null;
+                    }
 
                     $stock = Stock::where('type_id', $item->type_id)
                         ->where('type_detail_id', $item->type_detail_id)
@@ -644,7 +656,6 @@ class StockService
      * Delete last stock and revert stocks and history
      */
     public function deleteLastStock(LastStock $lastStock): void
-
     {
         // 1. Delete stock history associated with this last stock
         HistoryStock::where('last_stock_id', $lastStock->id)->delete();
@@ -683,19 +694,25 @@ class StockService
             }
 
             if ($detail->code === null || $detail->code === '') {
-                $query->where(function($q) { $q->whereNull('code')->orWhere('code', ''); });
+                $query->where(function ($q) {
+                    $q->whereNull('code')->orWhere('code', '');
+                });
             } else {
                 $query->where('code', $detail->code);
             }
 
             if ($detail->number_serial_first === null || $detail->number_serial_first === '') {
-                $query->where(function($q) { $q->whereNull('number_serial_first')->orWhere('number_serial_first', ''); });
+                $query->where(function ($q) {
+                    $q->whereNull('number_serial_first')->orWhere('number_serial_first', '');
+                });
             } else {
                 $query->where('number_serial_first', $detail->number_serial_first);
             }
 
             if ($detail->number_serial_second === null || $detail->number_serial_second === '') {
-                $query->where(function($q) { $q->whereNull('number_serial_second')->orWhere('number_serial_second', ''); });
+                $query->where(function ($q) {
+                    $q->whereNull('number_serial_second')->orWhere('number_serial_second', '');
+                });
             } else {
                 $query->where('number_serial_second', $detail->number_serial_second);
             }
@@ -706,7 +723,7 @@ class StockService
                 $hasUsage = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetail::where('stock_detail_id', $stockDetail->id)->exists()
                     || \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::where('stock_detail_id', $stockDetail->id)->exists();
 
-                if ($stockDetail->quantity <= $detail->quantity && !$hasUsage) {
+                if ($stockDetail->quantity <= $detail->quantity && ! $hasUsage) {
                     $stockDetail->delete();
                 } else {
                     $stockDetail->quantity -= $detail->quantity;
@@ -758,21 +775,22 @@ class StockService
 
         // 2. Restore stock quantity
         foreach ($materialUsage->materialUsageDetails as $detail) {
-            $stockDetail = StockDetail::find($detail->stock_detail_id);
+            $stockDetail = StockDetail::whereKey($detail->stock_detail_id)->lockForUpdate()->first();
             if ($stockDetail) {
                 $stockDetail->quantity += $detail->quantity;
                 $stockDetail->save();
 
                 $stock = $stockDetail->stock;
                 if ($stock) {
-                    $stock->quantity += $detail->quantity;
-                    $stock->save();
+                    $stock->increment('quantity', $detail->quantity);
                 }
             } else {
                 // Fallback: find stock by attributes
                 $regId = $materialUsage->regional_police_id;
                 $polId = $materialUsage->police_station_id;
-                if ($polId) $regId = null;
+                if ($polId) {
+                    $regId = null;
+                }
 
                 $stock = Stock::where('type_id', $detail->type_id)
                     ->where('type_detail_id', $detail->type_detail_id)
@@ -781,8 +799,7 @@ class StockService
                     ->first();
 
                 if ($stock) {
-                    $stock->quantity += $detail->quantity;
-                    $stock->save();
+                    $stock->increment('quantity', $detail->quantity);
                 }
             }
         }
@@ -815,7 +832,9 @@ class StockService
                 // Fallback: find stock by attributes
                 $regId = $materialDamage->regional_police_id;
                 $polId = $materialDamage->police_station_id;
-                if ($polId) $regId = null;
+                if ($polId) {
+                    $regId = null;
+                }
 
                 $stock = Stock::where('type_id', $detail->type_id)
                     ->where('type_detail_id', $detail->type_detail_id)
@@ -849,7 +868,9 @@ class StockService
             } else {
                 $regId = $rackAssignment->regional_police_id;
                 $polId = $rackAssignment->police_station_id;
-                if ($polId) $regId = null;
+                if ($polId) {
+                    $regId = null;
+                }
 
                 $stockDetail = StockDetail::where('type_id', $detail->type_id)
                     ->where('rack_id', $detail->to_rack_id)
@@ -868,4 +889,3 @@ class StockService
         }
     }
 }
-

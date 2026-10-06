@@ -2,34 +2,54 @@
 
 namespace App\Livewire\Admin\MenuPolres\MutationStock\Receive;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MutationStock\MutationStock;
+use App\Models\Police\PoliceStation;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class AdminMenuPolresMutationStockReceiveIndex extends Component
 {
+    use AuthorizesPolresData;
     use WithPagination;
 
     public string $searchCode = '';
+
     public string $statusFilter = 'received'; // Default: only show received
+
+    public string $policeStationId = '';
+
     public int $perPage = 10;
+
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
 
     public function searchByCode()
     {
         if (empty($this->searchCode)) {
             session()->flash('error', 'Silakan masukkan kode mutasi.');
+
             return;
         }
 
         $user = auth()->user();
 
         // Search mutation where current police station is the receiver
-        $mutation = MutationStock::where('code', $this->searchCode)
-            ->where('receiver_police_station_id', $user->police_station_id)
-            ->first();
+        $query = MutationStock::where('code', $this->searchCode);
+        if ($user->hasRole('Admin')) {
+            if ($this->policeStationId) {
+                $query->where('receiver_police_station_id', $this->policeStationId);
+            }
+        } else {
+            $query->where('receiver_police_station_id', $user->police_station_id);
+        }
+        $mutation = $query->first();
 
-        if (!$mutation) {
-            session()->flash('error', 'Mutasi dengan kode "' . $this->searchCode . '" tidak ditemukan atau bukan untuk Polres Anda.');
+        if (! $mutation) {
+            session()->flash('error', 'Mutasi dengan kode "'.$this->searchCode.'" tidak ditemukan atau bukan untuk Polres Anda.');
+
             return;
         }
 
@@ -45,11 +65,16 @@ class AdminMenuPolresMutationStockReceiveIndex extends Component
             'senderRegionalPolice',
             'senderPoliceStation',
             'receiverPoliceStation',
-            'mutationStockDetails'
+            'mutationStockDetails',
         ])->where('is_active', true);
 
-        // Filter by receiver (current police station)
-        $query->where('receiver_police_station_id', $user->police_station_id);
+        if ($user->hasRole('Admin')) {
+            if ($this->policeStationId) {
+                $query->where('receiver_police_station_id', $this->policeStationId);
+            }
+        } else {
+            $query->where('receiver_police_station_id', $user->police_station_id);
+        }
 
         // Status filter
         if ($this->statusFilter) {
@@ -60,6 +85,9 @@ class AdminMenuPolresMutationStockReceiveIndex extends Component
 
         return view('livewire.admin.menu-polres.mutation-stock.receive.admin-menu-polres-mutation-stock-receive-index', [
             'mutations' => $mutations,
+            'policeStations' => $user->hasRole('Admin')
+                ? PoliceStation::where('is_active', true)->orderBy('name')->get()
+                : collect(),
         ])->layout('components.layouts.main.app');
     }
 }

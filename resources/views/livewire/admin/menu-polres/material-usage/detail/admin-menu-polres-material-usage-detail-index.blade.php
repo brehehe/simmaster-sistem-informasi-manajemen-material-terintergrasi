@@ -23,7 +23,7 @@
         </section>
         <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
             <div class="border-b border-gray-100 px-6 py-5"><h2 class="text-lg font-bold text-gray-900">Rincian Penggunaan Material</h2><p class="mt-1 text-sm text-gray-500">Seluruh material dan layanan tersedia di bawah. Isi jumlah aktual atau <strong class="text-blue-600">0</strong> jika tidak digunakan.</p></div>
-            <div class="border-b border-blue-100 bg-blue-50/60 px-6 py-3 text-xs text-blue-800">Nomor seri dicatat berdasarkan batch stok. Seluruh kolom jumlah wajib diisi sebelum laporan disimpan.</div>
+            <div class="border-b border-blue-100 bg-blue-50/60 px-6 py-3 text-xs text-blue-800">Seluruh kolom otomatis berisi 0. Ubah hanya layanan yang digunakan. Jika stok belum tersedia, penggunaan tetap tersimpan sebagai saldo minus.</div>
             <div class="overflow-x-auto"><table class="w-full min-w-[560px] text-left text-sm">
                 <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500"><tr><th class="w-14 px-5 py-3">No</th><th class="px-5 py-3">Material / layanan</th><th class="w-24 px-4 py-3 text-center">Satuan</th><th class="w-48 px-5 py-3">Jumlah penggunaan <span class="text-red-500">*</span></th></tr></thead>
                 <tbody class="divide-y divide-gray-100">
@@ -35,7 +35,7 @@
                     @endif
                     <tr wire:key="usage-{{ $key }}" class="transition-colors hover:bg-gray-50/70">
                         <td class="px-5 py-3 text-xs text-gray-400">{{ $loop->iteration }}</td><td class="px-5 py-3 font-medium text-gray-700"><label for="quantity-{{ $key }}">{{ $row['label'] }}</label></td><td class="px-4 py-3 text-center text-xs text-gray-500">{{ $row['unit'] }}</td>
-                        <td class="px-5 py-3"><input id="quantity-{{ $key }}" type="number" inputmode="numeric" min="0" max="999999999" step="1" required placeholder="Isi jumlah" x-model="values['{{ $key }}']" class="w-full rounded-lg border px-3 py-2 text-right text-sm tabular-nums focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 {{ $errors->has('quantities.'.$key) ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white' }}">@error('quantities.'.$key)<p role="alert" class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror</td>
+                        <td class="px-5 py-3"><input id="quantity-{{ $key }}" type="number" inputmode="numeric" min="0" max="999999999" step="1" required x-model="values['{{ $key }}']" class="w-full rounded-lg border px-3 py-2 text-right text-sm tabular-nums focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 {{ $errors->has('quantities.'.$key) ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white' }}">@error('quantities.'.$key)<p role="alert" class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror</td>
                     </tr>
                 @endforeach
                 </tbody>

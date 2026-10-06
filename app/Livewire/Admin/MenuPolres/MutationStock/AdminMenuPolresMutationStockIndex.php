@@ -2,28 +2,42 @@
 
 namespace App\Livewire\Admin\MenuPolres\MutationStock;
 
+use App\Livewire\Concerns\AuthorizesPolresData;
 use App\Models\MenuPolda\MutationStock\MutationStock;
 use App\Models\Police\PoliceStation;
-use App\Models\Police\RegionalPolice;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class AdminMenuPolresMutationStockIndex extends Component
 {
+    use AuthorizesPolresData;
     use WithPagination;
 
     public string $search = '';
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public string $statusFilter = '';
+
+    public string $policeStationId = '';
+
     public int $perPage = 10;
+
     public bool $showDeleteModal = false;
+
     public ?string $mutationId = null;
 
-public function paginationView()
+    public function boot(): void
+    {
+        $this->authorizePolresMenu();
+    }
+
+    public function paginationView()
     {
         return 'vendor.livewire.custom-pagination';
-    }   
+    }
 
     public function render()
     {
@@ -34,19 +48,22 @@ public function paginationView()
             'senderPoliceStation',
             'receiverRegionalPolice',
             'receiverPoliceStation',
-            'mutationStockDetails'
+            'mutationStockDetails',
         ])->where('is_active', true);
 
-        // Filter: current police station as sender OR receiver
-        $query->where(function ($q) use ($user) {
-            $q->where('sender_police_station_id', $user->police_station_id);
-        });
+        if ($user->hasRole('Admin')) {
+            if ($this->policeStationId) {
+                $query->where('sender_police_station_id', $this->policeStationId);
+            }
+        } else {
+            $query->where('sender_police_station_id', $user->police_station_id);
+        }
 
         // Search
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('notes', 'ilike', '%' . $this->search . '%');
+                $q->where('code', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('notes', 'ilike', '%'.$this->search.'%');
             });
         }
 
@@ -67,11 +84,16 @@ public function paginationView()
 
         return view('livewire.admin.menu-polres.mutation-stock.admin-menu-polres-mutation-stock-index', [
             'mutations' => $mutations,
+            'policeStations' => $user->hasRole('Admin')
+                ? PoliceStation::where('is_active', true)->orderBy('name')->get()
+                : collect(),
         ])->layout('components.layouts.main.app');
     }
 
     public function openDeleteModal($id)
     {
+        $mutation = MutationStock::findOrFail($id);
+        $this->authorizePoliceStation($mutation->sender_police_station_id);
         $this->mutationId = $id;
         $this->showDeleteModal = true;
     }
@@ -86,6 +108,9 @@ public function paginationView()
     {
         if ($this->mutationId) {
             $mutation = MutationStock::find($this->mutationId);
+            if ($mutation) {
+                $this->authorizePoliceStation($mutation->sender_police_station_id);
+            }
             if ($mutation && $mutation->status === 'draft') {
                 $mutation->delete();
                 session()->flash('success', 'Mutasi stock berhasil dihapus.');

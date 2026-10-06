@@ -5,11 +5,10 @@ namespace App\Livewire\Admin\MenuPolres\LastStock\Detail;
 use App\Models\LastStock\LastStock;
 use App\Models\LastStock\LastStockDetail;
 use App\Models\Police\PoliceStation;
-use App\Models\Police\RegionalPolice;
 use App\Models\Rack\Rack;
+use App\Models\Service\Service;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
-use App\Models\Service\Service;
 use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,43 +18,70 @@ class AdminMenuPolresLastStockDetailIndex extends Component
 {
     // Mode
     public ?string $lastStockId = null;
+
     public bool $isEditMode = false;
 
     // Main Form
     public string $code = '';
+
     public string $name = '';
+
     public string $date = '';
-    public ?string $typeId = null; 
+
+    public ?string $typeId = null;
+
     public bool $is_with_serial_number = false;
+
     public ?string $policeStationId = null;
+
     public ?string $description = null;
+
     public bool $is_active = true;
 
     // Detail Items
     public array $details = [];
+
     public int $detailCounter = 0;
+
     public $services = [];
 
     // Dropdowns Data
     public $policeStations = [];
+
     public $types = [];
+
     public $typeDetails = [];
+
     public $racks = [];
+
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole(['Admin', 'Polres']), 403);
+    }
 
     public function mount($id = null)
     {
         $this->lastStockId = $id;
-        $this->isEditMode = !is_null($id);
+        $this->isEditMode = ! is_null($id);
 
         $user = Auth::user();
-
-        // Load dropdown data
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
-        $this->types = Type::where('is_active', true)->orderBy('name')->get();
+
+        $typeQuery = Type::where('is_active', true);
+        if ($user->hasRole('Polres') && $user->userType?->types) {
+            $typeQuery->whereIn('id', \App\Services\StockAdjustmentService::expandMaterialTypes($user->userType->types));
+        }
+        $this->types = $typeQuery->orderBy('name')->get();
 
         if ($this->isEditMode) {
-            // Edit mode - load existing data
             $lastStock = LastStock::with('lastStockDetails')->findOrFail($id);
+            if (! collect($this->types)->contains('id', $lastStock->type_id)) {
+                $historicalType = Type::withTrashed()->find($lastStock->type_id);
+                if ($historicalType) {
+                    $this->types->push($historicalType);
+                }
+            }
+            abort_unless($user->hasRole('Admin') || $lastStock->police_station_id === $user->police_station_id, 403);
 
             $this->code = $lastStock->code;
             $this->name = $lastStock->name;
@@ -71,7 +97,6 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                 $this->loadTypeData($this->typeId);
             }
 
-            // Load detail items
             foreach ($lastStock->lastStockDetails as $detail) {
                 $this->details[] = [
                     'id' => $detail->id,
@@ -82,12 +107,11 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                     'code' => $detail->code ?? '',
                     'number_serial_first' => $detail->number_serial_first ?? '',
                     'number_serial_second' => $detail->number_serial_second ?? '',
-                    'quantity' => (float)$detail->quantity,
+                    'quantity' => (float) $detail->quantity,
                     'is_active' => $detail->is_active,
                 ];
             }
         } else {
-            // Create mode
             $this->code = LastStock::generateCode();
             $this->date = now()->format('Y-m-d');
 
@@ -104,13 +128,13 @@ class AdminMenuPolresLastStockDetailIndex extends Component
     {
         // Auto-fill type_detail_id when service_id is selected
         if (preg_match('/^details\.(\d+)\.service_id$/', $propertyName, $matches)) {
-            $index = (int)$matches[1];
+            $index = (int) $matches[1];
             $serviceId = $this->details[$index]['service_id'] ?? '';
-            
+
             if ($serviceId) {
                 $service = collect($this->services)->firstWhere('id', $serviceId);
                 $typeDetailId = data_get($service, 'type_detail_id');
-                
+
                 if ($typeDetailId) {
                     $this->details[$index]['type_detail_id'] = $typeDetailId;
                 }
@@ -140,7 +164,10 @@ class AdminMenuPolresLastStockDetailIndex extends Component
 
     public function getServiceDetails($serviceId)
     {
-        if (!$serviceId) return [];
+        if (! $serviceId) {
+            return [];
+        }
+
         return \App\Models\Service\ServiceDetail::where('service_id', $serviceId)
             ->where('is_active', true)
             ->orderBy('name')
@@ -149,19 +176,21 @@ class AdminMenuPolresLastStockDetailIndex extends Component
 
     protected function loadTypeData($typeId)
     {
-        if (!$typeId) return;
-        
+        if (! $typeId) {
+            return;
+        }
+
         $this->typeDetails = TypeDetail::where('type_id', $typeId)->where('is_active', true)->orderBy('name')->get();
-        $this->services = Service::with(['details' => function($q) {
-                $q->where('is_active', true)->orderBy('name');
-            }])
+        $this->services = Service::with(['details' => function ($q) {
+            $q->where('is_active', true)->orderBy('name');
+        }])
             ->where('is_active', true)
-            ->where(function($q) use ($typeId) {
+            ->where(function ($q) use ($typeId) {
                 $q->where('type_id', $typeId)
-                  ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
+                    ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $typeId)->pluck('id'));
             })
             ->orderBy('name')
-            ->get();        
+            ->get();
     }
 
     public function addDetail()
@@ -224,7 +253,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             'details.*.quantity' => 'required|numeric',
         ];
 
-        if (!$user->hasRole('Polres')) {
+        if (! $user->hasRole('Polres')) {
             $rules['policeStationId'] = 'required|exists:police_stations,id';
         }
 
@@ -246,6 +275,10 @@ class AdminMenuPolresLastStockDetailIndex extends Component
 
     public function save()
     {
+        if (Auth::user()->hasRole('Polres')) {
+            $this->policeStationId = Auth::user()->police_station_id;
+        }
+        abort_unless(collect($this->types)->contains('id', $this->typeId), 403);
         $this->validate();
 
         try {
@@ -266,10 +299,11 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                 'is_active' => $this->is_active,
             ];
 
-            $stockService = new StockService();
+            $stockService = new StockService;
 
             if ($this->isEditMode) {
                 $lastStock = LastStock::with('lastStockDetails')->findOrFail($this->lastStockId);
+                abort_unless(Auth::user()->hasRole('Admin') || $lastStock->police_station_id === Auth::user()->police_station_id, 403);
 
                 // Revert previous stock before re-processing
                 $stockService->deleteLastStock($lastStock);
@@ -302,36 +336,37 @@ class AdminMenuPolresLastStockDetailIndex extends Component
                 }
             }
 
-            $stockService = new StockService();
+            $stockService = new StockService;
             $lastStock->load('lastStockDetails');
             $stockService->processLastStock($lastStock);
 
             DB::commit();
 
             session()->flash('success', $this->isEditMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
+
             return $this->redirect(route('menu-polres.last-stock'), navigate: true);
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
     public function render()
     {
         $user = Auth::user();
-        $canSelectPoliceStation = !$user->hasRole('Polres');
+        $canSelectPoliceStation = ! $user->hasRole('Polres');
 
         $services = collect();
         $typeDetails = collect();
         if ($this->typeId) {
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->where('is_active', true)->orderBy('name')->get();
-            $services = Service::with(['details' => function($q) {
-                    $q->where('is_active', true)->orderBy('name');
-                }])
+            $services = Service::with(['details' => function ($q) {
+                $q->where('is_active', true)->orderBy('name');
+            }])
                 ->where('is_active', true)
-                ->where(function($q) {
+                ->where(function ($q) {
                     $q->where('type_id', $this->typeId)
-                      ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $this->typeId)->pluck('id'));
+                        ->orWhereIn('type_detail_id', TypeDetail::where('type_id', $this->typeId)->pluck('id'));
                 })
                 ->orderBy('name')
                 ->get();

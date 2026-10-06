@@ -43,8 +43,18 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Polres Pengeluar</label>
-                <input type="text" value="{{ auth()->user()->policeStation?->name ?? 'Polres' }}" disabled class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-500 font-semibold cursor-not-allowed">
+                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Polres Pengeluar <span class="text-red-500">*</span></label>
+                @if (auth()->user()->hasRole('Admin'))
+                    <select wire:model.live="policeStationId" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                        <option value="">-- Pilih Polres --</option>
+                        @foreach ($policeStations as $station)
+                            <option value="{{ $station->id }}">{{ $station->name }}</option>
+                        @endforeach
+                    </select>
+                @else
+                    <input type="text" value="{{ auth()->user()->policeStation?->name ?? 'Polres' }}" disabled class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-500 font-semibold cursor-not-allowed">
+                @endif
+                @error('policeStationId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
 

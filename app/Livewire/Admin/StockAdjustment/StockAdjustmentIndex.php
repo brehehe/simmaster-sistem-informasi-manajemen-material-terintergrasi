@@ -14,14 +14,22 @@ class StockAdjustmentIndex extends Component
 {
     #[Locked]
     public string $scope = 'polres';
+
     #[Locked]
     public string $token = '';
+
     #[Locked]
     public string $expected = '';
+
     public string $owner = '';
+
     public string $stockId = '';
+
     public string $quantity = '';
+
     public string $reason = '';
+
+    public bool $correctMaterial = false;
 
     public function mount(string $scope): void
     {
@@ -34,14 +42,14 @@ class StockAdjustmentIndex extends Component
 
     public function updatedOwner(): void
     {
-        $this->reset('stockId', 'quantity', 'expected', 'reason');
+        $this->reset('stockId', 'quantity', 'expected', 'reason', 'correctMaterial');
         $this->resetValidation();
         $this->token = (string) Str::uuid();
     }
 
     public function updatedStockId(): void
     {
-        $this->reset('quantity', 'expected');
+        $this->reset('quantity', 'expected', 'correctMaterial');
         $this->resetValidation();
         $this->token = (string) Str::uuid();
         if ($this->stockId !== '') {
@@ -54,10 +62,15 @@ class StockAdjustmentIndex extends Component
     public function save(): void
     {
         $this->validate(['stockId' => 'required|uuid', 'quantity' => 'required|numeric|decimal:0,2', 'reason' => 'required|string|min:5|max:1000']);
-        $record = app(StockAdjustmentService::class)->apply(auth()->user(), $this->scope, $this->owner,
-            $this->stockId, $this->expected, $this->quantity, trim($this->reason), $this->token);
+        if ($this->correctMaterial) {
+            $record = app(StockAdjustmentService::class)->correctMaterial(auth()->user(), $this->scope, $this->owner,
+                $this->stockId, $this->expected, trim($this->reason), $this->token);
+        } else {
+            $record = app(StockAdjustmentService::class)->apply(auth()->user(), $this->scope, $this->owner,
+                $this->stockId, $this->expected, $this->quantity, trim($this->reason), $this->token);
+        }
         session()->flash('success', 'Penyesuaian tersimpan. Kode: '.$record->code);
-        $this->reset('stockId', 'quantity', 'expected', 'reason');
+        $this->reset('stockId', 'quantity', 'expected', 'reason', 'correctMaterial');
         $this->token = (string) Str::uuid();
     }
 
@@ -75,6 +88,7 @@ class StockAdjustmentIndex extends Component
                 ->whereNull($this->scope === 'polda' ? 'police_station_id' : 'regional_police_id')
                 ->where('code', 'like', 'ADJ-%')->with(['stockOpnameDetails.type', 'checkedByUser'])->latest()->limit(20)->get();
         }
+
         return view('livewire.stock-adjustment.stock-adjustment-index', compact('owners', 'stocks', 'history'))
             ->layout('components.layouts.main.app', ['title' => 'Penyesuaian Stok']);
     }

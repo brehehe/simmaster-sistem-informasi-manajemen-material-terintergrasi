@@ -4,14 +4,14 @@ namespace App\Livewire\Admin\MenuPolres\LastStock;
 
 use App\Models\LastStock\LastStock;
 use App\Models\Police\PoliceStation;
-use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\Url;
 use App\Models\Type\Type;
 use App\Models\Type\TypeDetail;
 use App\Services\StockService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class AdminMenuPolresLastStockIndex extends Component
 {
@@ -19,8 +19,11 @@ class AdminMenuPolresLastStockIndex extends Component
 
     // Search & Filter
     public string $search = '';
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public int $perPage = 10;
 
     #[Url]
@@ -34,6 +37,7 @@ class AdminMenuPolresLastStockIndex extends Component
 
     // Delete Modal
     public bool $showDeleteModal = false;
+
     public ?string $lastStockId = null;
 
     protected $queryString = [
@@ -45,6 +49,11 @@ class AdminMenuPolresLastStockIndex extends Component
         'typeId' => ['except' => ''],
         'typeDetailId' => ['except' => ''],
     ];
+
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole(['Admin', 'Polres']), 403);
+    }
 
     public function updatedSearch()
     {
@@ -95,10 +104,15 @@ class AdminMenuPolresLastStockIndex extends Component
 
     public function delete(StockService $stockService)
     {
+        $lastStock = LastStock::with('lastStockDetails')->findOrFail($this->lastStockId);
+        abort_unless(
+            auth()->user()->hasRole('Admin')
+            || $lastStock->police_station_id === auth()->user()->police_station_id,
+            403
+        );
+
         try {
             DB::beginTransaction();
-
-            $lastStock = LastStock::with('lastStockDetails')->findOrFail($this->lastStockId);
 
             // Revert stock & history
             $stockService->deleteLastStock($lastStock);
@@ -115,13 +129,16 @@ class AdminMenuPolresLastStockIndex extends Component
             $this->closeModal();
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
     public function render()
     {
         $user = Auth::user();
+        $allowedTypes = $user->hasRole('Admin')
+            ? null
+            : \App\Services\StockAdjustmentService::expandMaterialTypes($user->userType?->types);
 
         // Load filter options
         $policeStations = [];
@@ -130,8 +147,8 @@ class AdminMenuPolresLastStockIndex extends Component
         }
 
         $allTypes = Type::query();
-        if ($user->userType && !empty($user->userType->types)) {
-            $allTypes->whereIn('id', $user->userType->types);
+        if ($allowedTypes) {
+            $allTypes->whereIn('id', $allowedTypes);
         }
         $allTypes = $allTypes->orderBy('name')->get();
 
@@ -139,11 +156,11 @@ class AdminMenuPolresLastStockIndex extends Component
         if ($this->typeId) {
             $typeDetails = TypeDetail::where('type_id', $this->typeId)->orderBy('name')->get();
         } else {
-             $tdQuery = TypeDetail::query();
-             if ($user->userType && !empty($user->userType->types)) {
-                 $tdQuery->whereIn('type_id', $user->userType->types);
-             }
-             $typeDetails = $tdQuery->orderBy('name')->get();
+            $tdQuery = TypeDetail::query();
+            if ($allowedTypes) {
+                $tdQuery->whereIn('type_id', $allowedTypes);
+            }
+            $typeDetails = $tdQuery->orderBy('name')->get();
         }
 
         $query = \App\Models\LastStock\LastStockDetail::query()
@@ -159,11 +176,11 @@ class AdminMenuPolresLastStockIndex extends Component
                 $query->where('last_stocks.police_station_id', $this->policeStationId);
             }
         } else {
-             $query->where('last_stocks.police_station_id', $user->police_station_id);
+            $query->where('last_stocks.police_station_id', $user->police_station_id);
         }
 
-        if ($user->userType && !empty($user->userType->types)) {
-            $query->whereIn('last_stock_details.type_id', $user->userType->types);
+        if ($allowedTypes) {
+            $query->whereIn('last_stock_details.type_id', $allowedTypes);
         }
 
         // Type Filter
@@ -178,7 +195,7 @@ class AdminMenuPolresLastStockIndex extends Component
 
         // Search
         if ($this->search) {
-             $keywords = preg_split('/\s+/', trim($this->search));
+            $keywords = preg_split('/\s+/', trim($this->search));
             $query->where(function ($q) use ($keywords) {
                 foreach ($keywords as $word) {
                     $q->where(function ($sub) use ($word) {
@@ -210,7 +227,7 @@ class AdminMenuPolresLastStockIndex extends Component
             'lastStocks' => $lastStocks,
             'policeStations' => $policeStations,
             'allTypes' => $allTypes,
-            'typeDetails' => $typeDetails
+            'typeDetails' => $typeDetails,
         ])->layout('components.layouts.main.app');
     }
 }

@@ -59,6 +59,16 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+                    @if (auth()->user()->hasRole('Admin'))
+                        <select wire:model.live="policeStationId"
+                            class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">
+                            <option value="">Semua Polres</option>
+                            @foreach ($policeStations as $station)
+                                <option value="{{ $station->id }}">{{ $station->name }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+
                     <!-- Status Filter -->
                     <select wire:model.live="statusFilter"
                         class="px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-gray-50 focus:bg-white text-sm">

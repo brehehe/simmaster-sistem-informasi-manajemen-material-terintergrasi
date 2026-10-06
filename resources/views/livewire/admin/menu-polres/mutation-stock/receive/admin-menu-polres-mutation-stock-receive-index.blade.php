@@ -46,7 +46,20 @@
             <h2 class="text-2xl font-bold text-gray-800">Cari Mutasi</h2>
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 {{ auth()->user()->hasRole('Admin') ? 'lg:grid-cols-2' : '' }} gap-4">
+            @if (auth()->user()->hasRole('Admin'))
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Polres Penerima</label>
+                    <select wire:model.live="policeStationId"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20">
+                        <option value="">Semua Polres</option>
+                        @foreach ($policeStations as $station)
+                            <option value="{{ $station->id }}">{{ $station->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+            <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Input Kode Mutasi Manual</label>
             <div class="flex gap-2">
                 <input wire:model="searchCode" type="text" placeholder="Contoh: MUT-20251217-001"
@@ -60,6 +73,7 @@
                             clip-rule="evenodd" />
                     </svg>
                 </button>
+            </div>
             </div>
         </div>
     </div>
