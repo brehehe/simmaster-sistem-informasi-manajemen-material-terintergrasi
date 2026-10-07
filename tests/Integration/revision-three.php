@@ -40,6 +40,13 @@ try {
     foreach (['types', 'type_details', 'services', 'service_details', 'regional_police', 'police_stations', 'stocks', 'stock_details', 'material_usages', 'material_usage_details', 'material_usage_detail_items', 'material_shipments', 'material_shipment_details', 'history_stocks', 'receptions', 'last_stocks', 'last_stock_details'] as $table) {
         DB::statement('CREATE TEMP TABLE '.$table.' (LIKE public.'.$table.' INCLUDING ALL) ON COMMIT DROP');
     }
+    Livewire\Livewire::test(App\Livewire\Auth\Login\AuthLoginIndex::class)
+        ->set('email', [])
+        ->set('password', [])
+        ->set('remember', [])
+        ->call('login')
+        ->assertHasErrors(['email', 'password', 'remember']);
+    revisionCheck(true, 'invalid login payload is handled as validation instead of a server error');
     $region = RegionalPolice::create(['name' => 'Test Region', 'is_active' => true]);
     $station = PoliceStation::create(['name' => 'Test Station', 'regional_police_id' => $region->id, 'is_active' => true]);
     $type = Type::create(['name' => 'Test Material', 'price' => 10, 'unit' => 'Lembar', 'is_active' => true]);
@@ -87,6 +94,26 @@ try {
     } catch (ValidationException) {
         revisionCheck((int) $batch->fresh()->quantity === 7, 'duplicate date and coverage cannot deduct twice');
     }
+    $legacySameDate = MaterialUsage::create([
+        'code' => 'MU-LEGACY-SAME-DATE',
+        'date' => '2026-01-01',
+        'police_station_id' => $station->id,
+        'is_active' => true,
+    ]);
+    $legacySameDateDetail = $legacySameDate->materialUsageDetails()->create([
+        'type_id' => $type->id,
+        'quantity' => 0,
+        'usage_type' => 'Material Digunakan',
+        'is_active' => true,
+    ]);
+    $legacySameDateDetail->materialUsageDetailItems()->create([
+        'material_usage_id' => $legacySameDate->id,
+        'type_id' => $type->id,
+        'service_id' => $svc1->id,
+        'quantity' => 0,
+        'usage_type' => 'Material Digunakan',
+        'is_active' => true,
+    ]);
     $debtUsage = $service->save($user, $station->id, '2026-02-01', [$keys[0] => 5, $keys[1] => 5]);
     revisionCheck((int) StockDetail::where('police_station_id', $station->id)->where('type_id', $type->id)->sum('quantity') === -3, 'usage above available stock is saved as a negative balance');
     app(App\Services\StockService::class)->deleteMaterialUsage($debtUsage);
@@ -95,8 +122,13 @@ try {
     }
     $debtUsage->materialUsageDetails()->delete();
     $debtUsage->delete();
-    $service->save($user, $station->id, '2026-01-01', [$keys[0] => 1, $keys[1] => 1], '', $usage->id);
+    Livewire\Livewire::test(App\Livewire\Admin\MenuPolres\MaterialUsage\Detail\AdminMenuPolresMaterialUsageDetailIndex::class, ['id' => $usage->id])
+        ->set('quantities.'.$keys[0], 1)
+        ->set('quantities.'.$keys[1], 1)
+        ->call('save')
+        ->assertHasNoErrors();
     revisionCheck((int) $batch->fresh()->quantity === 8, 'editing restores original stock exactly once');
+    revisionCheck($legacySameDate->fresh()->is_active, 'existing usage remains editable when another legacy report has the same date');
     $trend = (new App\Services\DashboardStatsService)->getDailyPnbpGunmatTrend(1, 2026);
     revisionCheck($trend['pnbp'][0] == 300 && $trend['gunmat'][0] == 2, 'PNBP uses service tariffs and Gunmat uses actual quantities');
     $calendar = (new App\Services\ReportingComplianceService)->calendar('2026-01-01', '2026-01-02');
@@ -143,6 +175,11 @@ try {
     $details = [['stock_detail_id' => $sourceBatch->id, 'quantity' => 10, 'number_serial_first' => 'A000001', 'number_serial_second' => 'A000010']];
     $shipment = CreateMaterialShipmentAction::run($header, $details);
     revisionCheck((int) $sourceBatch->fresh()->quantity === 100 && $user->can('view', $shipment), 'draft visible to recipient before stock deduction');
+    Auth::setUser($user);
+    $receiveDetail = new App\Livewire\Polres\MenuPolres\MaterialShipment\PolresMenuPolresMaterialShipmentReceiveDetail;
+    $receiveDetail->mount($shipment->id);
+    revisionCheck($receiveDetail->shipment instanceof App\Models\MenuPolda\MaterialShipment\MaterialShipment, 'Polres can open incoming material detail');
+    Auth::setUser($admin);
     $shipment->markAsShipped();
     revisionCheck((int) $sourceBatch->fresh()->quantity === 90 && $sourceBatch->fresh()->number_serial_first === 'A000011', 'dispatch deducts quantity and advances remaining serial range');
     try {

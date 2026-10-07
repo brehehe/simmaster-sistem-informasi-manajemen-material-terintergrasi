@@ -2,23 +2,30 @@
 
 namespace App\Livewire\Auth\Login;
 
-use Livewire\Component;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Rule;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 #[Layout('components.layouts.auth')]
 class AuthLoginIndex extends Component
 {
-    #[Rule('required|email')]
-    public string $email = '';
+    public $email = '';
 
-    #[Rule('required|min:6')]
-    public string $password = '';
+    public $password = '';
 
-    public bool $remember = false;
+    public $remember = false;
 
-    public function mount() {
+    protected function rules(): array
+    {
+        return [
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'string', 'min:6'],
+            'remember' => ['boolean'],
+        ];
+    }
+
+    public function mount()
+    {
         if (Auth::check()) {
             return $this->redirect(route('dashboard'), navigate: true);
         }

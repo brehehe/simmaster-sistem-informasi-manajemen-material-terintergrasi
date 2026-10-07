@@ -127,15 +127,19 @@ class DailyMaterialUsageService
                 }
                 $usage->materialUsageDetails()->delete();
             }
-            // A user may report a subset of materials; prevent duplicate coverage for the same day.
-            $existing = MaterialUsage::where('police_station_id', $stationId)->whereDate('date', $date)
-                ->where('is_active', true)->when($id, fn ($q) => $q->where('id', '!=', $id))
-                ->with('materialUsageDetails.materialUsageDetailItems')->get();
-            foreach ($existing as $report) {
-                foreach ($report->materialUsageDetails as $detail) {
-                    foreach ($detail->materialUsageDetailItems as $item) {
-                        if (isset($catalog[self::key($item->toArray())])) {
-                            throw ValidationException::withMessages(['date' => 'Penggunaan untuk material pada tanggal ini sudah ada. Edit laporan yang sudah tersimpan.']);
+            // A user may report a subset of materials. On creation, prevent duplicate
+            // coverage for the same day. Existing reports must remain editable even
+            // when legacy data contains more than one report on that date.
+            if (! $id) {
+                $existing = MaterialUsage::where('police_station_id', $stationId)->whereDate('date', $date)
+                    ->where('is_active', true)
+                    ->with('materialUsageDetails.materialUsageDetailItems')->get();
+                foreach ($existing as $report) {
+                    foreach ($report->materialUsageDetails as $detail) {
+                        foreach ($detail->materialUsageDetailItems as $item) {
+                            if (isset($catalog[self::key($item->toArray())])) {
+                                throw ValidationException::withMessages(['date' => 'Penggunaan untuk material pada tanggal ini sudah ada. Edit laporan yang sudah tersimpan.']);
+                            }
                         }
                     }
                 }

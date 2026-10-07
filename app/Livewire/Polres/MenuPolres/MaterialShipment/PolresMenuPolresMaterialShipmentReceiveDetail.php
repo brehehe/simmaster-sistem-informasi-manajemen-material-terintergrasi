@@ -25,7 +25,7 @@ class PolresMenuPolresMaterialShipmentReceiveDetail extends Component
         $user = auth()->user();
 
         // Load shipment with details
-        $this->shipment = MaterialShipment::with([
+        $query = MaterialShipment::with([
             'senderRegionalPolice',
             'receiverPoliceStation',
             'materialShipmentDetails.type',
