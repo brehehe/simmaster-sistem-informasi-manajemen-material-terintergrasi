@@ -38,10 +38,10 @@ class TargetSeeder extends Seeder
             $excelPath = public_path('excel/TARGET PNBP DAN MATREG PER POLRES 2026 (1).xlsx');
         }
         if (! file_exists($excelPath)) {
-            // Check any matching file in public or public/excel
+            // Check any matching file in public or public/excel with POLRES in name
             $files = array_merge(
-                glob(public_path('*TARGET*.xlsx')) ?: [],
-                glob(public_path('excel/*TARGET*.xlsx')) ?: []
+                glob(public_path('*POLRES*.xlsx')) ?: [],
+                glob(public_path('excel/*POLRES*.xlsx')) ?: []
             );
             if (! empty($files)) {
                 $excelPath = $files[0];

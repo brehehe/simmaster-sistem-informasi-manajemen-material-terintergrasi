@@ -135,8 +135,8 @@ class MaterialShipment extends Model
     {
         DB::transaction(function () use ($user) {
             $locked = self::whereKey($this->id)->lockForUpdate()->firstOrFail();
-            if ($locked->status !== 'shipped' || ! $locked->picked_at) {
-                throw new \RuntimeException('SPPM harus dipindai warehouse sebelum diterima.');
+            if ($locked->status !== 'shipped') {
+                throw new \RuntimeException('Hanya pengiriman dengan status Terkirim yang bisa diterima.');
             }
             if (! $user->hasRole('Admin') && $user->police_station_id !== $locked->receiver_police_station_id) {
                 abort(403);

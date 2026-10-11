@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
     <div class="mb-4 flex gap-3"><a class="rounded bg-blue-600 px-4 py-2 text-white" target="_blank" href="{{ route('menu-polda.material-shipment.print', $shipment->id) }}">Cetak SPPM / Barcode Warehouse</a><a class="rounded border px-4 py-2" target="_blank" href="{{ route('menu-polda.material-shipment.print', ['id' => $shipment->id, 'mode' => 'ttd_ka']) }}">Cetak Pengajuan KA</a></div>
-    @if(!$shipment->picked_at)<p class="mb-4 rounded bg-blue-50 p-3">Bawa SPPM ini ke warehouse untuk dipindai sebelum konfirmasi penerimaan.</p>@endif
+    @if($shipment->status !== 'received' && !$shipment->picked_at)<p class="mb-4 rounded bg-blue-50 p-3">Pencatatan serah terima warehouse bersifat opsional. Konfirmasi penerimaan dapat dilakukan setelah pengiriman berstatus Terkirim.</p>@endif
 
                 <div class="flex items-center gap-3 mb-2">
                     <a href="{{ route('menu-polres.material-shipment.receive') }}" 
@@ -67,7 +67,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Status</label>
-                    @if ($shipment->status === 'shipped' && $shipment->picked_at || $shipment->status === 'sent')
+                    @if ($shipment->status === 'shipped')
                         <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-700 animate-pulse">🔵 Menunggu Konfirmasi</span>
                     @elseif ($shipment->status === 'received')
                         <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-700">🟢 Sudah Diterima</span>
@@ -208,7 +208,7 @@
             Download / Preview SPPM
         </button>
 
-        @if ($shipment->status === 'shipped' && $shipment->picked_at || $shipment->status === 'sent')
+        @if ($shipment->status === 'shipped')
             <button wire:loading.attr="disabled" wire:click="confirmReceipt"
                 wire:confirm="Konfirmasi penerimaan material ini? Stock akan ditambahkan ke inventory Polres Anda dan tidak dapat dibatalkan."
                 type="button"
@@ -218,9 +218,13 @@
                 </svg>
                 ✅ Konfirmasi Penerimaan
             </button>
-        @else
+        @elseif ($shipment->status === 'received')
             <div class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-green-700 bg-green-50 rounded-xl border border-green-200 text-center">
                 ✅ Material diterima pada {{ $shipment->received_at ? \Carbon\Carbon::parse($shipment->received_at)->format('d F Y, H:i') : '-' }}
+            </div>
+        @else
+            <div class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-amber-800 bg-amber-50 rounded-xl border border-amber-200 text-center">
+                Belum dapat diterima. Pengiriman harus berstatus Terkirim terlebih dahulu.
             </div>
         @endif
     </div>

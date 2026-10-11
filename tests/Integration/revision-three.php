@@ -180,22 +180,21 @@ try {
     $receiveDetail->mount($shipment->id);
     revisionCheck($receiveDetail->shipment instanceof App\Models\MenuPolda\MaterialShipment\MaterialShipment, 'Polres can open incoming material detail');
     Auth::setUser($admin);
-    $shipment->markAsShipped();
-    revisionCheck((int) $sourceBatch->fresh()->quantity === 90 && $sourceBatch->fresh()->number_serial_first === 'A000011', 'dispatch deducts quantity and advances remaining serial range');
     try {
         $shipment->markAsReceived($user);
-        throw new RuntimeException('Unscanned receive accepted');
+        throw new RuntimeException('Draft receipt accepted');
     } catch (RuntimeException $e) {
-        revisionCheck(str_contains($e->getMessage(), 'warehouse'), 'receipt requires warehouse scan');
+        revisionCheck(str_contains($e->getMessage(), 'Terkirim'), 'draft cannot be received');
     }
+    $shipment->markAsShipped();
+    revisionCheck((int) $sourceBatch->fresh()->quantity === 90 && $sourceBatch->fresh()->number_serial_first === 'A000011', 'dispatch deducts quantity and advances remaining serial range');
     $image = imagecreatetruecolor(2, 2);
     ob_start();
     imagepng($image);
     $signature = 'data:image/png;base64,'.base64_encode(ob_get_clean());
     $picking = ['picker_name' => 'Test', 'picker_rank' => 'Test', 'picker_position' => 'Test', 'picker_signature' => $signature];
-    $shipment->recordPicking($admin, $picking);
-    revisionCheck((int) $sourceBatch->fresh()->quantity === 90 && $shipment->picked_at !== null, 'already shipped SPPM remains scannable without duplicate deduction');
     $shipment->markAsReceived($user);
+    revisionCheck($shipment->fresh()->status === 'received' && $shipment->fresh()->picked_at === null, 'receipt without warehouse scan preserves optional picking data');
     revisionCheck((int) $sourceBatch->fresh()->quantity === 90 && (int) $stock->fresh()->quantity === 18, 'receipt credits Polres once without second sender deduction');
     try {
         $shipment->markAsReceived($user);
@@ -209,6 +208,8 @@ try {
     $middle = CreateMaterialShipmentAction::run($header, $details);
     $middle->recordPicking($admin, $picking);
     revisionCheck((int) $source->fresh()->quantity === 80 && StockDetail::where('regional_police_id', $region->id)->sum('quantity') == 80, 'warehouse scan of draft splits middle interval and preserves total');
+    $middle->markAsReceived($user);
+    revisionCheck((int) $source->fresh()->quantity === 80 && (int) $stock->fresh()->quantity === 28, 'scanned shipment can still be received without deducting sender twice');
     revisionCheck(StockDetail::where('number_serial_first', 'A000060')->where('number_serial_second', 'A000100')->exists(), 'right-hand serial remainder retained');
     try {
         CreateMaterialShipmentAction::run($header, $details);
