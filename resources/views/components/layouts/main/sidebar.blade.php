@@ -317,10 +317,16 @@
                         Tipe User
                     </a>
                     <a  href="{{ route('master.target') }}"
-                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.target', 'master.target.*') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ (request()->routeIs('master.target') || request()->routeIs('master.target.detail') || request()->routeIs('master.target.create')) ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
                         <span
-                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.target', 'master.target.*') ? 'bg-white' : 'bg-blue-400' }}"></span>
-                        Target
+                            class="h-1.5 w-1.5 rounded-full {{ (request()->routeIs('master.target') || request()->routeIs('master.target.detail') || request()->routeIs('master.target.create')) ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Target (Renbut)
+                    </a>
+                    <a  href="{{ route('master.target.capaian') }}"
+                        class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all duration-200 {{ request()->routeIs('master.target.capaian') ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' : 'text-blue-200 hover:bg-blue-700/50 hover:text-white' }}">
+                        <span
+                            class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('master.target.capaian') ? 'bg-white' : 'bg-blue-400' }}"></span>
+                        Capaian PNBP
                     </a>
                 </div>
             </div>

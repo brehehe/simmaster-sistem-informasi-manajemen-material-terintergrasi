@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\Target\Target;
 use App\Models\Target\TargetDetail;
+use App\Models\Target\TargetPnbpItem;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class PnbpTargetService
 {
@@ -105,19 +107,55 @@ class PnbpTargetService
     ];
 
     /**
-     * Cari path file Excel Capaian Target PNBP 2026.
+     * Dapatkan daftar tahun target yang tersedia (dari Target DB dan file Excel).
      */
-    public function resolveExcelPath(?string $customPath = null): string
+    public function getAvailableYears(): array
+    {
+        $dbYears = Target::distinct()->pluck('year')->filter()->map(fn($y) => (int)$y)->toArray();
+        $pnbpYears = TargetPnbpItem::distinct()->pluck('year')->filter()->map(fn($y) => (int)$y)->toArray();
+
+        // Scan files di public/ dan public/excel/
+        $fileYears = [];
+        $files = array_merge(
+            glob(public_path('*CAPAIAN*TARGET*.xlsx')) ?: [],
+            glob(public_path('excel/*CAPAIAN*TARGET*.xlsx')) ?: []
+        );
+        foreach ($files as $file) {
+            if (preg_match('/20\d{2}/', basename($file), $m)) {
+                $fileYears[] = (int) $m[0];
+            }
+        }
+
+        $currentYear = (int) date('Y');
+        $defaultYears = [$currentYear - 2, $currentYear - 1, $currentYear, $currentYear + 1, 2026];
+        $all = array_unique(array_merge($dbYears, $pnbpYears, $fileYears, $defaultYears));
+        rsort($all);
+
+        return array_values($all);
+    }
+
+    /**
+     * Cari path file Excel Capaian Target PNBP per tahun.
+     */
+    public function resolveExcelPath(?string $customPath = null, int $year = 2026, bool $throwIfNotFound = false): ?string
     {
         if ($customPath && file_exists($customPath)) {
             return $customPath;
         }
 
         $candidates = [
-            public_path(self::DEFAULT_FILENAME),
-            public_path('excel/' . self::DEFAULT_FILENAME),
-            base_path(self::DEFAULT_FILENAME),
+            public_path("CAPAIAN TARGET PNBP {$year} (1).xlsx"),
+            public_path("CAPAIAN TARGET PNBP {$year}.xlsx"),
+            public_path("excel/CAPAIAN TARGET PNBP {$year} (1).xlsx"),
+            public_path("excel/CAPAIAN TARGET PNBP {$year}.xlsx"),
+            public_path("CAPAIAN_TARGET_PNBP_{$year}.xlsx"),
         ];
+
+        if ($year === 2026) {
+            $candidates[] = public_path(self::DEFAULT_FILENAME);
+            $candidates[] = public_path('excel/' . self::DEFAULT_FILENAME);
+            $candidates[] = base_path(self::DEFAULT_FILENAME);
+        }
 
         foreach ($candidates as $path) {
             if (file_exists($path)) {
@@ -125,78 +163,85 @@ class PnbpTargetService
             }
         }
 
-        // Cari file dengan pola *CAPAIAN*TARGET*.xlsx
         $matches = array_merge(
-            glob(public_path('*CAPAIAN*TARGET*.xlsx')) ?: [],
-            glob(public_path('excel/*CAPAIAN*TARGET*.xlsx')) ?: []
+            glob(public_path("*CAPAIAN*TARGET*{$year}*.xlsx")) ?: [],
+            glob(public_path("excel/*CAPAIAN*TARGET*{$year}*.xlsx")) ?: []
         );
 
         if (! empty($matches)) {
             return $matches[0];
         }
 
-        throw new \RuntimeException("File Excel Capaian Target PNBP 2026 tidak ditemukan di folder public/");
+        if ($year === 2026) {
+            $fallback2026 = array_merge(
+                glob(public_path('*CAPAIAN*TARGET*.xlsx')) ?: [],
+                glob(public_path('excel/*CAPAIAN*TARGET*.xlsx')) ?: []
+            );
+            if (! empty($fallback2026)) {
+                return $fallback2026[0];
+            }
+        }
+
+        if ($throwIfNotFound) {
+            throw new \RuntimeException("File Excel Capaian Target PNBP Tahun {$year} tidak ditemukan di folder public/");
+        }
+
+        return null;
     }
 
     /**
-     * Load spreadsheet instance.
+     * Dapatkan cache key unik berbasis file path, tahun, dan modification time.
      */
-    public function loadSpreadsheet(?string $filePath = null): Spreadsheet
+    public function getCacheKey(?string $filePath = null, int $year = 2026): string
     {
-        $path = $this->resolveExcelPath($filePath);
-        $reader = IOFactory::createReaderForFile($path);
-        return $reader->load($path);
+        $path = $this->resolveExcelPath($filePath, $year, false);
+        $mtime = ($path && file_exists($path)) ? filemtime($path) : 0;
+        return 'pnbp_capaian_data_v4_' . $year . '_' . md5(($path ?: 'no_file') . '_' . $mtime);
     }
 
     /**
-     * Dapatkan ringkasan capaian per sheet bulanan (Januari s/d Desember + Rekap).
+     * Bersihkan cache capaian untuk tahun tertentu.
      */
-    public function getMonthlySummary(?string $filePath = null): array
+    public function clearCache(?string $filePath = null, int $year = 2026): void
     {
-        $spreadsheet = $this->loadSpreadsheet($filePath);
-        $summaries = [];
+        $key = $this->getCacheKey($filePath, $year);
+        Cache::forget($key);
+        Cache::forget('pnbp_capaian_data_v3_' . $year);
+    }
 
+    /**
+     * Daftar ringkasan default jika belum ada data/file excel.
+     */
+    public function getEmptyMonthlySummaries(int $year): array
+    {
         $monthLabels = [
-            'JANUARI' => 'Januari 2026',
-            'FEB'     => 'Februari 2026',
-            'MARET'   => 'Maret 2026',
-            'APRIL'   => 'April 2026',
-            'MEI'     => 'Mei 2026',
-            'JUNI'    => 'Juni 2026',
-            'JULI'    => 'Juli 2026',
-            'AGUSTUS' => 'Agustus 2026',
-            'SEPT'    => 'September 2026',
-            'OKT'     => 'Oktober 2026',
-            'NOV'     => 'November 2026',
-            'DES'     => 'Desember 2026',
-            'REKAP'   => 'Rekap Tahunan 2026',
+            'JANUARI' => "Januari {$year}",
+            'FEB'     => "Februari {$year}",
+            'MARET'   => "Maret {$year}",
+            'APRIL'   => "April {$year}",
+            'MEI'     => "Mei {$year}",
+            'JUNI'    => "Juni {$year}",
+            'JULI'    => "Juli {$year}",
+            'AGUSTUS' => "Agustus {$year}",
+            'SEPT'    => "September {$year}",
+            'OKT'     => "Oktober {$year}",
+            'NOV'     => "November {$year}",
+            'DES'     => "Desember {$year}",
+            'REKAP'   => "Rekap Tahunan {$year}",
         ];
 
+        $summaries = [];
         foreach (self::SHEETS as $index => $sheetName) {
-            $sheet = $spreadsheet->getSheetByName($sheetName);
-            if (! $sheet) {
-                continue;
-            }
-
-            // Total baris 99
-            $volTgt = (float) $this->getNumericCellValue($sheet, 'I99');
-            $tgtRp  = (float) $this->getNumericCellValue($sheet, 'K99');
-            $volReal = (float) $this->getNumericCellValue($sheet, 'L99');
-            $realRp  = (float) $this->getNumericCellValue($sheet, 'N99');
-
-            $pct = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
-            $status = ($volReal > 0 || $realRp > 0) ? 'Terealisasi' : 'Belum Ada Data';
-
             $summaries[] = [
-                'index'             => $index + 1,
-                'sheet_name'        => $sheetName,
-                'label'             => $monthLabels[$sheetName] ?? $sheetName,
-                'volume_target'     => $volTgt,
-                'target_rp'         => $tgtRp,
-                'volume_realization'=> $volReal,
-                'realization_rp'    => $realRp,
-                'percentage'        => $pct,
-                'status'            => $status,
+                'index'              => $index + 1,
+                'sheet_name'         => $sheetName,
+                'label'              => $monthLabels[$sheetName] ?? $sheetName,
+                'volume_target'      => 0,
+                'target_rp'          => 0,
+                'volume_realization' => 0,
+                'realization_rp'     => 0,
+                'percentage'         => 0,
+                'status'             => 'Belum Ada Data',
             ];
         }
 
@@ -204,14 +249,556 @@ class PnbpTargetService
     }
 
     /**
-     * Dapatkan rincian baris per jenis penerimaan untuk sheet tertentu.
+     * Parse / Load seluruh sheet capaian per tahun.
+     * Menggunakan Database (TargetPnbpItem) sebagai single source of truth dengan sinkronisasi Excel.
      */
-    public function getSheetDetails(string $sheetName, ?string $filePath = null): array
+    public function getParsedDataCached(?string $filePath = null, int $year = 2026, bool $forceRefresh = false): array
     {
-        $spreadsheet = $this->loadSpreadsheet($filePath);
+        $cacheKey = $this->getCacheKey($filePath, $year);
+
+        if (! $forceRefresh) {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && ! empty($cached['monthly_summaries'])) {
+                return $cached;
+            }
+        }
+
+        $hasDbItems = TargetPnbpItem::where('year', $year)->exists();
+
+        // Jika DB sudah ada dan bukan force refresh, langsung bangun dari database
+        if ($hasDbItems && ! $forceRefresh) {
+            $payload = $this->buildDataFromDatabase($filePath, $year);
+            Cache::put($cacheKey, $payload, now()->addDays(30));
+            return $payload;
+        }
+
+        // Jika belum ada di DB atau force refresh: coba baca dari file Excel
+        $path = $this->resolveExcelPath($filePath, $year, false);
+        if ($path && file_exists($path)) {
+            $payload = $this->importExcelIntoDatabase($path, $year);
+            Cache::put($cacheKey, $payload, now()->addDays(30));
+            return $payload;
+        }
+
+        // Jika tidak ada file Excel dan DB kosong: seed default template Ditlantas
+        if (! $hasDbItems) {
+            $this->seedDefaultTemplateForYear($year);
+        }
+
+        $payload = $this->buildDataFromDatabase($filePath, $year);
+        Cache::put($cacheKey, $payload, now()->addDays(30));
+        return $payload;
+    }
+
+    /**
+     * Bangun data payload tampilan dari tabel database target_pnbp_items.
+     */
+    public function buildDataFromDatabase(?string $filePath = null, int $year = 2026): array
+    {
+        $path = $this->resolveExcelPath($filePath, $year, false);
+
+        $monthLabels = [
+            'JANUARI' => "Januari {$year}",
+            'FEB'     => "Februari {$year}",
+            'MARET'   => "Maret {$year}",
+            'APRIL'   => "April {$year}",
+            'MEI'     => "Mei {$year}",
+            'JUNI'    => "Juni {$year}",
+            'JULI'    => "Juli {$year}",
+            'AGUSTUS' => "Agustus {$year}",
+            'SEPT'    => "September {$year}",
+            'OKT'     => "Oktober {$year}",
+            'NOV'     => "November {$year}",
+            'DES'     => "Desember {$year}",
+            'REKAP'   => "Rekap Tahunan {$year}",
+        ];
+
+        $allDbItems = TargetPnbpItem::where('year', $year)
+            ->orderBy('row_index')
+            ->orderBy('created_at')
+            ->get();
+
+        $itemsBySheet = $allDbItems->groupBy('sheet_name');
+        $monthlySummaries = [];
+        $sheetDetailsMap  = [];
+
+        foreach (self::SHEETS as $index => $sheetName) {
+            $sheetItems = $itemsBySheet->get($sheetName, collect());
+            $totalItem = $sheetItems->firstWhere('level', 0);
+
+            $volTgt  = $totalItem ? (float) $totalItem->volume_target : (float) $sheetItems->where('level', 1)->sum('volume_target');
+            $tgtRp   = $totalItem ? (float) $totalItem->target_rp : (float) $sheetItems->where('level', 1)->sum('target_rp');
+            $volReal = $totalItem ? (float) $totalItem->volume_realization : (float) $sheetItems->where('level', 1)->sum('volume_realization');
+            $realRp  = $totalItem ? (float) $totalItem->realization_rp : (float) $sheetItems->where('level', 1)->sum('realization_rp');
+            $pct     = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+            $status  = ($volReal > 0 || $realRp > 0) ? 'Terealisasi' : 'Belum Ada Data';
+
+            $monthlySummaries[] = [
+                'index'              => $index + 1,
+                'sheet_name'         => $sheetName,
+                'label'              => $monthLabels[$sheetName] ?? $sheetName,
+                'volume_target'      => $volTgt,
+                'target_rp'          => $tgtRp,
+                'volume_realization' => $volReal,
+                'realization_rp'     => $realRp,
+                'percentage'         => $pct,
+                'status'             => $status,
+            ];
+
+            $itemsArray = [];
+            foreach ($sheetItems as $it) {
+                $itemsArray[] = [
+                    'id'                 => $it->id,
+                    'row'                => $it->row_index,
+                    'no'                 => $it->no,
+                    'name'               => $it->name,
+                    'level'              => (int) $it->level,
+                    'tarif'              => (float) $it->tarif,
+                    'volume_target'      => (float) $it->volume_target,
+                    'target_rp'          => (float) $it->target_rp,
+                    'volume_realization' => (float) $it->volume_realization,
+                    'realization_rp'     => (float) $it->realization_rp,
+                    'percentage'         => (float) $it->percentage,
+                ];
+            }
+
+            $sheetDetailsMap[$sheetName] = [
+                'sheet_name' => $sheetName,
+                'items'      => $itemsArray,
+            ];
+        }
+
+        return [
+            'file'              => $path ? basename($path) : "Database ARMASTER TA {$year}",
+            'path'              => $path,
+            'year'              => $year,
+            'has_file'          => (bool) $path,
+            'mtime'             => ($path && file_exists($path)) ? filemtime($path) : time(),
+            'monthly_summaries' => $monthlySummaries,
+            'sheet_details'     => $sheetDetailsMap,
+        ];
+    }
+
+    /**
+     * Import seluruh sheet dari file Excel ke dalam database target_pnbp_items.
+     */
+    public function importExcelIntoDatabase(string $path, int $year): array
+    {
+        $target = Target::firstOrCreate(
+            ['year' => $year],
+            [
+                'name'        => "Target Ditlantas {$year}",
+                'year'        => $year,
+                'description' => "Target Renbut Materiel dan Capaian Realisasi PNBP Ditlantas & Polres Jajaran TA {$year} (Tersambung ke " . basename($path) . ")",
+                'is_active'   => true,
+            ]
+        );
+
+        $reader = IOFactory::createReaderForFile($path);
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($path);
+
+        DB::transaction(function () use ($spreadsheet, $target, $year) {
+            TargetPnbpItem::where('target_id', $target->id)->forceDelete();
+
+            foreach (self::SHEETS as $sheetName) {
+                $sheet = $spreadsheet->getSheetByName($sheetName);
+                if (! $sheet) {
+                    continue;
+                }
+
+                foreach (self::CATEGORY_ROWS as $rowNum => $meta) {
+                    $rowVolTgt  = (float) $this->getNumericCellValue($sheet, "I{$rowNum}");
+                    $tarif      = (float) $this->getNumericCellValue($sheet, "J{$rowNum}");
+                    $rowTgtRp   = (float) $this->getNumericCellValue($sheet, "K{$rowNum}");
+                    $rowVolReal = (float) $this->getNumericCellValue($sheet, "L{$rowNum}");
+                    $rowRealRp  = (float) $this->getNumericCellValue($sheet, "N{$rowNum}");
+                    $rowPct     = $rowTgtRp > 0 ? round(($rowRealRp / $rowTgtRp) * 100, 2) : 0;
+
+                    if ($tarif == 0) {
+                        $tarifReal = (float) $this->getNumericCellValue($sheet, "M{$rowNum}");
+                        if ($tarifReal > 0) {
+                            $tarif = $tarifReal;
+                        }
+                    }
+
+                    TargetPnbpItem::create([
+                        'target_id'          => $target->id,
+                        'year'               => $year,
+                        'sheet_name'         => $sheetName,
+                        'row_index'          => $rowNum,
+                        'no'                 => $meta['no'],
+                        'name'               => $meta['name'],
+                        'level'              => $meta['level'],
+                        'tarif'              => $tarif,
+                        'volume_target'      => $rowVolTgt,
+                        'target_rp'          => $rowTgtRp,
+                        'volume_realization' => $rowVolReal,
+                        'realization_rp'     => $rowRealRp,
+                        'percentage'         => $rowPct,
+                    ]);
+                }
+            }
+        });
+
+        return $this->buildDataFromDatabase($path, $year);
+    }
+
+    /**
+     * Seed struktur template Ditlantas default jika tahun belum memiliki file Excel.
+     */
+    public function seedDefaultTemplateForYear(int $year): void
+    {
+        $target = Target::firstOrCreate(
+            ['year' => $year],
+            [
+                'name'        => "Target Ditlantas {$year}",
+                'year'        => $year,
+                'description' => "Target Renbut Materiel dan Capaian Realisasi PNBP Ditlantas & Polres Jajaran TA {$year}",
+                'is_active'   => true,
+            ]
+        );
+
+        DB::transaction(function () use ($target, $year) {
+            foreach (self::SHEETS as $sheetName) {
+                foreach (self::CATEGORY_ROWS as $rowNum => $meta) {
+                    TargetPnbpItem::create([
+                        'target_id'          => $target->id,
+                        'year'               => $year,
+                        'sheet_name'         => $sheetName,
+                        'row_index'          => $rowNum,
+                        'no'                 => $meta['no'],
+                        'name'               => $meta['name'],
+                        'level'              => $meta['level'],
+                        'tarif'              => 0,
+                        'volume_target'      => 0,
+                        'target_rp'          => 0,
+                        'volume_realization' => 0,
+                        'realization_rp'     => 0,
+                        'percentage'         => 0,
+                    ]);
+                }
+            }
+        });
+    }
+
+    /**
+     * Tambah item materiil penerimaan PNBP baru.
+     */
+    public function createItem(array $data, int $year, string $sheetName = 'JANUARI', bool $applyToAllMonths = false): TargetPnbpItem
+    {
+        $target = Target::firstOrCreate(
+            ['year' => $year],
+            [
+                'name'        => "Target Ditlantas {$year}",
+                'year'        => $year,
+                'description' => "Target Renbut Materiel dan Capaian Realisasi PNBP Ditlantas & Polres Jajaran TA {$year}",
+                'is_active'   => true,
+            ]
+        );
+
+        $sheets = $applyToAllMonths ? self::SHEETS : [$sheetName];
+        $createdItem = null;
+
+        DB::transaction(function () use ($sheets, $data, $target, $year, &$createdItem) {
+            foreach ($sheets as $sName) {
+                $maxRow = (int) TargetPnbpItem::where('year', $year)->where('sheet_name', $sName)->max('row_index');
+                $rowIndex = $maxRow > 0 ? $maxRow + 1 : 100;
+
+                $tarif   = (float) ($data['tarif'] ?? 0);
+                $volTgt  = (float) ($data['volume_target'] ?? 0);
+                $volReal = (float) ($data['volume_realization'] ?? 0);
+                $level   = (int) ($data['level'] ?? 2);
+
+                if ($level > 1) {
+                    $tgtRp  = $volTgt * $tarif;
+                    $realRp = $volReal * $tarif;
+                    $pct    = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+                } else {
+                    $tgtRp  = (float) ($data['target_rp'] ?? 0);
+                    $realRp = (float) ($data['realization_rp'] ?? 0);
+                    $pct    = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+                }
+
+                $item = TargetPnbpItem::create([
+                    'target_id'          => $target->id,
+                    'year'               => $year,
+                    'sheet_name'         => $sName,
+                    'row_index'          => $rowIndex,
+                    'no'                 => $data['no'] ?? null,
+                    'name'               => $data['name'] ?? '',
+                    'level'              => $level,
+                    'tarif'              => $tarif,
+                    'volume_target'      => $volTgt,
+                    'target_rp'          => $tgtRp,
+                    'volume_realization' => $volReal,
+                    'realization_rp'     => $realRp,
+                    'percentage'         => $pct,
+                ]);
+
+                if (! $createdItem) {
+                    $createdItem = $item;
+                }
+
+                $this->recalculateSheetTotals($year, $sName);
+            }
+        });
+
+        $this->clearCache(null, $year);
+
+        return $createdItem;
+    }
+
+    /**
+     * Update item materiil penerimaan PNBP.
+     */
+    public function updateItem(string $id, array $data): TargetPnbpItem
+    {
+        $item = TargetPnbpItem::findOrFail($id);
+
+        $tarif   = isset($data['tarif']) ? (float) $data['tarif'] : (float) $item->tarif;
+        $volTgt  = isset($data['volume_target']) ? (float) $data['volume_target'] : (float) $item->volume_target;
+        $volReal = isset($data['volume_realization']) ? (float) $data['volume_realization'] : (float) $item->volume_realization;
+        $level   = isset($data['level']) ? (int) $data['level'] : (int) $item->level;
+
+        if ($level > 1) {
+            $tgtRp  = $volTgt * $tarif;
+            $realRp = $volReal * $tarif;
+            $pct    = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+        } else {
+            $tgtRp  = (float) ($data['target_rp'] ?? $item->target_rp);
+            $realRp = (float) ($data['realization_rp'] ?? $item->realization_rp);
+            $pct    = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+        }
+
+        $item->update([
+            'no'                 => $data['no'] ?? $item->no,
+            'name'               => $data['name'] ?? $item->name,
+            'level'              => $level,
+            'tarif'              => $tarif,
+            'volume_target'      => $volTgt,
+            'target_rp'          => $tgtRp,
+            'volume_realization' => $volReal,
+            'realization_rp'     => $realRp,
+            'percentage'         => $pct,
+        ]);
+
+        $this->recalculateSheetTotals($item->year, $item->sheet_name);
+        $this->clearCache(null, $item->year);
+
+        return $item;
+    }
+
+    /**
+     * Hapus item materiil penerimaan PNBP.
+     */
+    public function deleteItem(string $id): void
+    {
+        $item = TargetPnbpItem::findOrFail($id);
+        $year = $item->year;
+        $sheet = $item->sheet_name;
+
+        $item->delete();
+
+        $this->recalculateSheetTotals($year, $sheet);
+        $this->clearCache(null, $year);
+    }
+
+    /**
+     * Hitung ulang total header grup dan row total untuk sheet tertentu.
+     */
+    public function recalculateSheetTotals(int $year, string $sheetName): void
+    {
+        $items = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', $sheetName)
+            ->orderBy('row_index')
+            ->orderBy('created_at')
+            ->get();
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $currentHeader = null;
+        $headerChildren = [];
+
+        foreach ($items as $item) {
+            if ($item->level === 1) {
+                if ($currentHeader) {
+                    $this->updateHeaderFromChildren($currentHeader, $headerChildren);
+                }
+                $currentHeader = $item;
+                $headerChildren = [];
+            } elseif ($item->level > 1 && $currentHeader) {
+                $headerChildren[] = $item;
+            }
+        }
+        if ($currentHeader) {
+            $this->updateHeaderFromChildren($currentHeader, $headerChildren);
+        }
+
+        // Hitung ulang Baris TOTAL (Level 0)
+        $items = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', $sheetName)
+            ->get();
+
+        $headers = $items->where('level', 1);
+        $totalRow = $items->firstWhere('level', 0);
+
+        $totalVolTgt  = $headers->sum('volume_target');
+        $totalTgtRp   = $headers->sum('target_rp');
+        $totalVolReal = $headers->sum('volume_realization');
+        $totalRealRp  = $headers->sum('realization_rp');
+        $totalPct     = $totalTgtRp > 0 ? round(($totalRealRp / $totalTgtRp) * 100, 2) : 0;
+
+        if ($totalRow) {
+            $totalRow->update([
+                'volume_target'      => $totalVolTgt,
+                'target_rp'          => $totalTgtRp,
+                'volume_realization' => $totalVolReal,
+                'realization_rp'     => $totalRealRp,
+                'percentage'         => $totalPct,
+            ]);
+        }
+
+        // Sinkronisasi akumulasi REKAP jika perubahan terjadi di sheet bulanan
+        if ($sheetName !== 'REKAP') {
+            $this->recalculateRekapSheet($year);
+        }
+
+        $this->clearCache(null, $year);
+    }
+
+    /**
+     * Update Level 1 header dari kumpulan leaf children-nya.
+     */
+    protected function updateHeaderFromChildren(TargetPnbpItem $header, array $children): void
+    {
+        if (empty($children)) {
+            return;
+        }
+
+        $hasLevel3 = collect($children)->contains('level', 3);
+        if ($hasLevel3) {
+            $billable = collect($children)->filter(function ($c) {
+                return $c->level === 3 || ($c->level === 2 && (float)$c->tarif > 0);
+            });
+        } else {
+            $billable = collect($children);
+        }
+
+        $volTgt  = $billable->sum('volume_target');
+        $tgtRp   = $billable->sum('target_rp');
+        $volReal = $billable->sum('volume_realization');
+        $realRp  = $billable->sum('realization_rp');
+        $pct     = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+
+        $header->update([
+            'volume_target'      => $volTgt,
+            'target_rp'          => $tgtRp,
+            'volume_realization' => $volReal,
+            'realization_rp'     => $realRp,
+            'percentage'         => $pct,
+        ]);
+    }
+
+    /**
+     * Hitung ulang akumulasi sheet REKAP dari sheet JANUARI s/d DESEMBER.
+     */
+    protected function recalculateRekapSheet(int $year): void
+    {
+        $months = array_diff(self::SHEETS, ['REKAP']);
+        $rekapItems = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', 'REKAP')
+            ->get();
+
+        if ($rekapItems->isEmpty()) {
+            return;
+        }
+
+        $monthItems = TargetPnbpItem::where('year', $year)
+            ->whereIn('sheet_name', $months)
+            ->get();
+
+        foreach ($rekapItems as $rItem) {
+            if ($rItem->level === 0) {
+                continue;
+            }
+
+            $matchingMonths = $monthItems->where('name', $rItem->name)->where('level', $rItem->level);
+            if ($matchingMonths->isNotEmpty()) {
+                $totalRealVol = $matchingMonths->sum('volume_realization');
+                $totalRealRp  = $matchingMonths->sum('realization_rp');
+                $tgtRp = (float) $rItem->target_rp;
+                $pct = $tgtRp > 0 ? round(($totalRealRp / $tgtRp) * 100, 2) : 0;
+
+                $rItem->update([
+                    'volume_realization' => $totalRealVol,
+                    'realization_rp'     => $totalRealRp,
+                    'percentage'         => $pct,
+                ]);
+            }
+        }
+
+        // Update headers dan TOTAL sheet REKAP
+        $items = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', 'REKAP')
+            ->orderBy('row_index')
+            ->orderBy('created_at')
+            ->get();
+
+        $currentHeader = null;
+        $headerChildren = [];
+        foreach ($items as $item) {
+            if ($item->level === 1) {
+                if ($currentHeader) {
+                    $this->updateHeaderFromChildren($currentHeader, $headerChildren);
+                }
+                $currentHeader = $item;
+                $headerChildren = [];
+            } elseif ($item->level > 1 && $currentHeader) {
+                $headerChildren[] = $item;
+            }
+        }
+        if ($currentHeader) {
+            $this->updateHeaderFromChildren($currentHeader, $headerChildren);
+        }
+
+        $items = TargetPnbpItem::where('year', $year)->where('sheet_name', 'REKAP')->get();
+        $headers = $items->where('level', 1);
+        $totalRow = $items->firstWhere('level', 0);
+        if ($totalRow) {
+            $totalVolTgt  = $headers->sum('volume_target');
+            $totalTgtRp   = $headers->sum('target_rp');
+            $totalVolReal = $headers->sum('volume_realization');
+            $totalRealRp  = $headers->sum('realization_rp');
+            $totalPct     = $totalTgtRp > 0 ? round(($totalRealRp / $totalTgtRp) * 100, 2) : 0;
+
+            $totalRow->update([
+                'volume_target'      => $totalVolTgt,
+                'target_rp'          => $totalTgtRp,
+                'volume_realization' => $totalVolReal,
+                'realization_rp'     => $totalRealRp,
+                'percentage'         => $totalPct,
+            ]);
+        }
+    }
+
+    /**
+     * Dapatkan ringkasan capaian per sheet bulanan dari Cache per tahun.
+     */
+    public function getMonthlySummary(?string $filePath = null, int $year = 2026): array
+    {
+        return $this->getParsedDataCached($filePath, $year)['monthly_summaries'] ?? [];
+    }
+
+    /**
+     * Dapatkan rincian baris per jenis penerimaan untuk sheet tertentu per tahun.
+     */
+    public function getSheetDetails(string $sheetName, ?string $filePath = null, int $year = 2026): array
+    {
         $normalizedName = strtoupper(trim($sheetName));
 
-        // Mapping alias nama sheet
         $aliasMap = [
             '1' => 'JANUARI', 'JAN' => 'JANUARI', 'JANUARI' => 'JANUARI',
             '2' => 'FEB', 'PEB' => 'FEB', 'FEBRUARI' => 'FEB', 'FEB' => 'FEB',
@@ -229,59 +816,25 @@ class PnbpTargetService
         ];
 
         $targetSheetName = $aliasMap[$normalizedName] ?? $normalizedName;
-        $sheet = $spreadsheet->getSheetByName($targetSheetName);
+        $data = $this->getParsedDataCached($filePath, $year);
 
-        if (! $sheet) {
-            throw new \InvalidArgumentException("Sheet '{$sheetName}' tidak ditemukan dalam file Excel.");
-        }
-
-        $items = [];
-
-        foreach (self::CATEGORY_ROWS as $rowNum => $meta) {
-            $volTgt   = (float) $this->getNumericCellValue($sheet, "I{$rowNum}");
-            $tarif    = (float) $this->getNumericCellValue($sheet, "J{$rowNum}");
-            $tgtRp    = (float) $this->getNumericCellValue($sheet, "K{$rowNum}");
-            $volReal  = (float) $this->getNumericCellValue($sheet, "L{$rowNum}");
-            $realRp   = (float) $this->getNumericCellValue($sheet, "N{$rowNum}");
-            $pct      = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
-
-            // Jika tarif 0 tapi ada di cell M
-            if ($tarif == 0) {
-                $tarifReal = (float) $this->getNumericCellValue($sheet, "M{$rowNum}");
-                if ($tarifReal > 0) {
-                    $tarif = $tarifReal;
-                }
-            }
-
-            $items[] = [
-                'row'               => $rowNum,
-                'no'                => $meta['no'],
-                'name'              => $meta['name'],
-                'level'             => $meta['level'],
-                'tarif'             => $tarif,
-                'volume_target'     => $volTgt,
-                'target_rp'         => $tgtRp,
-                'volume_realization'=> $volReal,
-                'realization_rp'    => $realRp,
-                'percentage'        => $pct,
-            ];
+        if (isset($data['sheet_details'][$targetSheetName])) {
+            return $data['sheet_details'][$targetSheetName];
         }
 
         return [
             'sheet_name' => $targetSheetName,
-            'items'      => $items,
+            'items'      => [],
         ];
     }
 
     /**
-     * Hubungkan dan sinkronisasi dengan tabel Target di database.
+     * Hubungkan dan sinkronisasi dengan tabel Target di database per tahun.
      */
-    public function syncTargetWithDatabase(?string $filePath = null): array
+    public function syncTargetWithDatabase(?string $filePath = null, int $year = 2026, bool $forceRefresh = false): array
     {
-        $path = $this->resolveExcelPath($filePath);
-        $year = 2026;
+        $path = $this->resolveExcelPath($filePath, $year, false);
 
-        // Ambil atau buat Target tahun 2026
         $target = Target::firstOrCreate(
             ['year' => $year],
             [
@@ -292,30 +845,39 @@ class PnbpTargetService
             ]
         );
 
-        // Pastikan aktif dan perbarui deskripsi
-        $target->update([
-            'is_active'   => true,
-            'description' => "Target Renbut Materiel dan Capaian Realisasi PNBP Ditlantas & Polres Jajaran TA {$year} (Tersambung ke " . basename($path) . ")",
-        ]);
+        if ($path && ($forceRefresh || ! str_contains((string) $target->description, basename($path)))) {
+            $target->update([
+                'is_active'   => true,
+                'description' => "Target Renbut Materiel dan Capaian Realisasi PNBP Ditlantas & Polres Jajaran TA {$year} (Tersambung ke " . basename($path) . ")",
+            ]);
+        }
 
-        $dbTotalQty = (float) TargetDetail::where('target_id', $target->id)->sum('quantity');
-        $dbDetailsCount = TargetDetail::where('target_id', $target->id)->count();
+        $dbDetailsStats = Cache::remember("target_details_stats_{$target->id}", 3600, function () use ($target) {
+            return [
+                'total_qty' => (float) TargetDetail::where('target_id', $target->id)->sum('quantity'),
+                'count'     => TargetDetail::where('target_id', $target->id)->count(),
+            ];
+        });
+        $dbTotalQty = $dbDetailsStats['total_qty'];
+        $dbDetailsCount = $dbDetailsStats['count'];
 
-        // Ambil rekap dari Excel
-        $rekap = $this->getSheetDetails('REKAP', $path);
-        $totalRow = collect($rekap['items'])->firstWhere('row', 99);
+        // Ambil data rekap dari database/cache
+        $rekap = $this->getSheetDetails('REKAP', $path, $year);
+        $totalRow = collect($rekap['items'] ?? [])->firstWhere('level', 0) ?: collect($rekap['items'] ?? [])->firstWhere('row', 99);
 
         $excelTargetQty = $totalRow['volume_target'] ?? 0;
         $excelTargetRp  = $totalRow['target_rp'] ?? 0;
-        $excelRealQty    = $totalRow['volume_realization'] ?? 0;
-        $excelRealRp     = $totalRow['realization_rp'] ?? 0;
-        $excelPct        = $totalRow['percentage'] ?? 0;
+        $excelRealQty   = $totalRow['volume_realization'] ?? 0;
+        $excelRealRp    = $totalRow['realization_rp'] ?? 0;
+        $excelPct       = $totalRow['percentage'] ?? 0;
 
-        $isQuantityAligned = abs($dbTotalQty - $excelTargetQty) < 1;
+        $isQuantityAligned = $excelTargetQty > 0 ? (abs($dbTotalQty - $excelTargetQty) < 1) : false;
 
         return [
+            'year'               => $year,
             'target_model'       => $target,
-            'excel_file'         => basename($path),
+            'has_excel_file'     => ! empty($path),
+            'excel_file'         => $path ? basename($path) : "Database ARMASTER TA {$year}",
             'excel_path'         => $path,
             'db_total_quantity'  => $dbTotalQty,
             'db_details_count'   => $dbDetailsCount,
@@ -344,7 +906,6 @@ class PnbpTargetService
         }
 
         if (is_string($val)) {
-            // Bersihkan format titik, koma, spasi
             $cleaned = preg_replace('/[^-0-9.]/', '', str_replace(',', '', $val));
             if (is_numeric($cleaned)) {
                 return (float) $cleaned;

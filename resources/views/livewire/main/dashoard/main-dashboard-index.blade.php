@@ -245,13 +245,23 @@
                 class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 transition-transform group-hover:scale-150">
             </div>
             <div class="relative z-10">
-                <p class="text-sm font-bold uppercase tracking-widest text-blue-100/80">Target PNBP
-                    {{ $activeTargetYear }}
-                </p>
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-bold uppercase tracking-widest text-blue-100/80">Target PNBP
+                        {{ $activeTargetYear }}
+                    </p>
+                    @if(!empty($pnbpStats['is_from_excel']))
+                        <span class="rounded-full bg-blue-800/80 px-2 py-0.5 text-[10px] font-bold text-blue-200">Ditlantas</span>
+                    @endif
+                </div>
                 <div class="mt-4 flex items-baseline gap-2">
                     <span class="text-lg font-bold text-blue-200">Rp</span>
                     <h3 class="text-xl font-black text-white">{{ number_format($pnbpStats['target']) }}</h3>
                 </div>
+                @auth
+                <div class="mt-2 text-right">
+                    <a href="{{ route('master.target.capaian') }}" class="text-xs text-blue-200 underline hover:text-white">Rincian Capaian &rarr;</a>
+                </div>
+                @endauth
             </div>
         </div>
 
@@ -261,9 +271,14 @@
                 class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 transition-transform group-hover:scale-150">
             </div>
             <div class="relative z-10">
-                <p class="text-sm font-bold uppercase tracking-widest text-purple-100/80 italic">Realisasi PNBP
-                    {{ $activeTargetYear }}
-                </p>
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-bold uppercase tracking-widest text-purple-100/80 italic">Realisasi PNBP
+                        {{ $activeTargetYear }}
+                    </p>
+                    @if(!empty($pnbpStats['is_from_excel']))
+                        <span class="rounded-full bg-purple-700/80 px-2 py-0.5 text-[10px] font-bold text-purple-100">Jan–Sept</span>
+                    @endif
+                </div>
                 <div class="mt-4 flex items-baseline gap-2">
                     <span class="text-lg font-bold text-purple-200">Rp</span>
                     <h3 class="text-xl font-black text-white">{{ number_format($pnbpStats['realization']) }}</h3>
@@ -279,6 +294,11 @@
                             class="text-lg font-black text-white italic">{{ number_format($pnbpStats['percentage'], 1) }}%</span>
                     </div>
                 </div>
+                @if(!empty($pnbpStats['system_realization']))
+                    <div class="mt-2 pt-2 border-t border-purple-500/30 text-[11px] text-purple-200 flex justify-between">
+                        <span>Input Transaksi: {{ number_format($pnbpStats['system_realization']) }}</span>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -289,9 +309,14 @@
                 class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 transition-transform group-hover:scale-150">
             </div>
             <div class="relative z-10">
-                <p class="text-sm font-bold uppercase tracking-widest text-cyan-100/80 italic">Renbut
-                    {{ $activeTargetYear }}
-                </p>
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-bold uppercase tracking-widest text-cyan-100/80 italic">Renbut
+                        {{ $activeTargetYear }}
+                    </p>
+                    @if(!empty($renbutStats['is_from_excel']))
+                        <span class="rounded-full bg-cyan-700/80 px-2 py-0.5 text-[10px] font-bold text-cyan-100">19,3 Juta</span>
+                    @endif
+                </div>
                 <div class="mt-4 flex items-baseline gap-2">
                     <h3 class="text-xl font-black text-white">{{ number_format($renbutStats['target']) }}</h3>
                     <span class="text-sm font-bold text-cyan-200 italic uppercase">Unit</span>
@@ -305,9 +330,14 @@
                 class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 transition-transform group-hover:scale-150">
             </div>
             <div class="relative z-10">
-                <p class="text-sm font-bold uppercase tracking-widest text-emerald-100/80 italic">Realisasi
-                    {{ $activeTargetYear }}
-                </p>
+                <div class="flex items-center justify-between">
+                    <p class="text-sm font-bold uppercase tracking-widest text-emerald-100/80 italic">Realisasi
+                        {{ $activeTargetYear }}
+                    </p>
+                    @if(!empty($renbutStats['is_from_excel']))
+                        <span class="rounded-full bg-emerald-700/80 px-2 py-0.5 text-[10px] font-bold text-emerald-100">Jan–Sept</span>
+                    @endif
+                </div>
                 <div class="mt-4 flex items-baseline gap-2">
                     <h3 class="text-xl font-black text-white">{{ number_format($renbutStats['realization']) }}</h3>
                     <span class="text-sm font-bold text-emerald-200 italic uppercase">Unit</span>
@@ -324,6 +354,11 @@
                             class="text-lg font-black text-white italic">{{ number_format($renbutStats['percentage'], 1) }}%</span>
                     </div>
                 </div>
+                @if(!empty($renbutStats['system_realization']))
+                    <div class="mt-2 pt-2 border-t border-emerald-500/30 text-[11px] text-emerald-200 flex justify-between">
+                        <span>Input Transaksi: {{ number_format($renbutStats['system_realization']) }}</span>
+                    </div>
+                @endif
             </div>
         </div>
 

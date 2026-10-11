@@ -122,36 +122,11 @@ class MainDashboardIndex extends Component
         $activeTarget = Target::where('is_active', true)->orderByDesc('year')->first();
         $currentYear = now()->year;
 
-        // PNBP Stats (Revenue calculation: quantity * price)
-        if ($activeTarget) {
-            $targetPNBP = TargetDetail::where('target_id', $activeTarget->id)
-                ->join('types', 'target_details.type_id', '=', 'types.id')
-                ->sum(DB::raw('target_details.quantity * types.price')) ?? 0;
-            
-            $targetRenbut = TargetDetail::where('target_id', $activeTarget->id)->sum('quantity') ?? 0;
-        } else {
-            $targetPNBP = 0;
-            $targetRenbut = 0;
-        }
-
-        $realizedPNBP = MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->whereYear('date', $currentYear))
-            ->join('types', 'material_usage_details.type_id', '=', 'types.id')
-            ->sum(DB::raw('material_usage_details.quantity * types.price')) ?? 0;
-
-        $realizedGunmat = MaterialUsageDetail::whereHas('materialUsage', fn($q) => $q->whereYear('date', $currentYear))
-            ->sum('quantity') ?? 0;
-
-        $pnbpStats = [
-            'target' => (float)$targetPNBP,
-            'realization' => (float)$realizedPNBP,
-            'percentage' => $targetPNBP > 0 ? round(($realizedPNBP / $targetPNBP) * 100, 1) : 0,
-        ];
-
-        $renbutStats = [
-            'target' => (float)$targetRenbut,
-            'realization' => (float)$realizedGunmat,
-            'percentage' => $targetRenbut > 0 ? round(($realizedGunmat / $targetRenbut) * 100, 1) : 0,
-        ];
+        // PNBP & Renbut Stats (menggunakan DashboardStatsService yang tersinkronisasi)
+        $statsService = app(\App\Services\DashboardStatsService::class);
+        $pnbpAndRenbut = $statsService->getPnbpAndRenbutStats();
+        $pnbpStats = $pnbpAndRenbut['pnbp'];
+        $renbutStats = $pnbpAndRenbut['renbut'];
 
         return view('livewire.main.dashoard.main-dashboard-index', [
             'totalReceptions' => $totalReceptions,

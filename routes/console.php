@@ -672,26 +672,28 @@ Artisan::command('fix:issues', function () {
     $this->info("================================================================");
 })->purpose('Eksekusi perbaikan komprehensif untuk 8 kendala Polres & Samsat');
 
-Artisan::command('pnbp:capaian {--month= : Tampilkan rincian per kategori untuk bulan tertentu (JANUARI..DES, REKAP, atau all)} {--sync : Hubungkan dan sinkronkan dengan Target 2026 di database} {--file= : Path file Excel custom}', function (\App\Services\PnbpTargetService $service) {
+Artisan::command('pnbp:capaian {--year=2026 : Tahun target PNBP (contoh: 2026, 2025)} {--month= : Tampilkan rincian per kategori untuk bulan tertentu (JANUARI..DES, REKAP, atau all)} {--sync : Hubungkan dan sinkronkan dengan Target di database} {--file= : Path file Excel custom}', function (\App\Services\PnbpTargetService $service) {
+    $year = (int) ($this->option('year') ?: 2026);
     $filePath = $this->option('file');
     $monthOpt = $this->option('month');
     $syncOpt = $this->option('sync');
 
     try {
-        $excelPath = $service->resolveExcelPath($filePath);
+        $excelPath = $service->resolveExcelPath($filePath, $year, true);
     } catch (\Throwable $e) {
         $this->error($e->getMessage());
         return 1;
     }
 
     $this->info("================================================================================");
-    $this->info("          CAPAIAN REALISASI TARGET PNBP 2026 - DITLANTAS POLDA JATIM            ");
+    $this->info("          CAPAIAN REALISASI TARGET PNBP {$year} - DITLANTAS POLDA JATIM            ");
     $this->info("================================================================================");
+    $this->line("Tahun TA   : <info>{$year}</info>");
     $this->line("File Excel : <comment>" . basename($excelPath) . "</comment>");
     $this->line("Lokasi     : <comment>{$excelPath}</comment>");
 
     // Sinkronisasi target ke DB
-    $syncResult = $service->syncTargetWithDatabase($excelPath);
+    $syncResult = $service->syncTargetWithDatabase($excelPath, $year, (bool) $syncOpt);
     $targetModel = $syncResult['target_model'];
 
     $this->line("Target DB  : <info>{$targetModel->name}</info> (Tahun: {$targetModel->year}, ID: {$targetModel->id})");
@@ -699,19 +701,19 @@ Artisan::command('pnbp:capaian {--month= : Tampilkan rincian per kategori untuk 
     $this->line("Excel Tgt  : Volume: <info>" . number_format($syncResult['excel_target_qty']) . "</info> | Nilai: <info>Rp " . number_format($syncResult['excel_target_rp']) . "</info>");
 
     if ($syncResult['is_aligned']) {
-        $this->info("Status     : [OK] Tersambung & Selaras dengan Data Target 2026");
+        $this->info("Status     : [OK] Tersambung & Selaras dengan Data Target {$year}");
     } else {
         $this->warn("Status     : Volume DB (" . number_format($syncResult['db_total_quantity']) . ") berbeda dengan Excel (" . number_format($syncResult['excel_target_qty']) . ")");
     }
     $this->info("================================================================================\n");
 
     if ($syncOpt) {
-        $this->info("-> Berhasil memperbarui status dan metadata Target 2026 di database.\n");
+        $this->info("-> Berhasil memperbarui status dan metadata Target {$year} di database.\n");
     }
 
     // 1. Tampilkan Ringkasan Bulanan (JANUARI - DESEMBER + REKAP)
     $this->info("--- RINGKASAN CAPAIAN REALISASI PER BULAN (SHEET 1 s/d 13) ---");
-    $monthlySummaries = $service->getMonthlySummary($excelPath);
+    $monthlySummaries = $service->getMonthlySummary($excelPath, $year);
 
     $summaryTable = [];
     foreach ($monthlySummaries as $item) {
@@ -740,14 +742,14 @@ Artisan::command('pnbp:capaian {--month= : Tampilkan rincian per kategori untuk 
 
         foreach ($targetMonths as $m) {
             try {
-                $details = $service->getSheetDetails($m, $excelPath);
+                $details = $service->getSheetDetails($m, $excelPath, $year);
             } catch (\Throwable $e) {
                 $this->error("Gagal membaca rincian sheet '{$m}': " . $e->getMessage());
                 continue;
             }
 
             $this->info("\n================================================================================");
-            $this->info(" RINCIAN JENIS PENERIMAAN PNBP: SHEET {$details['sheet_name']} ");
+            $this->info(" RINCIAN JENIS PENERIMAAN PNBP: SHEET {$details['sheet_name']} (TA {$year}) ");
             $this->info("================================================================================");
 
             $detailRows = [];
@@ -774,18 +776,19 @@ Artisan::command('pnbp:capaian {--month= : Tampilkan rincian per kategori untuk 
         }
     } else {
         $this->line("\n<comment>Petunjuk:</comment> Untuk melihat rincian kategori per bulan, tambahkan opsi <info>--month=NAMA_BULAN</info>");
-        $this->line("Contoh: <info>php artisan pnbp:capaian --month=JANUARI</info> atau <info>php artisan pnbp:capaian --month=REKAP</info> atau <info>--month=all</info>");
+        $this->line("Contoh: <info>php artisan pnbp:capaian --year={$year} --month=JANUARI</info> atau <info>--month=REKAP</info> atau <info>--month=all</info>");
     }
 
     $this->info("\n================================================================================");
-    $this->info("Selesai mengecek seluruh sheet bulanan Capaian Target PNBP 2026!");
+    $this->info("Selesai mengecek seluruh sheet bulanan Capaian Target PNBP {$year}!");
     $this->info("================================================================================");
 
     return 0;
-})->purpose('Cek capaian target PNBP 2026 per sheet bulanan dan sambungkan ke Target database');
+})->purpose('Cek capaian target PNBP per tahun per sheet bulanan dan sambungkan ke Target database');
 
-Artisan::command('target:pnbp {--month= : Tampilkan rincian per kategori untuk bulan tertentu} {--sync : Hubungkan dan sinkronkan dengan database} {--file= : Path file Excel custom}', function () {
+Artisan::command('target:pnbp {--year=2026 : Tahun target PNBP} {--month= : Tampilkan rincian per kategori untuk bulan tertentu} {--sync : Hubungkan dan sinkronkan dengan database} {--file= : Path file Excel custom}', function () {
     $this->call('pnbp:capaian', [
+        '--year'  => $this->option('year'),
         '--month' => $this->option('month'),
         '--sync'  => $this->option('sync'),
         '--file'  => $this->option('file'),

@@ -468,8 +468,17 @@
             <div
                 class="relative overflow-hidden rounded-2xl bg-blue-700 p-5 shadow-lg transition-transform hover:scale-[1.02]">
                 <div class="relative z-10">
-                    <p class="text-sm font-medium text-blue-100 italic">Target PNBP {{ $activeTargetYear }}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-blue-100 italic">Target PNBP {{ $activeTargetYear }}</p>
+                        @if(!empty($pnbpStats['is_from_excel']))
+                            <span class="rounded-full bg-blue-800/80 px-2 py-0.5 text-[10px] font-semibold text-blue-200">Ditlantas</span>
+                        @endif
+                    </div>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($pnbpStats['target']) }}</p>
+                    <div class="mt-2 text-[11px] text-blue-200 flex items-center justify-between">
+                        <span>Pagu Target Tahunan</span>
+                        <a href="{{ route('master.target.capaian') }}" class="underline hover:text-white font-medium">Lihat Rincian &rarr;</a>
+                    </div>
                 </div>
             </div>
 
@@ -477,12 +486,23 @@
             <div
                 class="relative overflow-hidden rounded-2xl bg-purple-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
                 <div class="relative z-10">
-                    <p class="text-sm font-medium text-purple-100 italic">Realisasi PNBP {{ $activeTargetYear }}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-purple-100 italic">Realisasi PNBP {{ $activeTargetYear }}</p>
+                        @if(!empty($pnbpStats['is_from_excel']))
+                            <span class="rounded-full bg-purple-700/80 px-2 py-0.5 text-[10px] font-semibold text-purple-100">Jan–Sept</span>
+                        @endif
+                    </div>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($pnbpStats['realization']) }}</p>
                     <div class="mt-2 flex items-center justify-between">
                         <span class="text-xs font-medium text-purple-100">Prosentase</span>
-                        <span class="text-xl font-bold text-white">{{ number_format($pnbpStats['percentage'], 0) }} %</span>
+                        <span class="text-xl font-bold text-white">{{ number_format($pnbpStats['percentage'], 1) }} %</span>
                     </div>
+                    @if(!empty($pnbpStats['system_realization']))
+                        <div class="mt-1.5 pt-1.5 border-t border-purple-400/40 text-[10px] text-purple-100/90 flex justify-between items-center">
+                            <span>Input Transaksi: {{ number_format($pnbpStats['system_realization']) }}</span>
+                            <a href="{{ route('master.target.capaian') }}" class="underline hover:text-white">Detail</a>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -490,8 +510,17 @@
             <div
                 class="relative overflow-hidden rounded-2xl bg-cyan-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
                 <div class="relative z-10">
-                    <p class="text-sm font-medium text-cyan-100 italic">Renbut Matreg {{ $activeTargetYear }}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-cyan-100 italic">Renbut Matreg {{ $activeTargetYear }}</p>
+                        @if(!empty($renbutStats['is_from_excel']))
+                            <span class="rounded-full bg-cyan-700/80 px-2 py-0.5 text-[10px] font-semibold text-cyan-100">19,3 Juta</span>
+                        @endif
+                    </div>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($renbutStats['target']) }}</p>
+                    <div class="mt-2 text-[11px] text-cyan-100 flex items-center justify-between">
+                        <span>Total Rencana Kebutuhan</span>
+                        <a href="{{ route('master.target.capaian') }}" class="underline hover:text-white font-medium">Bulan &rarr;</a>
+                    </div>
                 </div>
             </div>
 
@@ -499,12 +528,23 @@
             <div
                 class="relative overflow-hidden rounded-2xl bg-green-500 p-5 shadow-lg transition-transform hover:scale-[1.02]">
                 <div class="relative z-10">
-                    <p class="text-sm font-medium text-green-100 italic">Realisasi Gunmat {{ $activeTargetYear }}</p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-green-100 italic">Realisasi Gunmat {{ $activeTargetYear }}</p>
+                        @if(!empty($renbutStats['is_from_excel']))
+                            <span class="rounded-full bg-green-700/80 px-2 py-0.5 text-[10px] font-semibold text-green-100">Jan–Sept</span>
+                        @endif
+                    </div>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($renbutStats['realization']) }}</p>
                     <div class="mt-2 flex items-center justify-between">
                         <span class="text-xs font-medium text-green-100">Prosentase</span>
-                        <span class="text-xl font-bold text-white">{{ number_format($renbutStats['percentage'], 0) }} %</span>
+                        <span class="text-xl font-bold text-white">{{ number_format($renbutStats['percentage'], 1) }} %</span>
                     </div>
+                    @if(!empty($renbutStats['system_realization']))
+                        <div class="mt-1.5 pt-1.5 border-t border-green-400/40 text-[10px] text-green-100/90 flex justify-between items-center">
+                            <span>Input Transaksi: {{ number_format($renbutStats['system_realization']) }}</span>
+                            <a href="{{ route('master.target.capaian') }}" class="underline hover:text-white">Detail</a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

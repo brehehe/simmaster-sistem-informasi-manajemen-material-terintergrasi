@@ -165,7 +165,7 @@
         @include('components.layouts.main.header')
 
         <!-- Main Content Area -->
-        <div class="transition-all duration-300 ease-in-out mt-16" :class="sidebarCollapsed ? '' : 'lg:pl-72'">
+        <div class="transition-all duration-300 ease-in-out mt-16 lg:pl-72" :class="sidebarCollapsed ? '!pl-0' : 'lg:pl-72'">
             <!-- Main Content -->
             <main class="min-h-[calc(100vh-8rem)] p-4 lg:p-8">
                 {{ $slot }}

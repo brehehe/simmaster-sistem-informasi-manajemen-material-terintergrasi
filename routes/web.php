@@ -131,6 +131,9 @@ Route::group(['middleware' => ['auth', 'verified'], 'namespace' => 'App\\Livewir
         Route::get('master/target', 'Target\\AdminMasterTargetIndex')
             ->name('master.target');
 
+        Route::get('master/target/capaian', 'Target\\Capaian\\AdminMasterTargetCapaianIndex')
+            ->name('master.target.capaian');
+
         Route::get('master/target/create', 'Target\\Detail\\AdminMasterTargetDetailIndex')
             ->name('master.target.create');
 

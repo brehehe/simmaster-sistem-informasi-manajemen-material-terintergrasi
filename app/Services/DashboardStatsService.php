@@ -224,17 +224,49 @@ class DashboardStatsService
         $realizedGunmat = MaterialUsageDetail::whereHas('materialUsage', fn ($q) => $q->whereYear('date', $currentYear))
             ->sum('quantity') ?? 0;
 
+        // Cek data capaian resmi dari PnbpTargetService (file Excel CAPAIAN TARGET PNBP 2026)
+        $excelCapaian = null;
+        try {
+            $pnbpService = app(\App\Services\PnbpTargetService::class);
+            $rekapData = $pnbpService->getSheetDetails('REKAP');
+            $totalRow = collect($rekapData['items'])->firstWhere('row', 99);
+            if ($totalRow && $totalRow['realization_rp'] > 0) {
+                $excelCapaian = [
+                    'target_pnbp'       => (float) $totalRow['target_rp'],
+                    'realized_pnbp'     => (float) $totalRow['realization_rp'],
+                    'percentage_pnbp'   => (float) $totalRow['percentage'],
+                    'target_gunmat'     => (float) $totalRow['volume_target'],
+                    'realized_gunmat'   => (float) $totalRow['volume_realization'],
+                    'percentage_gunmat' => $totalRow['volume_target'] > 0 ? round(($totalRow['volume_realization'] / $totalRow['volume_target']) * 100, 1) : 0,
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika file tidak tersedia
+        }
+
+        $targetPnbpVal   = $excelCapaian ? $excelCapaian['target_pnbp'] : (float) $targetPNBP;
+        $realizedPnbpVal = $excelCapaian ? $excelCapaian['realized_pnbp'] : (float) $realizedPNBP;
+        $pnbpPct         = $targetPnbpVal > 0 ? round(($realizedPnbpVal / $targetPnbpVal) * 100, 1) : 0;
+
+        $targetGunmatVal   = $excelCapaian ? $excelCapaian['target_gunmat'] : (float) $targetRenbut;
+        $realizedGunmatVal = $excelCapaian ? $excelCapaian['realized_gunmat'] : (float) $realizedGunmat;
+        $gunmatPct         = $targetGunmatVal > 0 ? round(($realizedGunmatVal / $targetGunmatVal) * 100, 1) : 0;
+
         return [
             'target_year' => $activeTarget?->year ?? $currentYear,
             'pnbp' => [
-                'target' => (float) $targetPNBP,
-                'realization' => (float) $realizedPNBP,
-                'percentage' => $targetPNBP > 0 ? round(($realizedPNBP / $targetPNBP) * 100, 1) : 0,
+                'target'             => $targetPnbpVal,
+                'realization'        => $realizedPnbpVal,
+                'percentage'         => $pnbpPct,
+                'system_realization' => (float) $realizedPNBP,
+                'is_from_excel'      => $excelCapaian !== null,
             ],
             'renbut' => [
-                'target' => (float) $targetRenbut,
-                'realization' => (float) $realizedGunmat,
-                'percentage' => $targetRenbut > 0 ? round(($realizedGunmat / $targetRenbut) * 100, 1) : 0,
+                'target'             => $targetGunmatVal,
+                'realization'        => $realizedGunmatVal,
+                'percentage'         => $gunmatPct,
+                'system_realization' => (float) $realizedGunmat,
+                'is_from_excel'      => $excelCapaian !== null,
             ],
         ];
     }
