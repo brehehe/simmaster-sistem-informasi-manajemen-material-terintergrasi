@@ -276,7 +276,7 @@
                         {{ $activeTargetYear }}
                     </p>
                     @if(!empty($pnbpStats['is_from_excel']))
-                        <span class="rounded-full bg-purple-700/80 px-2 py-0.5 text-[10px] font-bold text-purple-100">Jan–Sept</span>
+                        <span class="rounded-full bg-purple-700/80 px-2 py-0.5 text-[10px] font-bold text-purple-100">{{ $pnbpStats['period_label'] ?? 'Jan–Okt' }}</span>
                     @endif
                 </div>
                 <div class="mt-4 flex items-baseline gap-2">
@@ -335,7 +335,7 @@
                         {{ $activeTargetYear }}
                     </p>
                     @if(!empty($renbutStats['is_from_excel']))
-                        <span class="rounded-full bg-emerald-700/80 px-2 py-0.5 text-[10px] font-bold text-emerald-100">Jan–Sept</span>
+                        <span class="rounded-full bg-emerald-700/80 px-2 py-0.5 text-[10px] font-bold text-emerald-100">{{ $renbutStats['period_label'] ?? 'Jan–Okt' }}</span>
                     @endif
                 </div>
                 <div class="mt-4 flex items-baseline gap-2">

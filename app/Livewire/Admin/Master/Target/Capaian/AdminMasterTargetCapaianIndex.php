@@ -123,9 +123,10 @@ class AdminMasterTargetCapaianIndex extends Component
     {
         try {
             $service->clearCache(null, $this->selectedYear);
+            $service->autoSyncActiveUsageMonths($this->selectedYear, true);
             $this->syncInfo = $service->syncTargetWithDatabase(null, $this->selectedYear, true);
             $this->loadData($service);
-            session()->flash('success', "Berhasil menyelaraskan Target TA {$this->selectedYear} dengan data capaian PNBP.");
+            session()->flash('success', "Berhasil menyelaraskan Target TA {$this->selectedYear} dan realisasi transaksi material dengan data capaian PNBP.");
         } catch (\Throwable $e) {
             session()->flash('error', 'Gagal sinkronisasi: ' . $e->getMessage());
         }

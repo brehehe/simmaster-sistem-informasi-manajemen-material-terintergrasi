@@ -619,6 +619,45 @@ class PnbpTargetService
             return;
         }
 
+        // Update Level 2 sub-headers dari Level 3 children
+        $level2Parents = [
+            38 => [39, 40],
+            41 => [42, 43],
+            58 => [59, 60],
+            61 => [62, 63],
+            86 => [87, 88],
+            89 => [90, 91],
+            92 => [93, 94],
+            95 => [96, 97],
+        ];
+
+        foreach ($level2Parents as $pRow => $cRows) {
+            $parentItem = $items->firstWhere('row_index', $pRow);
+            if ($parentItem) {
+                $children = $items->whereIn('row_index', $cRows);
+                $volReal = $children->sum('volume_realization');
+                $realRp  = $children->sum('realization_rp');
+                $volTgt  = $children->sum('volume_target');
+                $tgtRp   = $children->sum('target_rp');
+                $pct     = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+
+                $parentItem->update([
+                    'volume_target'      => $volTgt,
+                    'target_rp'          => $tgtRp,
+                    'volume_realization' => $volReal,
+                    'realization_rp'     => $realRp,
+                    'percentage'         => $pct,
+                ]);
+            }
+        }
+
+        // Refresh items setelah Level 2 di-update
+        $items = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', $sheetName)
+            ->orderBy('row_index')
+            ->orderBy('created_at')
+            ->get();
+
         $currentHeader = null;
         $headerChildren = [];
 
@@ -705,7 +744,7 @@ class PnbpTargetService
     /**
      * Hitung ulang akumulasi sheet REKAP dari sheet JANUARI s/d DESEMBER.
      */
-    protected function recalculateRekapSheet(int $year): void
+    public function recalculateRekapSheet(int $year): void
     {
         $months = array_diff(self::SHEETS, ['REKAP']);
         $rekapItems = TargetPnbpItem::where('year', $year)
@@ -720,12 +759,23 @@ class PnbpTargetService
             ->whereIn('sheet_name', $months)
             ->get();
 
+        $level2Parents = [
+            38 => [39, 40],
+            41 => [42, 43],
+            58 => [59, 60],
+            61 => [62, 63],
+            86 => [87, 88],
+            89 => [90, 91],
+            92 => [93, 94],
+            95 => [96, 97],
+        ];
+
         foreach ($rekapItems as $rItem) {
-            if ($rItem->level === 0) {
+            if ($rItem->level === 0 || array_key_exists($rItem->row_index, $level2Parents)) {
                 continue;
             }
 
-            $matchingMonths = $monthItems->where('name', $rItem->name)->where('level', $rItem->level);
+            $matchingMonths = $monthItems->where('row_index', $rItem->row_index);
             if ($matchingMonths->isNotEmpty()) {
                 $totalRealVol = $matchingMonths->sum('volume_realization');
                 $totalRealRp  = $matchingMonths->sum('realization_rp');
@@ -735,6 +785,28 @@ class PnbpTargetService
                 $rItem->update([
                     'volume_realization' => $totalRealVol,
                     'realization_rp'     => $totalRealRp,
+                    'percentage'         => $pct,
+                ]);
+            }
+        }
+
+        // Update Level 2 sub-headers di REKAP dari Level 3
+        $rekapItems = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', 'REKAP')
+            ->get();
+
+        foreach ($level2Parents as $pRow => $cRows) {
+            $parentItem = $rekapItems->firstWhere('row_index', $pRow);
+            if ($parentItem) {
+                $children = $rekapItems->whereIn('row_index', $cRows);
+                $volReal = $children->sum('volume_realization');
+                $realRp  = $children->sum('realization_rp');
+                $tgtRp   = (float) $parentItem->target_rp;
+                $pct     = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
+
+                $parentItem->update([
+                    'volume_realization' => $volReal,
+                    'realization_rp'     => $realRp,
                     'percentage'         => $pct,
                 ]);
             }
@@ -781,6 +853,237 @@ class PnbpTargetService
                 'realization_rp'     => $totalRealRp,
                 'percentage'         => $totalPct,
             ]);
+        }
+    }
+
+    /**
+     * Resolusi indeks baris TargetPnbpItem berdasarkan hierarki type, service, dan detail material usage.
+     */
+    public function resolveRowIndexFromUsageItem(object $it): ?int
+    {
+        $typeName = strtoupper((string) ($it->type_name ?? ''));
+        $serviceName = strtoupper((string) ($it->service_name ?? ''));
+        $subName = strtoupper((string) ($it->service_detail_name ?? ''));
+        $all = $typeName . ' ' . $serviceName . ' ' . $subName;
+
+        // 1. SIM Baru
+        if (str_contains($typeName, 'SIM') && (str_contains($all, 'BARU') || str_contains($serviceName, 'BARU'))) {
+            if (str_contains($all, 'SIM A')) return 14;
+            if (str_contains($all, 'SIM B II') || str_contains($all, 'SIM B2')) return 16;
+            if (str_contains($all, 'SIM B I') || str_contains($all, 'SIM B1') || str_contains($all, 'SIM B')) return 15;
+            if (str_contains($all, 'SIM C II') || str_contains($all, 'SIM C2')) return 19;
+            if (str_contains($all, 'SIM C I') || str_contains($all, 'SIM C1')) return 18;
+            if (str_contains($all, 'SIM C')) return 17;
+            if (str_contains($all, 'SIM D I') || str_contains($all, 'SIM D1')) return 21;
+            if (str_contains($all, 'SIM D')) return 20;
+            if (str_contains($all, 'INTERNA')) return 22;
+            return 17;
+        }
+
+        // 2. SIM Perpanjangan / Perubahan / Default SIM
+        if (str_contains($typeName, 'SIM')) {
+            if (str_contains($all, 'SIM A')) return 25;
+            if (str_contains($all, 'SIM B II') || str_contains($all, 'SIM B2')) return 27;
+            if (str_contains($all, 'SIM B I') || str_contains($all, 'SIM B1') || str_contains($all, 'SIM B')) return 26;
+            if (str_contains($all, 'SIM C II') || str_contains($all, 'SIM C2')) return 30;
+            if (str_contains($all, 'SIM C I') || str_contains($all, 'SIM C1')) return 29;
+            if (str_contains($all, 'SIM C')) return 28;
+            if (str_contains($all, 'SIM D I') || str_contains($all, 'SIM D1')) return 32;
+            if (str_contains($all, 'SIM D')) return 31;
+            if (str_contains($all, 'INTERNA')) return 33;
+            return 28;
+        }
+
+        // 3. SKUKP
+        if (str_contains($typeName, 'SKUKP') || str_contains($all, 'SKUKP')) {
+            return 35;
+        }
+
+        // 4. STNK
+        if (str_contains($typeName, 'STNK') && !str_contains($typeName, 'STNK-LBN')) {
+            $isR4 = str_contains($all, 'RODA 4') || str_contains($all, 'R4') || str_contains($all, 'LEBIH');
+            $isBaru = str_contains($all, 'BARU');
+            if ($isR4) return $isBaru ? 42 : 43;
+            return $isBaru ? 39 : 40;
+        }
+
+        // 5. TNKB
+        if (str_contains($typeName, 'TNKB') && !str_contains($typeName, 'TNKB-LBN')) {
+            $isR4 = str_contains($typeName, 'R4') || str_contains($all, 'RODA 4') || str_contains($typeName, 'PILIHAN');
+            return $isR4 ? 47 : 46;
+        }
+
+        // 6. STCK
+        if (str_contains($typeName, 'STCK') || str_contains($serviceName, 'STCK')) {
+            $isR4 = str_contains($all, 'RODA 4') || str_contains($all, 'R4');
+            return $isR4 ? 51 : 50;
+        }
+
+        // 7. TCKB
+        if (str_contains($typeName, 'TCKB') || str_contains($serviceName, 'TCKB')) {
+            $isR4 = str_contains($all, 'RODA 4') || str_contains($all, 'R4');
+            return $isR4 ? 55 : 54;
+        }
+
+        // 8. BPKB
+        if (str_contains($typeName, 'BPKB') || str_contains($serviceName, 'BPKB')) {
+            $isR4 = str_contains($all, 'RODA 4') || str_contains($all, 'R4') || str_contains($typeName, 'E-BPKB');
+            $isGanti = str_contains($all, 'GANTI');
+            if ($isR4) return $isGanti ? 63 : 62;
+            return $isGanti ? 60 : 59;
+        }
+
+        // 9. MUTASI
+        if (str_contains($typeName, 'MUTASI') || str_contains($serviceName, 'MUTASI')) {
+            $isR4 = str_contains($all, 'RODA 4') || str_contains($all, 'R4');
+            return $isR4 ? 67 : 66;
+        }
+
+        // 10. STNK-LBN
+        if (str_contains($typeName, 'STNK-LBN')) return 69;
+
+        // 11. TNKB-LBN
+        if (str_contains($typeName, 'TNKB-LBN')) return 77;
+
+        // 12. NRKB NOPIL
+        if (str_contains($typeName, 'NRKB NOPIL') || str_contains($all, 'NOPIL')) return 94;
+
+        return null;
+    }
+
+    /**
+     * Sinkronisasi capaian realisasi bulan tertentu dari inputan transaksi material_usages ARMASTER.
+     */
+    public function syncMonthlyRealizationFromUsage(int $year = 2026, int $month = 10): array
+    {
+        $monthSheetMap = [
+            1 => 'JANUARI', 2 => 'FEB', 3 => 'MARET', 4 => 'APRIL',
+            5 => 'MEI', 6 => 'JUNI', 7 => 'JULI', 8 => 'AGUSTUS',
+            9 => 'SEPT', 10 => 'OKT', 11 => 'NOV', 12 => 'DES',
+        ];
+
+        $sheetName = $monthSheetMap[$month] ?? null;
+        if (! $sheetName) {
+            return ['status' => 'error', 'message' => "Bulan {$month} tidak valid."];
+        }
+
+        $items = DB::table('material_usage_detail_items as mudi')
+            ->join('material_usages as mu', 'mudi.material_usage_id', '=', 'mu.id')
+            ->leftJoin('types as t', 'mudi.type_id', '=', 't.id')
+            ->leftJoin('type_details as td', 'mudi.type_detail_id', '=', 'td.id')
+            ->leftJoin('services as s', 'mudi.service_id', '=', 's.id')
+            ->leftJoin('service_details as sd', 'mudi.service_detail_id', '=', 'sd.id')
+            ->whereYear('mu.date', $year)
+            ->whereMonth('mu.date', $month)
+            ->whereNull('mu.deleted_at')
+            ->where('mudi.quantity', '>', 0)
+            ->selectRaw('
+                t.name as type_name,
+                td.name as type_detail_name,
+                s.name as service_name,
+                sd.name as service_detail_name,
+                COALESCE(sd.price, s.price, td.price, t.price, 0) as price,
+                SUM(mudi.quantity) as total_qty,
+                SUM(mudi.quantity * COALESCE(sd.price, s.price, td.price, t.price, 0)) as total_rp
+            ')
+            ->groupBy('t.name', 'td.name', 's.name', 'sd.name', 'sd.price', 's.price', 'td.price', 't.price')
+            ->get();
+
+        $rowTotals = [];
+        foreach ($items as $it) {
+            $row = $this->resolveRowIndexFromUsageItem($it);
+            if ($row) {
+                if (! isset($rowTotals[$row])) {
+                    $rowTotals[$row] = ['qty' => 0.0, 'rp' => 0.0];
+                }
+                $rowTotals[$row]['qty'] += (float) $it->total_qty;
+                $rowTotals[$row]['rp']  += (float) $it->total_rp;
+            }
+        }
+
+        $sheetItems = TargetPnbpItem::where('year', $year)
+            ->where('sheet_name', $sheetName)
+            ->get();
+
+        if ($sheetItems->isEmpty()) {
+            return ['status' => 'error', 'message' => "Sheet {$sheetName} belum ada di TargetPnbpItem TA {$year}."];
+        }
+
+        $level2Parents = [
+            38 => [39, 40],
+            41 => [42, 43],
+            58 => [59, 60],
+            61 => [62, 63],
+            86 => [87, 88],
+            89 => [90, 91],
+            92 => [93, 94],
+            95 => [96, 97],
+        ];
+
+        foreach ($sheetItems as $sItem) {
+            if ($sItem->level === 0 || $sItem->level === 1) {
+                continue;
+            }
+            if (array_key_exists($sItem->row_index, $level2Parents)) {
+                continue;
+            }
+
+            $rIdx = $sItem->row_index;
+            $volReal = isset($rowTotals[$rIdx]) ? $rowTotals[$rIdx]['qty'] : 0.0;
+            $realRp  = isset($rowTotals[$rIdx]) ? $rowTotals[$rIdx]['rp'] : 0.0;
+            $tgtRp   = (float) $sItem->target_rp;
+            $pct     = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0.0;
+
+            $sItem->update([
+                'volume_realization' => $volReal,
+                'realization_rp'     => $realRp,
+                'percentage'         => $pct,
+            ]);
+        }
+
+        // Recalculate sheet totals (mengupdate Level 2, Level 1 headers, Level 0, dan REKAP)
+        $this->recalculateSheetTotals($year, $sheetName);
+        $this->clearCache(null, $year);
+
+        return [
+            'status'       => 'success',
+            'year'         => $year,
+            'month'        => $month,
+            'sheet_name'   => $sheetName,
+            'total_volume' => array_sum(array_column($rowTotals, 'qty')),
+            'total_rp'     => array_sum(array_column($rowTotals, 'rp')),
+        ];
+    }
+
+    /**
+     * Auto-sync semua bulan berjalan (Oktober s/d Desember) yang memiliki transaksi material usage.
+     */
+    public function autoSyncActiveUsageMonths(int $year = 2026, bool $force = false): void
+    {
+        $cacheKey = "pnbp_last_synced_mu_ts_{$year}";
+        $latestUsageUpdate = DB::table('material_usages')
+            ->whereYear('date', $year)
+            ->whereNull('deleted_at')
+            ->max('updated_at');
+
+        $lastSynced = Cache::get($cacheKey);
+
+        if ($force || ! $lastSynced || $lastSynced !== $latestUsageUpdate) {
+            $months = DB::table('material_usages')
+                ->whereYear('date', $year)
+                ->whereNull('deleted_at')
+                ->selectRaw('DISTINCT EXTRACT(MONTH FROM date) as m')
+                ->pluck('m')
+                ->map(fn($m) => (int)$m)
+                ->filter(fn($m) => $m >= 10);
+
+            foreach ($months as $month) {
+                $this->syncMonthlyRealizationFromUsage($year, $month);
+            }
+
+            if ($latestUsageUpdate) {
+                Cache::put($cacheKey, $latestUsageUpdate, 3600);
+            }
         }
     }
 
@@ -860,6 +1163,9 @@ class PnbpTargetService
         });
         $dbTotalQty = $dbDetailsStats['total_qty'];
         $dbDetailsCount = $dbDetailsStats['count'];
+
+        // Auto-sync capaian bulanan dari inputan material usage di ARMASTER (Oktober dst)
+        $this->autoSyncActiveUsageMonths($year, $forceRefresh);
 
         // Ambil data rekap dari database/cache
         $rekap = $this->getSheetDetails('REKAP', $path, $year);

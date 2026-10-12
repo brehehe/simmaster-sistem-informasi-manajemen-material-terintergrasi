@@ -224,13 +224,22 @@ class DashboardStatsService
         $realizedGunmat = MaterialUsageDetail::whereHas('materialUsage', fn ($q) => $q->whereYear('date', $currentYear))
             ->sum('quantity') ?? 0;
 
-        // Cek data capaian resmi dari PnbpTargetService (file Excel CAPAIAN TARGET PNBP 2026)
+        $targetYear = $activeTarget?->year ?? $currentYear;
+
+        // Cek data capaian resmi dari PnbpTargetService (file Excel CAPAIAN TARGET PNBP 2026 / Database)
         $excelCapaian = null;
         try {
+            /** @var \App\Services\PnbpTargetService $pnbpService */
             $pnbpService = app(\App\Services\PnbpTargetService::class);
-            $rekapData = $pnbpService->getSheetDetails('REKAP');
-            $totalRow = collect($rekapData['items'])->firstWhere('row', 99);
+            $pnbpService->autoSyncActiveUsageMonths($targetYear);
+
+            $rekapData = $pnbpService->getSheetDetails('REKAP', null, $targetYear);
+            $totalRow = collect($rekapData['items'])->firstWhere('row', 99)
+                ?: collect($rekapData['items'])->firstWhere('level', 0);
+
             if ($totalRow && $totalRow['realization_rp'] > 0) {
+                $periodLabel = $this->resolvePnbpPeriodLabel($pnbpService, $targetYear);
+
                 $excelCapaian = [
                     'target_pnbp'       => (float) $totalRow['target_rp'],
                     'realized_pnbp'     => (float) $totalRow['realization_rp'],
@@ -238,10 +247,11 @@ class DashboardStatsService
                     'target_gunmat'     => (float) $totalRow['volume_target'],
                     'realized_gunmat'   => (float) $totalRow['volume_realization'],
                     'percentage_gunmat' => $totalRow['volume_target'] > 0 ? round(($totalRow['volume_realization'] / $totalRow['volume_target']) * 100, 1) : 0,
+                    'period_label'      => $periodLabel,
                 ];
             }
         } catch (\Throwable $e) {
-            // Abaikan jika file tidak tersedia
+            // Abaikan jika service tidak tersedia
         }
 
         $targetPnbpVal   = $excelCapaian ? $excelCapaian['target_pnbp'] : (float) $targetPNBP;
@@ -251,15 +261,18 @@ class DashboardStatsService
         $targetGunmatVal   = $excelCapaian ? $excelCapaian['target_gunmat'] : (float) $targetRenbut;
         $realizedGunmatVal = $excelCapaian ? $excelCapaian['realized_gunmat'] : (float) $realizedGunmat;
         $gunmatPct         = $targetGunmatVal > 0 ? round(($realizedGunmatVal / $targetGunmatVal) * 100, 1) : 0;
+        $periodLabelVal    = $excelCapaian['period_label'] ?? 'Jan–Okt';
 
         return [
-            'target_year' => $activeTarget?->year ?? $currentYear,
+            'target_year'  => $targetYear,
+            'period_label' => $periodLabelVal,
             'pnbp' => [
                 'target'             => $targetPnbpVal,
                 'realization'        => $realizedPnbpVal,
                 'percentage'         => $pnbpPct,
                 'system_realization' => (float) $realizedPNBP,
                 'is_from_excel'      => $excelCapaian !== null,
+                'period_label'       => $periodLabelVal,
             ],
             'renbut' => [
                 'target'             => $targetGunmatVal,
@@ -267,8 +280,44 @@ class DashboardStatsService
                 'percentage'         => $gunmatPct,
                 'system_realization' => (float) $realizedGunmat,
                 'is_from_excel'      => $excelCapaian !== null,
+                'period_label'       => $periodLabelVal,
             ],
         ];
+    }
+
+    /**
+     * Tentukan label periode capaian PNBP dinamis (misal: Jan–Okt) berdasarkan bulan terakhir yang memiliki realisasi.
+     */
+    protected function resolvePnbpPeriodLabel(\App\Services\PnbpTargetService $service, int $year): string
+    {
+        $monthNames = [
+            'JANUARI' => 'Jan',
+            'FEB'     => 'Feb',
+            'MARET'   => 'Mar',
+            'APRIL'   => 'Apr',
+            'MEI'     => 'Mei',
+            'JUNI'    => 'Jun',
+            'JULI'    => 'Jul',
+            'AGUSTUS' => 'Agt',
+            'SEPT'    => 'Sept',
+            'OKT'     => 'Okt',
+            'NOV'     => 'Nov',
+            'DES'     => 'Des',
+        ];
+
+        $foundLatest = null;
+        foreach (array_reverse($monthNames, true) as $sheet => $label) {
+            $sheetDetails = $service->getSheetDetails($sheet, null, $year);
+            $total = collect($sheetDetails['items'] ?? [])->firstWhere('level', 0)
+                ?: collect($sheetDetails['items'] ?? [])->firstWhere('row', 99);
+
+            if ($total && ((float) ($total['realization_rp'] ?? 0) > 0 || (float) ($total['volume_realization'] ?? 0) > 0)) {
+                $foundLatest = $label;
+                break;
+            }
+        }
+
+        return $foundLatest ? "Jan–{$foundLatest}" : 'Jan–Okt';
     }
 
     /**

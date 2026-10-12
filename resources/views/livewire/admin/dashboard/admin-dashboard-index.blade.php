@@ -489,7 +489,7 @@
                     <div class="flex items-center justify-between">
                         <p class="text-sm font-medium text-purple-100 italic">Realisasi PNBP {{ $activeTargetYear }}</p>
                         @if(!empty($pnbpStats['is_from_excel']))
-                            <span class="rounded-full bg-purple-700/80 px-2 py-0.5 text-[10px] font-semibold text-purple-100">Jan–Sept</span>
+                            <span class="rounded-full bg-purple-700/80 px-2 py-0.5 text-[10px] font-semibold text-purple-100">{{ $pnbpStats['period_label'] ?? 'Jan–Okt' }}</span>
                         @endif
                     </div>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($pnbpStats['realization']) }}</p>
@@ -531,7 +531,7 @@
                     <div class="flex items-center justify-between">
                         <p class="text-sm font-medium text-green-100 italic">Realisasi Gunmat {{ $activeTargetYear }}</p>
                         @if(!empty($renbutStats['is_from_excel']))
-                            <span class="rounded-full bg-green-700/80 px-2 py-0.5 text-[10px] font-semibold text-green-100">Jan–Sept</span>
+                            <span class="rounded-full bg-green-700/80 px-2 py-0.5 text-[10px] font-semibold text-green-100">{{ $renbutStats['period_label'] ?? 'Jan–Okt' }}</span>
                         @endif
                     </div>
                     <p class="mt-2 text-2xl font-bold text-white">{{ number_format($renbutStats['realization']) }}</p>
