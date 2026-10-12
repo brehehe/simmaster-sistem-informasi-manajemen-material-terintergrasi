@@ -25,7 +25,8 @@ class DailyMaterialUsageService
             $allowedTypes = array_values(array_unique(array_merge($allowedTypes, Type::whereIn('name', $targetNames)->pluck('id')->all())));
         }
         $types = Type::with(['typeDetails' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
-            ->where('is_active', true)->when($allowedTypes, fn ($q) => $q->whereIn('id', $allowedTypes))->orderBy('name')->get();
+            ->where('is_active', true)
+            ->when($allowedTypes, fn ($q) => $q->whereIn('id', $allowedTypes))->orderBy('name')->get();
         $services = Service::with(['details' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
             ->where('is_active', true)->orderBy('name')->get();
         $rows = [];
