@@ -324,6 +324,19 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot class="border-t-2 border-gray-200 bg-gray-50/90 font-bold">
+                        <tr>
+                            <td colspan="{{ $is_type_detail ? 8 : 7 }}" class="px-3 py-3 text-right text-xs uppercase tracking-wider text-gray-700">
+                                Total Material Rusak:
+                            </td>
+                            <td class="px-3 py-3">
+                                <span class="inline-block px-3 py-1.5 rounded-lg bg-red-100 text-red-800 text-xs font-bold tabular-nums">
+                                    {{ number_format(collect($details)->sum(fn($d) => (float)($d['quantity'] ?? 0)), 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>

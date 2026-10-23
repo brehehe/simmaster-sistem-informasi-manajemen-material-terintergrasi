@@ -17,6 +17,10 @@ Route::get('/', function () {
 })->name('main');
 
 Route::get('/dev-check', function () {
+    if (! app()->environment('local') || ! auth()->check() || ! auth()->user()->hasRole('Admin')) {
+        abort(404);
+    }
+
     $result = [];
 
     // 1. Bangkalan STNK
@@ -440,8 +444,10 @@ Route::group(['namespace' => 'App\\Livewire\\Auth\\Login'], function () {
         ->name('login');
 });
 
-Route::post('/logout', function () {
+Route::post('/logout', function (\Illuminate\Http\Request $request) {
     Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
     return redirect('/login');
 })->name('logout');

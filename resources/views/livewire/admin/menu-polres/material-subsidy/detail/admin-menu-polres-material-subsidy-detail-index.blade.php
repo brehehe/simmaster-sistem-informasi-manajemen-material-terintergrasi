@@ -146,16 +146,34 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot class="border-t-2 border-gray-200 bg-gray-50/90 font-bold">
+                        <tr>
+                            <td colspan="4" class="p-3 text-right text-xs uppercase tracking-wider text-gray-700">
+                                Total Material Disubsidikan:
+                            </td>
+                            <td class="p-3 text-center">
+                                <span class="inline-block px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold tabular-nums">
+                                    {{ number_format(collect($items)->sum(fn($i) => (float)($i['quantity'] ?? 0)), 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center justify-end gap-3">
-        <a href="{{ route('menu-polres.material-subsidy') }}" wire:navigate class="px-6 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</a>
-        <button wire:loading.attr="disabled" type="button" wire:click="save" class="px-8 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-500/25 transition-all">
-            💾 Simpan Draft Subsidi Silang
-        </button>
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-xs font-semibold text-gray-700">
+            Total Material: <span class="text-blue-600 font-bold text-sm tabular-nums">{{ number_format(collect($items)->sum(fn($i) => (float)($i['quantity'] ?? 0)), 0, ',', '.') }}</span> unit
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('menu-polres.material-subsidy') }}" wire:navigate class="px-6 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">Batal</a>
+            <button wire:loading.attr="disabled" type="button" wire:click="save" class="px-8 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-500/25 transition-all">
+                💾 Simpan Draft Subsidi Silang
+            </button>
+        </div>
     </div>
 </div>

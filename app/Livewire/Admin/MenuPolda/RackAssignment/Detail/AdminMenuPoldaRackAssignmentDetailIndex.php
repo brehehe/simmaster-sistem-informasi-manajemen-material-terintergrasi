@@ -50,7 +50,7 @@ class AdminMenuPoldaRackAssignmentDetailIndex extends Component
             $this->loadRackAssignment();
         } else {
             $this->code = RackAssignment::generateCode();
-            $this->date = now()->format('Y-m-d');
+            $this->date = now('Asia/Jakarta')->toDateString();
             $this->addDetail(); // Initialize first row
         }
 

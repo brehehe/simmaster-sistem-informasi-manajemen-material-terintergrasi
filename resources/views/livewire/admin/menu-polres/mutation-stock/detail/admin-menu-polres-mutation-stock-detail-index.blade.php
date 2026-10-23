@@ -273,22 +273,28 @@
         </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="flex flex-col sm:flex-row items-center justify-end gap-3">
-        <a href="{{ route('menu-polres.mutation-stock') }}" 
-            class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200 text-center">
-            Batal
-        </a>
+    <!-- Total Summary and Action Buttons -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div class="text-sm font-semibold text-gray-700">
+            Total Material Dimutasi: <span class="text-blue-600 font-bold text-base tabular-nums">{{ number_format(collect($details)->sum(fn($d) => (float)($d['quantity'] ?? 0)), 0, ',', '.') }}</span> unit
+            <span class="text-xs text-gray-400">({{ count($details) }} baris item)</span>
+        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <a href="{{ route('menu-polres.mutation-stock') }}" 
+                class="w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200 text-center">
+                Batal
+            </a>
 
-        @if (!$isEditMode || ($mutation && $mutation->status === 'draft'))
-            <button wire:loading.attr="disabled" wire:click="save(false)" type="button"
-                class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl hover:from-gray-300 hover:to-gray-400 shadow-lg transition-all duration-200 text-center">
-                💾 Simpan Draft
-            </button>
-            <button wire:loading.attr="disabled" wire:click="save(true)" type="button"
-                class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200 transform hover:scale-105 text-center">
-                🚀 Kirim Sekarang
-            </button>
-        @endif
+            @if (!$isEditMode || ($mutation && $mutation->status === 'draft'))
+                <button wire:loading.attr="disabled" wire:click="save(false)" type="button"
+                    class="w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl hover:from-gray-300 hover:to-gray-400 shadow transition-all duration-200 text-center">
+                    💾 Simpan Draft
+                </button>
+                <button wire:loading.attr="disabled" wire:click="save(true)" type="button"
+                    class="w-full sm:w-auto px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200 transform hover:scale-105 text-center">
+                    🚀 Kirim Sekarang
+                </button>
+            @endif
+        </div>
     </div>
 </div>

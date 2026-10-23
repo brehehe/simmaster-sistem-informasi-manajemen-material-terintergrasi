@@ -561,7 +561,7 @@ class PnbpTargetService
         $volReal = isset($data['volume_realization']) ? (float) $data['volume_realization'] : (float) $item->volume_realization;
         $level   = isset($data['level']) ? (int) $data['level'] : (int) $item->level;
 
-        if ($level > 1) {
+        if ($level > 1 || $tarif > 0) {
             $tgtRp  = $volTgt * $tarif;
             $realRp = $volReal * $tarif;
             $pct    = $tgtRp > 0 ? round(($realRp / $tgtRp) * 100, 2) : 0;
@@ -945,9 +945,7 @@ class PnbpTargetService
         // 11. TNKB-LBN
         if (str_contains($typeName, 'TNKB-LBN')) return 77;
 
-        // 12. NRKB NOPIL
-        if (str_contains($typeName, 'NRKB NOPIL') || str_contains($all, 'NOPIL')) return 94;
-
+        // 12. NRKB NOPIL (Kategori 12 diisi manual pada tabel capaian PNBP karena tidak ada matreg fisik)
         return null;
     }
 
@@ -1021,10 +1019,26 @@ class PnbpTargetService
         ];
 
         foreach ($sheetItems as $sItem) {
-            if ($sItem->level === 0 || $sItem->level === 1) {
+            // Lewati baris TOTAL (level 0)
+            if ($sItem->level === 0) {
                 continue;
             }
+
+            // Lewati Group Header (level 1) yang memiliki sub-kategori,
+            // tetapi JANGAN lewati baris level 1 tunggal tanpa children (seperti Row 35 SKUKP, Row 69 STNK-LBN, Row 77 TNKB-LBN)
+            if ($sItem->level === 1 && ! in_array($sItem->row_index, [35, 69, 77], true)) {
+                continue;
+            }
+
+            // Lewati sub-header level 2 yang merupakan parent dari level 3 (dihitung otomatis dari children)
             if (array_key_exists($sItem->row_index, $level2Parents)) {
+                continue;
+            }
+
+            // JANGAN TIMPA BARIS NOPIL (rows 85-97)
+            // Kategori 12 (Penerbitan NRKB Pilihan) adalah tabel manual yang diinput oleh user karena tidak ada matreg fisik.
+            // Nilai realisasi manual Nopil tidak boleh di-reset kembali ke 0 saat sinkronisasi material usage.
+            if ($sItem->row_index >= 85 && $sItem->row_index <= 97) {
                 continue;
             }
 

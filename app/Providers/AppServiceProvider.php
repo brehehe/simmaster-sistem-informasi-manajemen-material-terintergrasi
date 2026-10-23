@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
+
         // Prevent lazy loading in development to detect accidental N+1 queries
         \Illuminate\Database\Eloquent\Model::preventLazyLoading(! $this->app->isProduction());
 

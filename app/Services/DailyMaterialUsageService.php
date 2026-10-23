@@ -32,11 +32,25 @@ class DailyMaterialUsageService
         $rows = [];
         foreach ($types as $type) {
             $typeServices = $services->filter(fn ($s) => $s->type_id === $type->id || $type->typeDetails->contains('id', $s->type_detail_id));
+            if (stripos($type->name, 'SIM') !== false) {
+                $typeServices = self::sortServices($typeServices);
+            }
             foreach ($typeServices as $service) {
                 foreach ($service->details->isEmpty() ? [null] : $service->details as $sub) {
-                    $row = ['type_id' => $type->id, 'type_detail_id' => $service->type_detail_id,
-                        'service_id' => $service->id, 'service_detail_id' => $sub?->id,
-                        'label' => $type->name.' / '.$service->name.($sub ? ' / '.$sub->name : ''), 'unit' => $type->unit ?? 'Unit'];
+                    $isSim = stripos($type->name, 'SIM') !== false;
+                    $group = $isSim ? (stripos($service->name, 'Perpanjangan') !== false ? 'perpanjangan' : (stripos($service->name, 'Baru') !== false ? 'baru' : 'lainnya')) : null;
+                    $row = [
+                        'type_id' => $type->id,
+                        'type_name' => $type->name,
+                        'type_detail_id' => $service->type_detail_id,
+                        'service_id' => $service->id,
+                        'service_name' => $service->name,
+                        'service_detail_id' => $sub?->id,
+                        'sub_name' => $sub?->name,
+                        'group' => $group,
+                        'label' => $type->name.' / '.$service->name.($sub ? ' / '.$sub->name : ''),
+                        'unit' => $type->unit ?? 'Unit',
+                    ];
                     $rows[self::key($row)] = $row;
                 }
             }
@@ -237,5 +251,57 @@ class DailyMaterialUsageService
             'description' => 'Saldo otomatis dari penggunaan material',
             'is_active' => true,
         ]);
+    }
+
+    public static function sortServices($services)
+    {
+        $classOrder = [
+            'A UMUM' => 2,
+            'A' => 1,
+            'B I UMUM' => 4,
+            'B I' => 3,
+            'B II UMUM' => 6,
+            'B II' => 5,
+            'C I' => 8,
+            'C II' => 9,
+            'C' => 7,
+            'D I' => 11,
+            'D' => 10,
+        ];
+
+        return $services->sort(function ($a, $b) use ($classOrder) {
+            $nameA = $a->name;
+            $nameB = $b->name;
+            $isBaruA = stripos($nameA, 'Baru') !== false;
+            $isBaruB = stripos($nameB, 'Baru') !== false;
+            $isPerpA = stripos($nameA, 'Perpanjangan') !== false;
+            $isPerpB = stripos($nameB, 'Perpanjangan') !== false;
+
+            if ($isBaruA && ! $isBaruB) {
+                return -1;
+            }
+            if (! $isBaruA && $isBaruB) {
+                return 1;
+            }
+
+            $getRank = function ($name) use ($classOrder) {
+                $upper = strtoupper($name);
+                foreach ($classOrder as $class => $rank) {
+                    if (preg_match('/\bSIM\s+'.preg_quote($class, '/').'\b/i', $upper)) {
+                        return $rank;
+                    }
+                }
+
+                return 99;
+            };
+
+            $rankA = $getRank($nameA);
+            $rankB = $getRank($nameB);
+            if ($rankA !== $rankB) {
+                return $rankA <=> $rankB;
+            }
+
+            return strnatcasecmp($nameA, $nameB);
+        })->values();
     }
 }

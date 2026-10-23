@@ -82,6 +82,41 @@ class ReportingComplianceIndex extends Component
         return Excel::download(new ReportingComplianceExport($rows, $this->date, $this->source), 'anev-ketertiban-laporan-'.$this->date.'.xlsx');
     }
 
+    public function exportExecutivePdf()
+    {
+        abort_unless(auth()->user()?->hasRole('Admin'), 403);
+        $data = app(\App\Services\AnevExecutiveService::class)->getData(
+            $this->date,
+            $this->period,
+            $this->startDate,
+            $this->endDate
+        );
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.anev-executive-pdf', compact('data'))
+            ->setPaper('a4', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            'Resume_Anev_Kasi_Fasmat_'.$this->date.'.pdf'
+        );
+    }
+
+    public function exportExecutiveExcel()
+    {
+        abort_unless(auth()->user()?->hasRole('Admin'), 403);
+        $data = app(\App\Services\AnevExecutiveService::class)->getData(
+            $this->date,
+            $this->period,
+            $this->startDate,
+            $this->endDate
+        );
+
+        return Excel::download(
+            new \App\Exports\AnevExecutiveExport($data),
+            'Resume_Anev_Kasi_Fasmat_'.$this->date.'.xlsx'
+        );
+    }
+
     private function filteredRows(Collection $rows): Collection
     {
         return $rows->filter(function ($row) {
@@ -120,7 +155,11 @@ class ReportingComplianceIndex extends Component
 
         $calendar = $this->calendarData();
 
-        return view('livewire.admin.report.anev.reporting-compliance-index', compact('calendar', 'rows', 'summary', 'today', 'dateError', 'sourceError', 'sources'))
+        $executiveService = app(\App\Services\AnevExecutiveService::class);
+        $executiveData = $executiveService->getData($this->date, $this->period, $this->startDate, $this->endDate);
+        $waText = $executiveService->generateFormattedText($executiveData);
+
+        return view('livewire.admin.report.anev.reporting-compliance-index', compact('calendar', 'rows', 'summary', 'today', 'dateError', 'sourceError', 'sources', 'executiveData', 'waText'))
             ->layout('components.layouts.main.app', ['title' => 'Anev Ketertiban Laporan']);
     }
 }

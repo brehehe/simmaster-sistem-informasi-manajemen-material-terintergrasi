@@ -84,7 +84,7 @@ class AdminMenuPoldaLastStockDetailIndex extends Component
         } else {
             // Create mode
             $this->code = LastStock::generateCode();
-            $this->date = now()->format('Y-m-d');
+            $this->date = now('Asia/Jakarta')->toDateString();
 
             // Role-based: auto-fill regional_police_id for Polda
             if ($user->hasRole('Polda')) {

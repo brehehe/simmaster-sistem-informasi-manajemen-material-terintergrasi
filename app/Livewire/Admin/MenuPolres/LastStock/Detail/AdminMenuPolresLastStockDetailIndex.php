@@ -113,7 +113,7 @@ class AdminMenuPolresLastStockDetailIndex extends Component
             }
         } else {
             $this->code = LastStock::generateCode();
-            $this->date = now()->format('Y-m-d');
+            $this->date = now('Asia/Jakarta')->toDateString();
 
             if ($user->hasRole('Polres')) {
                 $this->policeStationId = $user->police_station_id;

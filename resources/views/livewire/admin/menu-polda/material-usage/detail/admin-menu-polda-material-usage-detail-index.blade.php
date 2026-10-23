@@ -247,6 +247,19 @@
                                 @endif
                             @endforeach
                         </tbody>
+                        <tfoot class="border-t-2 border-gray-200 bg-gray-50/90 font-bold">
+                            <tr>
+                                <td colspan="7" class="px-4 py-3 text-right text-xs uppercase tracking-wider text-gray-700">
+                                    Total Jumlah Penggunaan:
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-block px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold tabular-nums">
+                                        {{ number_format(collect($details)->sum(fn($d) => (float)($d['quantity'] ?? 0)), 0, ',', '.') }}
+                                    </span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             @else
@@ -264,15 +277,20 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-6 flex items-center justify-end gap-3">
-        <a href="{{ route('menu-polda.material-usage') }}" 
-            class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
-            Batal
-        </a>
-        <button wire:loading.attr="disabled" wire:click="save" type="button"
-            class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
-            <span wire:loading.remove wire:target="save">Simpan Data</span>
-            <span wire:loading wire:target="save">Menyimpan...</span>
-        </button>
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-sm font-semibold text-gray-700">
+            Total Unit Penggunaan: <span class="text-blue-600 font-bold text-base tabular-nums">{{ number_format(collect($details)->sum(fn($d) => (float)($d['quantity'] ?? 0)), 0, ',', '.') }}</span> unit
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('menu-polda.material-usage') }}" 
+                class="px-6 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+                Batal
+            </a>
+            <button wire:loading.attr="disabled" wire:click="save" type="button"
+                class="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
+                <span wire:loading.remove wire:target="save">Simpan Data</span>
+                <span wire:loading wire:target="save">Menyimpan...</span>
+            </button>
+        </div>
     </div>
 </div>

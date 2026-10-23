@@ -45,7 +45,7 @@ class AdminMenuPolresMutationStockDetailIndex extends Component
 
     public function mount($id = null)
     {
-        $this->mutation_date = now()->format('Y-m-d');
+        $this->mutation_date = now('Asia/Jakarta')->toDateString();
         $user = auth()->user();
 
         $this->sender_police_station_id = $user->hasRole('Admin')

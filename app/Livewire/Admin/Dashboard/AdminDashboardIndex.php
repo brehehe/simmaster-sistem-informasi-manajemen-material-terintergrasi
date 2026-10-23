@@ -172,9 +172,10 @@ class AdminDashboardIndex extends Component
         $user = Auth::user();
         $isPolres = $user?->hasRole('Polres') || !empty($user?->police_station_id);
 
-        // Core Aggregate Metrics (Materiil Utama PNBP)
-        $totalStockPolda = Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0;
-        $totalStockPolres = Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0;
+        // Core Aggregate Metrics - re-use cached distribution counts to avoid redundant queries
+        $stockDistribution = $statsService->getStockDistribution();
+        $totalStockPolda = $stockDistribution['polda_count'];
+        $totalStockPolres = $stockDistribution['polres_count'];
         $totalReceptions = Reception::count();
         $receptionsToday = Reception::whereDate('date', today())->count();
 
@@ -297,7 +298,6 @@ class AdminDashboardIndex extends Component
             ];
         }
 
-        $stockDistribution = $statsService->getStockDistribution();
         $stockPerLocation = $statsService->getStockPerLocation();
 
         return view('livewire.admin.dashboard.admin-dashboard-index', [

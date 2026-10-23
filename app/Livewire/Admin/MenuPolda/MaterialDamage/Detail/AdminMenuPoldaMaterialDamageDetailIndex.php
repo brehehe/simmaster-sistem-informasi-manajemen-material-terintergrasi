@@ -62,7 +62,7 @@ class AdminMenuPoldaMaterialDamageDetailIndex extends Component
             $this->loadMaterialDamage();
         } else {
             $this->code = MaterialDamage::generateCode();
-            $this->date = now()->format('Y-m-d');
+            $this->date = now('Asia/Jakarta')->toDateString();
             
             $user = Auth::user();
             if ($user->hasRole('Polda')) {

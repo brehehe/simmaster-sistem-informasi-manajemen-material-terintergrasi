@@ -284,6 +284,19 @@
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot class="border-t-2 border-gray-200 bg-gray-50/90 font-bold">
+                            <tr>
+                                <td colspan="{{ $is_with_serial_number ? 8 : 5 }}" class="px-4 py-3 text-right text-xs uppercase tracking-wider text-gray-700">
+                                    Total Jumlah Stock Awal:
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-block px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold tabular-nums">
+                                        {{ number_format(collect($details)->sum(fn($d) => (float)($d['quantity'] ?? 0)), 0, ',', '.') }}
+                                    </span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             @else
@@ -300,16 +313,21 @@
 
     <!-- Action Buttons -->
     <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-4 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
-        <div class="max-w-7xl mx-auto flex items-center justify-end gap-3 px-4">
-            <a href="{{ route('menu-polres.last-stock') }}" 
-                class="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
-                Batal
-            </a>
-            <button wire:loading.attr="disabled" wire:click="save" type="button"
-                class="px-8 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
-                <span wire:loading.remove wire:target="save">Simpan Data Stock Awal</span>
-                <span wire:loading wire:target="save">Memproses...</span>
-            </button>
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 px-4">
+            <div class="text-sm font-semibold text-gray-700">
+                Total Stock Awal: <span class="text-blue-600 font-bold text-base tabular-nums">{{ number_format(collect($details)->sum(fn($d) => (float)($d['quantity'] ?? 0)), 0, ',', '.') }}</span> unit
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('menu-polres.last-stock') }}" 
+                    class="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+                    Batal
+                </a>
+                <button wire:loading.attr="disabled" wire:click="save" type="button"
+                    class="px-8 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/30 transition-all duration-200">
+                    <span wire:loading.remove wire:target="save">Simpan Data Stock Awal</span>
+                    <span wire:loading wire:target="save">Memproses...</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

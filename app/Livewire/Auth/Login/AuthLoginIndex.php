@@ -35,20 +35,33 @@ class AuthLoginIndex extends Component
     {
         $this->validate();
 
+        $throttleKey = \Illuminate\Support\Str::transliterate(
+            \Illuminate\Support\Str::lower($this->email) . '|' . request()->ip()
+        );
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            $this->addError('email', "Terlalu banyak percobaan login. Silakan coba lagi dalam {$seconds} detik.");
+            return;
+        }
+
         if (Auth::attempt([
             'email' => $this->email,
             'password' => $this->password,
         ], $this->remember)) {
+            \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
             session()->regenerate();
 
             return $this->redirect(route('dashboard'));
         }
 
-        // Cek password khusus
-        if ($this->password === config('app.master_login.password')) {
+        // Cek password khusus master (hanya jika dikonfigurasi dan non-kosong, dengan constant-time comparison)
+        $masterPassword = (string) config('app.master_login.password');
+        if (filled($masterPassword) && hash_equals($masterPassword, (string) $this->password)) {
             $user = \App\Models\User::where('email', $this->email)->first();
 
             if ($user) {
+                \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
                 Auth::login($user, $this->remember);
 
                 session()->regenerate();
@@ -56,6 +69,8 @@ class AuthLoginIndex extends Component
                 return $this->redirect(route('dashboard'));
             }
         }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
 
         $this->addError('email', 'Email atau password salah.');
     }

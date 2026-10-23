@@ -66,7 +66,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             $this->loadMaterialUsage();
         } else {
             $this->code = MaterialUsage::generateCode();
-            $this->date = now()->format('Y-m-d');
+            $this->date = now('Asia/Jakarta')->toDateString();
             $this->addDetail();
         }
 
@@ -537,12 +537,18 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             return collect();
         }
 
-        return Service::where('type_id', $typeId)
+        $services = Service::where('type_id', $typeId)
             ->where('is_active', true)
             ->withCount('details')
             ->with(['details' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
-            ->orderBy('name')
             ->get();
+
+        $type = Type::find($typeId);
+        if ($type && stripos($type->name, 'SIM') !== false) {
+            return \App\Services\DailyMaterialUsageService::sortServices($services);
+        }
+
+        return $services->sortBy('name')->values();
     }
 
     public function hasServices($typeId)

@@ -13,6 +13,7 @@ use App\Models\Target\TargetDetail;
 use App\Models\Type\Type;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardStatsService
@@ -25,49 +26,51 @@ class DashboardStatsService
         $month = $month ?: now()->month;
         $year = $year ?: now()->year;
 
-        $carbonDate = Carbon::createFromDate($year, $month, 1);
-        $daysInMonth = $carbonDate->daysInMonth;
-        $daysLabels = [];
-        $pnbpData = [];
-        $gunmatData = [];
+        return Cache::remember("dashboard:daily_pnbp_gunmat:{$year}_{$month}", 60, function () use ($month, $year) {
+            $carbonDate = Carbon::createFromDate($year, $month, 1);
+            $daysInMonth = $carbonDate->daysInMonth;
+            $daysLabels = [];
+            $pnbpData = [];
+            $gunmatData = [];
 
-        $isSqlite = DB::getDriverName() === 'sqlite';
-        $dayExpr = $isSqlite ? "CAST(strftime('%d', material_usages.date) AS INTEGER)" : 'EXTRACT(DAY FROM material_usages.date)';
+            $isSqlite = DB::getDriverName() === 'sqlite';
+            $dayExpr = $isSqlite ? "CAST(strftime('%d', material_usages.date) AS INTEGER)" : 'EXTRACT(DAY FROM material_usages.date)';
 
-        $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::query()
-            ->select(DB::raw("{$dayExpr} as day_num"),
-                DB::raw('SUM(material_usage_detail_items.quantity * COALESCE(service_details.price, services.price, type_details.price, types.price, 0)) as total_pnbp'),
-                DB::raw('SUM(material_usage_detail_items.quantity) as total_gunmat'))
-            ->join('material_usages', 'material_usage_detail_items.material_usage_id', '=', 'material_usages.id')
-            ->join('material_usage_details', 'material_usage_detail_items.material_usage_detail_id', '=', 'material_usage_details.id')
-            ->leftJoin('types', 'material_usage_detail_items.type_id', '=', 'types.id')
-            ->leftJoin('type_details', 'material_usage_detail_items.type_detail_id', '=', 'type_details.id')
-            ->leftJoin('services', 'material_usage_detail_items.service_id', '=', 'services.id')
-            ->leftJoin('service_details', 'material_usage_detail_items.service_detail_id', '=', 'service_details.id')
-            ->whereNull('material_usages.deleted_at')->where('material_usages.is_active', true)
-            ->whereNull('material_usage_details.deleted_at')->where('material_usage_details.is_active', true)
-            ->where('material_usage_detail_items.is_active', true)
-            ->whereYear('material_usages.date', $year)->whereMonth('material_usages.date', $month)
-            ->groupBy(DB::raw($dayExpr))->get()->keyBy(fn ($item) => (int) $item->day_num);
+            $usages = \App\Models\MenuPolda\MaterialUsage\MaterialUsageDetailItem::query()
+                ->select(DB::raw("{$dayExpr} as day_num"),
+                    DB::raw('SUM(material_usage_detail_items.quantity * COALESCE(service_details.price, services.price, type_details.price, types.price, 0)) as total_pnbp'),
+                    DB::raw('SUM(material_usage_detail_items.quantity) as total_gunmat'))
+                ->join('material_usages', 'material_usage_detail_items.material_usage_id', '=', 'material_usages.id')
+                ->join('material_usage_details', 'material_usage_detail_items.material_usage_detail_id', '=', 'material_usage_details.id')
+                ->leftJoin('types', 'material_usage_detail_items.type_id', '=', 'types.id')
+                ->leftJoin('type_details', 'material_usage_detail_items.type_detail_id', '=', 'type_details.id')
+                ->leftJoin('services', 'material_usage_detail_items.service_id', '=', 'services.id')
+                ->leftJoin('service_details', 'material_usage_detail_items.service_detail_id', '=', 'service_details.id')
+                ->whereNull('material_usages.deleted_at')->where('material_usages.is_active', true)
+                ->whereNull('material_usage_details.deleted_at')->where('material_usage_details.is_active', true)
+                ->where('material_usage_detail_items.is_active', true)
+                ->whereYear('material_usages.date', $year)->whereMonth('material_usages.date', $month)
+                ->groupBy(DB::raw($dayExpr))->get()->keyBy(fn ($item) => (int) $item->day_num);
 
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $daysLabels[] = "Tgl {$day}";
-            $usage = $usages->get($day);
-            if ($usage) {
-                $pnbpData[] = (float) $usage->total_pnbp;
-                $gunmatData[] = (float) $usage->total_gunmat;
-            } else {
-                $pnbpData[] = 0;
-                $gunmatData[] = 0;
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                $daysLabels[] = "Tgl {$day}";
+                $usage = $usages->get($day);
+                if ($usage) {
+                    $pnbpData[] = (float) $usage->total_pnbp;
+                    $gunmatData[] = (float) $usage->total_gunmat;
+                } else {
+                    $pnbpData[] = 0;
+                    $gunmatData[] = 0;
+                }
             }
-        }
 
-        return [
-            'labels' => $daysLabels,
-            'pnbp' => $pnbpData,
-            'gunmat' => $gunmatData,
-            'month_name' => $carbonDate->locale('id')->isoFormat('MMMM Y'),
-        ];
+            return [
+                'labels' => $daysLabels,
+                'pnbp' => $pnbpData,
+                'gunmat' => $gunmatData,
+                'month_name' => $carbonDate->locale('id')->isoFormat('MMMM Y'),
+            ];
+        });
     }
 
     /**
@@ -75,36 +78,38 @@ class DashboardStatsService
      */
     public function getHistoryStockTrend(): array
     {
-        $startDate = now()->subMonths(11)->startOfMonth();
-        $isSqlite = DB::getDriverName() === 'sqlite';
-        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : 'EXTRACT(YEAR FROM date)';
-        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : 'EXTRACT(MONTH FROM date)';
+        return Cache::remember('dashboard:history_stock_trend', 60, function () {
+            $startDate = now()->subMonths(11)->startOfMonth();
+            $isSqlite = DB::getDriverName() === 'sqlite';
+            $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : 'EXTRACT(YEAR FROM date)';
+            $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : 'EXTRACT(MONTH FROM date)';
 
-        $rows = HistoryStock::query()
-            ->select(
-                DB::raw("{$yrExpr} as yr"),
-                DB::raw("{$moExpr} as mo"),
-                DB::raw('SUM(ABS(quantity)) as total_qty')
-            )
-            ->where('date', '>=', $startDate)
-            ->groupBy(DB::raw($yrExpr), DB::raw($moExpr))
-            ->get()
-            ->keyBy(fn ($r) => ((int) $r->yr).'-'.((int) $r->mo));
+            $rows = HistoryStock::query()
+                ->select(
+                    DB::raw("{$yrExpr} as yr"),
+                    DB::raw("{$moExpr} as mo"),
+                    DB::raw('SUM(ABS(quantity)) as total_qty')
+                )
+                ->where('date', '>=', $startDate)
+                ->groupBy(DB::raw($yrExpr), DB::raw($moExpr))
+                ->get()
+                ->keyBy(fn ($r) => ((int) $r->yr).'-'.((int) $r->mo));
 
-        $labels = [];
-        $data = [];
+            $labels = [];
+            $data = [];
 
-        for ($i = 11; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $key = $date->year.'-'.$date->month;
-            $labels[] = $date->locale('id')->format('M');
-            $data[] = (float) ($rows->get($key)?->total_qty ?? 0);
-        }
+            for ($i = 11; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $key = $date->year.'-'.$date->month;
+                $labels[] = $date->locale('id')->format('M');
+                $data[] = (float) ($rows->get($key)?->total_qty ?? 0);
+            }
 
-        return [
-            'labels' => $labels,
-            'data' => $data,
-        ];
+            return [
+                'labels' => $labels,
+                'data' => $data,
+            ];
+        });
     }
 
     /**
@@ -112,46 +117,48 @@ class DashboardStatsService
      */
     public function getMaterialMovement(): array
     {
-        $startDate = now()->subMonths(5)->startOfMonth();
-        $isSqlite = DB::getDriverName() === 'sqlite';
-        $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : 'EXTRACT(YEAR FROM date)';
-        $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : 'EXTRACT(MONTH FROM date)';
+        return Cache::remember('dashboard:material_movement', 60, function () {
+            $startDate = now()->subMonths(5)->startOfMonth();
+            $isSqlite = DB::getDriverName() === 'sqlite';
+            $yrExpr = $isSqlite ? "CAST(strftime('%Y', date) AS INTEGER)" : 'EXTRACT(YEAR FROM date)';
+            $moExpr = $isSqlite ? "CAST(strftime('%m', date) AS INTEGER)" : 'EXTRACT(MONTH FROM date)';
 
-        $rows = HistoryStock::query()
-            ->select(
-                DB::raw("{$yrExpr} as yr"),
-                DB::raw("{$moExpr} as mo"),
-                'status_type',
-                DB::raw('SUM(quantity) as total_qty')
-            )
-            ->where('date', '>=', $startDate)
-            ->whereIn('status_type', ['in', 'out'])
-            ->groupBy(DB::raw($yrExpr), DB::raw($moExpr), 'status_type')
-            ->get()
-            ->groupBy(fn ($r) => ((int) $r->yr).'-'.((int) $r->mo));
+            $rows = HistoryStock::query()
+                ->select(
+                    DB::raw("{$yrExpr} as yr"),
+                    DB::raw("{$moExpr} as mo"),
+                    'status_type',
+                    DB::raw('SUM(quantity) as total_qty')
+                )
+                ->where('date', '>=', $startDate)
+                ->whereIn('status_type', ['in', 'out'])
+                ->groupBy(DB::raw($yrExpr), DB::raw($moExpr), 'status_type')
+                ->get()
+                ->groupBy(fn ($r) => ((int) $r->yr).'-'.((int) $r->mo));
 
-        $labels = [];
-        $dataIn = [];
-        $dataOut = [];
+            $labels = [];
+            $dataIn = [];
+            $dataOut = [];
 
-        for ($i = 5; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $key = $date->year.'-'.$date->month;
-            $monthGroup = $rows->get($key, collect());
+            for ($i = 5; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $key = $date->year.'-'.$date->month;
+                $monthGroup = $rows->get($key, collect());
 
-            $in = (float) ($monthGroup->firstWhere('status_type', 'in')?->total_qty ?? 0);
-            $out = (float) ($monthGroup->firstWhere('status_type', 'out')?->total_qty ?? 0);
+                $in = (float) ($monthGroup->firstWhere('status_type', 'in')?->total_qty ?? 0);
+                $out = (float) ($monthGroup->firstWhere('status_type', 'out')?->total_qty ?? 0);
 
-            $labels[] = $date->locale('id')->format('M Y');
-            $dataIn[] = $in;
-            $dataOut[] = abs($out);
-        }
+                $labels[] = $date->locale('id')->format('M Y');
+                $dataIn[] = $in;
+                $dataOut[] = abs($out);
+            }
 
-        return [
-            'labels' => $labels,
-            'in' => $dataIn,
-            'out' => $dataOut,
-        ];
+            return [
+                'labels' => $labels,
+                'in' => $dataIn,
+                'out' => $dataOut,
+            ];
+        });
     }
 
     /**
@@ -338,20 +345,22 @@ class DashboardStatsService
      */
     public function getTypeDistribution(): array
     {
-        $types = Type::query()
-            ->select('types.id', 'types.name')
-            ->join('stocks', 'types.id', '=', 'stocks.type_id')
-            ->whereNull('stocks.type_detail_id')
-            ->groupBy('types.id', 'types.name')
-            ->selectRaw('SUM(stocks.quantity) as total_stock')
-            ->orderByDesc('total_stock')
-            ->take(5)
-            ->get();
+        return Cache::remember('dashboard:type_distribution', 60, function () {
+            $types = Type::query()
+                ->select('types.id', 'types.name')
+                ->join('stocks', 'types.id', '=', 'stocks.type_id')
+                ->whereNull('stocks.type_detail_id')
+                ->groupBy('types.id', 'types.name')
+                ->selectRaw('SUM(stocks.quantity) as total_stock')
+                ->orderByDesc('total_stock')
+                ->take(5)
+                ->get();
 
-        return [
-            'labels' => $types->pluck('name')->toArray(),
-            'data' => $types->pluck('total_stock')->map(fn ($v) => (float) $v)->toArray(),
-        ];
+            return [
+                'labels' => $types->pluck('name')->toArray(),
+                'data' => $types->pluck('total_stock')->map(fn ($v) => (float) $v)->toArray(),
+            ];
+        });
     }
 
     /**
@@ -359,21 +368,23 @@ class DashboardStatsService
      */
     public function getRegionalStats(): array
     {
-        $regionals = RegionalPolice::select('regional_police.id', 'regional_police.name')
-            ->leftJoin('stocks', function ($join) {
-                $join->on('regional_police.id', '=', 'stocks.regional_police_id')
-                    ->whereNull('stocks.type_detail_id');
-            })
-            ->groupBy('regional_police.id', 'regional_police.name')
-            ->selectRaw('COALESCE(SUM(stocks.quantity), 0) as total_stock')
-            ->orderBy('total_stock', 'DESC')
-            ->take(5)
-            ->get();
+        return Cache::remember('dashboard:regional_stats', 60, function () {
+            $regionals = RegionalPolice::select('regional_police.id', 'regional_police.name')
+                ->leftJoin('stocks', function ($join) {
+                    $join->on('regional_police.id', '=', 'stocks.regional_police_id')
+                        ->whereNull('stocks.type_detail_id');
+                })
+                ->groupBy('regional_police.id', 'regional_police.name')
+                ->selectRaw('COALESCE(SUM(stocks.quantity), 0) as total_stock')
+                ->orderBy('total_stock', 'DESC')
+                ->take(5)
+                ->get();
 
-        return [
-            'labels' => $regionals->pluck('name')->toArray(),
-            'data' => $regionals->pluck('total_stock')->toArray(),
-        ];
+            return [
+                'labels' => $regionals->pluck('name')->toArray(),
+                'data' => $regionals->pluck('total_stock')->toArray(),
+            ];
+        });
     }
 
     /**
@@ -381,16 +392,18 @@ class DashboardStatsService
      */
     public function getStockDistribution(): array
     {
-        $stockPolda = (float) (Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0);
-        $stockPolres = (float) (Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0);
-        $total = $stockPolda + $stockPolres;
+        return Cache::remember('dashboard:stock_distribution', 60, function () {
+            $stockPolda = (float) (Stock::polda()->whereNull('type_detail_id')->sum('quantity') ?? 0);
+            $stockPolres = (float) (Stock::polres()->whereNull('type_detail_id')->sum('quantity') ?? 0);
+            $total = $stockPolda + $stockPolres;
 
-        return [
-            'polda' => $total > 0 ? round(($stockPolda / $total) * 100) : 0,
-            'polres' => $total > 0 ? round(($stockPolres / $total) * 100) : 0,
-            'polda_count' => $stockPolda,
-            'polres_count' => $stockPolres,
-        ];
+            return [
+                'polda' => $total > 0 ? round(($stockPolda / $total) * 100) : 0,
+                'polres' => $total > 0 ? round(($stockPolres / $total) * 100) : 0,
+                'polda_count' => $stockPolda,
+                'polres_count' => $stockPolres,
+            ];
+        });
     }
 
     /**
