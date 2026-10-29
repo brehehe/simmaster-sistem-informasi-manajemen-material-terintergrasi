@@ -32,7 +32,7 @@ class AdminMenuPoldaStockOpnameCreateIndex extends Component
     public function mount()
     {
         $this->ownerType = 'polda';
-        $this->opname_date = now('Asia/Jakarta')->toDateString();
+        $this->opname_date = now()->toDateString();
         $this->regional_police_id = auth()->user()->regional_police_id;
     }
 

@@ -15,7 +15,7 @@ class AnevExecutiveService
      */
     public function getData(?string $date = null, string $period = 'daily', ?string $startDate = null, ?string $endDate = null): array
     {
-        $timezone = ReportingComplianceService::TIMEZONE;
+        $timezone = config('app.timezone', 'UTC');
         $now = CarbonImmutable::now($timezone);
         $date = $date ?: $now->toDateString();
         $year = (int) substr($date, 0, 4);

@@ -71,7 +71,7 @@
             <div class="grid gap-6 p-6 sm:grid-cols-2">
                 <div>
                     <label for="usage-date" class="mb-2 block text-sm font-semibold text-gray-700">Tanggal penggunaan <span class="text-red-500">*</span></label>
-                    <input id="usage-date" type="date" wire:model="date" required max="{{ now('Asia/Jakarta')->toDateString() }}" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    <input id="usage-date" type="date" wire:model="date" required max="{{ now()->toDateString() }}" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                     <p class="mt-1 text-[11px] text-gray-400">Tanggal otomatis berganti tepat pada pukul 24.00 WIB tengah malam.</p>
                     @error('date')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>

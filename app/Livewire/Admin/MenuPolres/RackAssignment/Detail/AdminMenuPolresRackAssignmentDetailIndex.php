@@ -88,7 +88,7 @@ class AdminMenuPolresRackAssignmentDetailIndex extends Component
             $this->loadRackAssignment();
         } else {
             $this->code = RackAssignment::generateCode();
-            $this->date = now('Asia/Jakarta')->toDateString();
+            $this->date = now()->toDateString();
             $this->addDetail();
         }
     }

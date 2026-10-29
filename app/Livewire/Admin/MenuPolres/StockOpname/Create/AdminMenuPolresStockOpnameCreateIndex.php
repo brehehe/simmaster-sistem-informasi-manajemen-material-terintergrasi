@@ -38,7 +38,7 @@ class AdminMenuPolresStockOpnameCreateIndex extends Component
 
     public function mount()
     {
-        $this->opname_date = now('Asia/Jakarta')->toDateString();
+        $this->opname_date = now()->toDateString();
         $this->police_station_id = $this->policeStationForUser();
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();
     }

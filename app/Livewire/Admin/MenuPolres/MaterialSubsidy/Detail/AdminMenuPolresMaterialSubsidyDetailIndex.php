@@ -46,7 +46,7 @@ class AdminMenuPolresMaterialSubsidyDetailIndex extends Component
 
     public function mount(?string $id = null): void
     {
-        $this->subsidyDate = now('Asia/Jakarta')->toDateString();
+        $this->subsidyDate = now()->toDateString();
         $this->types = Type::where('is_active', true)->orderBy('name')->get();
         $this->allTypeDetails = TypeDetail::where('is_active', true)->orderBy('name')->get();
         $this->policeStations = PoliceStation::where('is_active', true)->orderBy('name')->get();

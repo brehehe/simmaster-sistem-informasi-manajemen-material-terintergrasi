@@ -34,7 +34,7 @@ class AdminMenuPoldaMutationStockDetailIndex extends Component
 
     public function mount($id = null)
     {
-        $this->mutation_date = now('Asia/Jakarta')->toDateString();
+        $this->mutation_date = now()->toDateString();
         $user = auth()->user();
 
         if ($id) {

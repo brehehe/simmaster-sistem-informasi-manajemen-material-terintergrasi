@@ -31,7 +31,7 @@ class AdminStockOpnameCreate extends Component
 
     public function mount()
     {
-        $this->opname_date = now('Asia/Jakarta')->toDateString();
+        $this->opname_date = now()->toDateString();
     }
 
     public function updatedOwnerType()

@@ -29,7 +29,7 @@ class AdminMenuPolresMaterialUsageDetailIndex extends Component
     public function mount($id = null): void
     {
         $this->materialUsageId = $id;
-        $this->date = now('Asia/Jakarta')->toDateString();
+        $this->date = now()->toDateString();
         $this->policeStationId = auth()->user()->police_station_id ?? '';
         $usage = null;
         if ($id) {

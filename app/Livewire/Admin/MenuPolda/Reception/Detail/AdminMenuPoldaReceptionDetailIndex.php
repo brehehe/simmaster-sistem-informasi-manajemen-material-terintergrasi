@@ -213,8 +213,8 @@ class AdminMenuPoldaReceptionDetailIndex extends Component
         } else {
             // Create mode
             $this->code = ''; // Users input this manually (Nomor SPPM)
-            $this->date = now('Asia/Jakarta')->toDateString();
-            $this->sppm_date = now('Asia/Jakarta')->toDateString();
+            $this->date = now()->toDateString();
+            $this->sppm_date = now()->toDateString();
 
             // Generate auto BAPPM number template
             $year = date('Y');

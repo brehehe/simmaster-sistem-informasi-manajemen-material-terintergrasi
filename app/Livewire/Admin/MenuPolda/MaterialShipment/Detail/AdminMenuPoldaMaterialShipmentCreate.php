@@ -37,7 +37,7 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
 
     public function getRomanMonth(?string $date = null): string
     {
-        $time = strtotime($date ?: $this->shipment_date ?: now('Asia/Jakarta')->toDateString());
+        $time = strtotime($date ?: $this->shipment_date ?: now()->toDateString());
         $month = (int) date('n', $time);
         $map = [
             1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
@@ -49,7 +49,7 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
 
     public function getNextNumber(?string $date = null): string
     {
-        $year = substr($date ?: $this->shipment_date ?: now('Asia/Jakarta')->toDateString(), 0, 4);
+        $year = substr($date ?: $this->shipment_date ?: now()->toDateString(), 0, 4);
         $codes = MaterialShipment::withTrashed()
             ->where('code', 'like', "SPPM/%/%/LOG.3.6.7./{$year}")
             ->pluck('code');
@@ -69,7 +69,7 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
 
     public function generateDefaultCode(?string $date = null): string
     {
-        $date = $date ?: $this->shipment_date ?: now('Asia/Jakarta')->toDateString();
+        $date = $date ?: $this->shipment_date ?: now()->toDateString();
         $year = substr($date, 0, 4);
         $monthRoman = $this->getRomanMonth($date);
         $nextNumber = $this->getNextNumber($date);
@@ -85,7 +85,7 @@ class AdminMenuPoldaMaterialShipmentCreate extends Component
 
     public function mount($id = null): void
     {
-        $this->shipment_date = now('Asia/Jakarta')->toDateString();
+        $this->shipment_date = now()->toDateString();
         $this->regional_police_id = auth()->user()->regional_police_id ?? RegionalPolice::where('is_active', true)->value('id') ?? '';
 
         if ($id) {

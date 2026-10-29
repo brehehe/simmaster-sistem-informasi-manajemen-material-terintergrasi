@@ -36,7 +36,7 @@ class ReportingComplianceIndex extends Component
 
     public function updatedPeriod(): void
     {
-        $today = CarbonImmutable::now(ReportingComplianceService::TIMEZONE);
+        $today = now();
         [$this->startDate, $this->endDate] = match ($this->period) {
             'weekly' => [$today->startOfWeek()->toDateString(), $today->toDateString()],
             'monthly' => [$today->startOfMonth()->toDateString(), $today->toDateString()],
@@ -46,7 +46,7 @@ class ReportingComplianceIndex extends Component
 
     private function calendarData(): array
     {
-        $today = CarbonImmutable::now(ReportingComplianceService::TIMEZONE)->toDateString();
+        $today = now()->toDateString();
         $start = $this->period === 'daily' ? $this->date : $this->startDate;
         $end = $this->period === 'daily' ? $this->date : $this->endDate;
         $validation = validator(compact('start', 'end'), ['start' => 'required|date_format:Y-m-d|before_or_equal:end', 'end' => 'required|date_format:Y-m-d|before_or_equal:'.$today]);
@@ -71,7 +71,7 @@ class ReportingComplianceIndex extends Component
     public function exportExcel()
     {
         abort_unless(auth()->user()?->hasRole('Admin'), 403);
-        $today = CarbonImmutable::now(ReportingComplianceService::TIMEZONE)->toDateString();
+        $today = now()->toDateString();
         $this->validate([
             'date' => 'required|date_format:Y-m-d|before_or_equal:'.$today,
             'source' => ['required', Rule::in(array_merge(['all'], array_keys(ReportingComplianceService::sources())))],
@@ -132,13 +132,13 @@ class ReportingComplianceIndex extends Component
             $this->updatedPeriod();
         }
         if ($this->date === '') {
-            $this->date = CarbonImmutable::now(ReportingComplianceService::TIMEZONE)->toDateString();
+            $this->date = now()->toDateString();
         }
     }
 
     public function render()
     {
-        $today = CarbonImmutable::now(ReportingComplianceService::TIMEZONE)->toDateString();
+        $today = now()->toDateString();
         $validator = validator(['date' => $this->date], ['date' => 'required|date_format:Y-m-d|before_or_equal:'.$today]);
         $dateError = $validator->fails() ? 'Pilih tanggal laporan yang valid, maksimal hari ini.' : null;
         $sources = ReportingComplianceService::sources();

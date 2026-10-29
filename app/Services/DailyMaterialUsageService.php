@@ -121,7 +121,7 @@ class DailyMaterialUsageService
             abort_unless($user->can('update', $editing) && $editing->police_station_id === $stationId, 403);
         }
         $catalog = $this->catalog($user->hasRole('Admin') ? null : $user->userType?->types, false, $editing);
-        $rules = ['date' => 'required|date_format:Y-m-d|before_or_equal:'.now('Asia/Jakarta')->toDateString(), 'quantities' => 'required|array'];
+        $rules = ['date' => 'required|date_format:Y-m-d|before_or_equal:'.now()->toDateString(), 'quantities' => 'required|array'];
         foreach ($catalog as $key => $row) {
             $rules['quantities.'.$key] = 'required|integer|min:0|max:999999999';
         }

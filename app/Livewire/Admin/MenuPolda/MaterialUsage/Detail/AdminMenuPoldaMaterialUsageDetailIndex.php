@@ -66,7 +66,7 @@ class AdminMenuPoldaMaterialUsageDetailIndex extends Component
             $this->loadMaterialUsage();
         } else {
             $this->code = MaterialUsage::generateCode();
-            $this->date = now('Asia/Jakarta')->toDateString();
+            $this->date = now()->toDateString();
             $this->addDetail();
         }
 
